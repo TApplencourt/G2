@@ -18,7 +18,6 @@ Usage:
                        [--geo=geometry_name...]
                        [--basis=basis_name...]
                        [--method=method_name...]
-
   G2_api.py --version
 
 Options:
@@ -34,7 +33,7 @@ Example of use:
   ./G2_api.py get_energy --basis cc-pvdz --ele AlCl --ele Li2 --get_ae
 """
 
-version = "0.1.0"
+version = "1.0.0"
 
 import sys
 
