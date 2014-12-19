@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""G2 Api.
+"""Welcom to the G2 Api! Grab all G2 data you're dreaming for.
 
 Usage:
   G2_api.py (-h | --help)
@@ -21,6 +21,7 @@ Usage:
   G2_api.py --version
 
 Options:
+  --help                 Here you go.
   --without_pt2          Show all the data without adding the PT2 when avalaible.
   --get_ae               Show the atomization energy (both theorical and experiment) when avalaible.
   All the other          Filter the data or ordering it. See example.
