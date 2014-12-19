@@ -5,13 +5,14 @@
 
 Usage:
   G2_api.py (-h | --help)
-  G2_api.py list_run [--ele=element_name...]
+  G2_api.py list_run [--order_by=column...]
+                     [--ele=element_name...]
                      [--geo=geometry_name...]
                      [--basis=basis_name...]
                      [--method=method_name...]
   G2_api.py get_energy [--without_pt2]
                        [--get_ae]
-                       [--order_by=name...]
+                       [--order_by=column...]
                        [--run_id=id...]
                        [--ele=element_name...]
                        [--geo=geometry_name...]
@@ -87,35 +88,72 @@ if __name__ == '__main__':
 
     arguments = docopt(__doc__, version='G2 Api ' + version)
 
+    # ______ _ _ _
+    # |  ___(_) | |
+    # | |_   _| | |_ ___ _ __
+    # |  _| | | | __/ _ \ '__|
+    # | |   | | | ||  __/ |
+    # \_|   |_|_|\__\___|_|
+    #
+
+    #| ||_  _  __ _
+    #|^|| |(/_ | (/_
+    d = {"run_id": "--run_id",
+         "geo_name": "--geo",
+         "basis_name": "--basis",
+         "meth_name": "--method"}
+
+    str_ = []
+    for k, v in d.items():
+        l_v = arguments[v]
+        cond = cond_sql_or(k, l_v)
+        str_.append(cond)
+
+    ele = arguments["--ele"]
+    if ele:
+        # Find all this children of the element; this is the new conditions
+        cond = cond_sql_or("name", ele)
+        c.execute("""SELECT name, formula
+                       FROM id_tab
+                      WHERE {where_cond}""".format(where_cond=cond))
+
+        list_name_needed = ()
+        for name, formula_raw in c.fetchall():
+            list_name_needed += (name,)
+            for atom, number in eval(formula_raw):
+                list_name_needed += (atom,)
+
+        cond = cond_sql_or("ele", list_name_needed)
+        str_.append(cond)
+
+    cmd_where = " AND ".join(str_)
+
+    # _
+    #/ \ __ _| _  __   |_  \/
+    #\_/ | (_|(/_ |    |_) /
+    cmd_by = ",".join(arguments["--order_by"])
+    if not cmd_by:
+        cmd_by = "run_id"
+
+    # _     _     _
+    #| |   (_)   | |
+    #| |    _ ___| |_   _ __ _   _ _ __
+    #| |   | / __| __| | '__| | | | '_ \
+    #| |___| \__ \ |_  | |  | |_| | | | |
+    #\_____/_|___/\__| |_|   \__,_|_| |_|
+    #
     if arguments["list_run"]:
 
-       # ______ _ _ _
-       # |  ___(_) | |
-       # | |_   _| | |_ ___ _ __
-       # |  _| | | | __/ _ \ '__|
-       # | |   | | | ||  __/ |
-       # \_|   |_|_|\__\___|_|
-       #
-
-        str_ = []
-
-        d = {"name": "--ele",
-             "geo_name": "--geo",
-             "basis_name": "--basis",
-             "meth_name": "--method"}
-
-        for k, v in d.items():
-            l_v = arguments[v]
-            cond = cond_sql_or(k, l_v)
-            str_.append(cond)
-
-        cmd = " AND ".join(str_)
-
         c.execute(
-            """SELECT run_id, method_name ,basis_name, geo_name, comments
-                 FROM output_tab
-                WHERE {where_cond}
-             GROUP BY run_id""".format(where_cond=cmd))
+            """SELECT run_id,
+                 method_name method,
+                  basis_name basis,
+                    geo_name geo,
+                    comments
+                        FROM output_tab
+                       WHERE {where_cond}
+                    GROUP BY run_id
+                    ORDER BY {order_by}""".format(where_cond=cmd_where, order_by=cmd_by))
 
         header = ["Run_id", "Method", "Basis", "Geo", "Comments"]
         print ' '.join('{:<22}'.format(i) for i in header)
@@ -124,59 +162,17 @@ if __name__ == '__main__':
             print ' '.join('{:<22}'.format(i) for i in line)
         print ""
 
+    # _____
+    #|  ___|
+    #| |__ _ __   ___ _ __ __ _ _   _
+    #|  __| '_ \ / _ \ '__/ _` | | | |
+    #| |__| | | |  __/ | | (_| | |_| |
+    #\____/_| |_|\___|_|  \__, |\__, |
+    #                      __/ | __/ |
+    #                     |___/ |___/
     elif arguments["get_energy"]:
 
         from collections import defaultdict
-
-       # ______ _ _ _
-       # |  ___(_) | |
-       # | |_   _| | |_ ___ _ __
-       # |  _| | | | __/ _ \ '__|
-       # | |   | | | ||  __/ |
-       # \_|   |_|_|\__\___|_|
-       #
-
-        d = {"run_id": "--run_id",
-             "geo_name": "--geo",
-             "basis_name": "--basis",
-             "meth_name": "--method"}
-
-        str_ = []
-        for k, v in d.items():
-            l_v = arguments[v]
-            cond = cond_sql_or(k, l_v)
-            str_.append(cond)
-
-        ele = arguments["--ele"]
-        if ele:
-            # Find all this children of the element, this is the new conditions
-            cond = cond_sql_or("name", ele)
-            c.execute("""SELECT name, formula
-                           FROM id_tab
-                          WHERE {where_cond}""".format(where_cond=cond))
-
-            list_name_needed = ()
-            for name, formula_raw in c.fetchall():
-                list_name_needed += (name,)
-                for atom, number in eval(formula_raw):
-                    list_name_needed += (atom,)
-
-            cond = cond_sql_or("ele", list_name_needed)
-            str_.append(cond)
-
-        cmd = " AND ".join(str_)
-
-        order_by = ",".join(arguments["--order_by"])
-        if not order_by:
-            order_by = "run_id"
-        # _____
-        #|  ___|
-        #| |__ _ __   ___ _ __ __ _ _   _
-        #|  __| '_ \ / _ \ '__/ _` | | | |
-        #| |__| | | |  __/ | | (_| | |_| |
-        #\____/_| |_|\___|_|  \__, |\__, |
-        #                      __/ | __/ |
-        #                     |___/ |___/
 
         c.execute("""SELECT formula,
                              run_id,
@@ -193,7 +189,7 @@ if __name__ == '__main__':
                         ON output_tab.name = id_tab.name
                      WHERE {where_cond}
                   ORDER BY {order_by}
-                    """.format(where_cond=cmd, order_by=order_by))
+                    """.format(where_cond=cmd_where, order_by=cmd_by))
 
         data_th = c.fetchall()
 
