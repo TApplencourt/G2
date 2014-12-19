@@ -29,14 +29,15 @@ Options:
   --all_children         Find all the children of the ele.
   All the other          Filter the data or ordering it. See example.
 
+/!\ If you use --get_ae and filter by ele don't forger to use --all_children !
 
 Example of use:
-  ./G2_api.py list_run g2.db
+  ./G2_api.py list_run --method cipsi
   ./G2_api.py get_energy --run_id 11 --order_by num_elec --without_pt2
-  ./G2_api.py get_energy --basis cc-pvdz --ele AlCl --ele Li2 --get_ae
+  ./G2_api.py get_energy --basis cc-pvdz --ele AlCl --ele Li2 --get_ae --all_children
 """
 
-version = "1.0.0"
+version = "1.0.1"
 
 import sys
 
@@ -102,9 +103,9 @@ if __name__ == '__main__':
     #| ||_  _  __ _
     #|^|| |(/_ | (/_
     d = {"run_id": "--run_id",
-         "geo_name": "--geo",
-         "basis_name": "--basis",
-         "meth_name": "--method"}
+         "geo_": "--geo",
+         "basis": "--basis",
+         "method": "--method"}
 
     str_ = []
     for k, v in d.items():
@@ -246,7 +247,7 @@ if __name__ == '__main__':
             for name, zpe, kcal in c.fetchall():
                 zpe = zpe * 4.55633e-06
                 energy = kcal * 0.00159362
-                ae_exp[name] = energy - zpe
+                ae_exp[name] = energy + zpe
 
             #___
             # | |_  _  _  __ o  _  _  |
@@ -293,6 +294,9 @@ if __name__ == '__main__':
                     line += [ae_exp_tmp, ae_exp_tmp - ae_th_tmp]
 
             print ' '.join('{:<22}'.format(i) for i in line)
+
         print "#GnuPlot cmd for energy : "
-        print "#set xtics rotate"
-        print "#plot 'dat' u 7:xtic(6) w lp title 'energy'"
+        print "# $gnuplot -e",
+        print "\"set xtics rotate;",
+        print "plot 'dat' u 7:xtic(6) w lp title 'energy';",
+        print "pause -1 \""
