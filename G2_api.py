@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Welcom to the G2 Api! Grab all G2 data you're dreaming for.
+"""Welcome to the G2 Api! Grab all the G2 data you're dreaming of.
 
 Usage:
   G2_api.py (-h | --help)

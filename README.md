@@ -1,21 +1,21 @@
 ```Python
-Welcom to the G2 Api! Grab all G2 data you're dreaming for.
+Welcome to the G2 Api! Grab all the G2 data you're dreaming of.
 
 Usage:
   G2_api.py (-h | --help)
-  G2_api.py list_run [--ele=element_name...]
+  G2_api.py list_run [--order_by=column...]
+                     [--ele=element_name...]
                      [--geo=geometry_name...]
                      [--basis=basis_name...]
                      [--method=method_name...]
   G2_api.py get_energy [--without_pt2]
                        [--get_ae]
-                       [--order_by=name...]
+                       [--order_by=column...]
                        [--run_id=id...]
                        [--ele=element_name...]
                        [--geo=geometry_name...]
                        [--basis=basis_name...]
                        [--method=method_name...]
-
   G2_api.py --version
 
 Options:
