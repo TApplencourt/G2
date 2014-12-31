@@ -10,35 +10,39 @@ Usage:
                      [--geo=geometry_name...]
                      [--basis=basis_name...]
                      [--method=method_name...]
-  G2_api.py get_energy [--without_pt2]
-                       [--get_ae]
-                       [--order_by=column...]
+                     [--all_children]
+  G2_api.py get_energy [--order_by=column...]
                        [--run_id=id...]
                        [--ele=element_name...]
                        [--geo=geometry_name...]
                        [--basis=basis_name...]
                        [--method=method_name...]
+                       [--without_pt2]
+                       [--get_ae]
+                       [--all_children]
   G2_api.py --version
 
 Options:
   --help                 Here you go.
   --without_pt2          Show all the data without adding the PT2 when avalaible.
   --get_ae               Show the atomization energy (both theorical and experiment) when avalaible.
+  --all_children         Find all the children of the ele.
   All the other          Filter the data or ordering it. See example.
 
+/!\ If you use --get_ae and filter by ele don't forger to use --all_children !
 
 Example of use:
-  ./G2_api.py list_run g2.db
+  ./G2_api.py list_run --method cipsi
   ./G2_api.py get_energy --run_id 11 --order_by num_elec --without_pt2
-  ./G2_api.py get_energy --basis cc-pvdz --ele AlCl --ele Li2 --get_ae
+  ./G2_api.py get_energy --basis cc-pvdz --ele AlCl --ele Li2 --get_ae --all_children
 """
 
-version = "1.0.0"
+version = "1.0.1"
 
 import sys
 
 try:
-    from docopt import docopt
+    from misc.docopt import docopt
 except:
     print "You need docopt"
     sys.exit(1)
@@ -70,12 +74,13 @@ def isSQLite3(filename):
         print sys.exit(1)
 
 
-def cond_sql_or(table_name, l_value):
+def cond_sql_or(table_name, l_value, l=[]):
+
     dmy = " OR ".join(['%s = "%s"' % (table_name, i) for i in l_value])
     if dmy:
-        return "(%s)" % dmy
-    else:
-        return "1"
+        l.append("(%s)" % dmy)
+
+    return l
 
 if __name__ == '__main__':
 
@@ -98,34 +103,38 @@ if __name__ == '__main__':
     #| ||_  _  __ _
     #|^|| |(/_ | (/_
     d = {"run_id": "--run_id",
-         "geo_name": "--geo",
-         "basis_name": "--basis",
-         "meth_name": "--method"}
+         "geo_": "--geo",
+         "basis": "--basis",
+         "method": "--method"}
 
     str_ = []
     for k, v in d.items():
-        l_v = arguments[v]
-        cond = cond_sql_or(k, l_v)
-        str_.append(cond)
+        str_ = cond_sql_or(k, arguments[v], str_)
 
     ele = arguments["--ele"]
+
     if ele:
-        # Find all this children of the element; this is the new conditions
-        cond = cond_sql_or("name", ele)
-        c.execute("""SELECT name, formula
-                       FROM id_tab
-                      WHERE {where_cond}""".format(where_cond=cond))
 
-        list_name_needed = ()
-        for name, formula_raw in c.fetchall():
-            list_name_needed += (name,)
-            for atom, number in eval(formula_raw):
-                list_name_needed += (atom,)
+        if arguments["--all_children"]:
+            # Find all this children of the element; this is the new conditions
+            cond = " ".join(cond_sql_or("name", ele))
+            c.execute("""SELECT name, formula
+                           FROM id_tab
+                          WHERE {where_cond}""".format(where_cond=cond))
 
-        cond = cond_sql_or("ele", list_name_needed)
-        str_.append(cond)
+            list_name_needed = ()
+            for name, formula_raw in c.fetchall():
+                list_name_needed += (name,)
+                for atom, number in eval(formula_raw):
+                    list_name_needed += (atom,)
+
+            str_ = cond_sql_or("ele", list_name_needed, str_)
+        else:
+            str_ = cond_sql_or("ele", ele, str_)
 
     cmd_where = " AND ".join(str_)
+    if not cmd_where:
+        cmd_where = "(1)"
 
     # _
     #/ \ __ _| _  __   |_  \/
@@ -148,7 +157,8 @@ if __name__ == '__main__':
                  method_name method,
                   basis_name basis,
                     geo_name geo,
-                    comments
+                    comments,
+                        name ele
                         FROM output_tab
                        WHERE {where_cond}
                     GROUP BY run_id
@@ -158,7 +168,7 @@ if __name__ == '__main__':
         print ' '.join('{:<22}'.format(i) for i in header)
 
         for line in c.fetchall():
-            print ' '.join('{:<22}'.format(i) for i in line)
+            print ' '.join('{:<22}'.format(i) for i in line[:-1])
         print ""
 
     # _____
@@ -237,7 +247,7 @@ if __name__ == '__main__':
             for name, zpe, kcal in c.fetchall():
                 zpe = zpe * 4.55633e-06
                 energy = kcal * 0.00159362
-                ae_exp[name] = energy - zpe
+                ae_exp[name] = energy + zpe
 
             #___
             # | |_  _  _  __ o  _  _  |
@@ -262,7 +272,7 @@ if __name__ == '__main__':
         #\_|  |_|  |_|_| |_|\__|
         #
 
-        line = "#Run_id method basis geo comments name energy".split()
+        line = "#Run_id method basis geo comments ele energy".split()
         if arguments["""--get_ae"""]:
             line += "Ae_th Ae_exp Diff".split()
 
@@ -284,3 +294,9 @@ if __name__ == '__main__':
                     line += [ae_exp_tmp, ae_exp_tmp - ae_th_tmp]
 
             print ' '.join('{:<22}'.format(i) for i in line)
+
+        print "#GnuPlot cmd for energy : "
+        print "# $gnuplot -e",
+        print "\"set xtics rotate;",
+        print "plot 'dat' u 7:xtic(6) w lp title 'energy';",
+        print "pause -1 \""
