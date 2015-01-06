@@ -33,11 +33,11 @@ Options:
 
 Example of use:
   ./G2_api.py list_run --method cipsi
-  ./G2_api.py get_energy --run_id 11 --order_by num_elec --without_pt2
+  ./G2_api.py get_energy --run_id 11 --order_by energy --without_pt2
   ./G2_api.py get_energy --basis cc-pvdz --ele AlCl --ele Li2 --get_ae --all_children
 """
 
-version = "1.0.1"
+version = "1.0.2"
 
 import sys
 import os
@@ -98,7 +98,6 @@ if __name__ == '__main__':
     c = conn.cursor()
 
     arguments = docopt(__doc__, version='G2 Api ' + version)
-
     # ______ _ _ _
     # |  ___(_) | |
     # | |_   _| | |_ ___ _ __
@@ -120,7 +119,6 @@ if __name__ == '__main__':
     ele = arguments["--ele"]
 
     if ele:
-
         if arguments["--all_children"]:
             # Find all this children of the element; this is the new conditions
             cond = " ".join(cond_sql_or("name", ele))
@@ -141,7 +139,6 @@ if __name__ == '__main__':
     cmd_where = " AND ".join(str_)
     if not cmd_where:
         cmd_where = "(1)"
-
     # _     _     _
     #| |   (_)   | |
     #| |    _ ___| |_   _ __ _   _ _ __
@@ -178,6 +175,7 @@ if __name__ == '__main__':
     #                      __/ | __/ |
     #                     |___/ |___/
     elif arguments["get_energy"]:
+        d_energy = defaultdict(dict)
 
         c.execute("""SELECT formula,
                              run_id,
@@ -196,14 +194,10 @@ if __name__ == '__main__':
                     """.format(cmd_where=cmd_where))
 
         data_th = c.fetchall()
-
-        d_energy = defaultdict(dict)
-
         # Because formula is wrong for Anion and Cation
         data_th[:] = [x for x in data_th if not ("+" in x[0] or "-" in x[0])]
 
         for info in data_th:
-
             run_id = info[1]
             name = info[-4]
             s_energy = info[-3]
@@ -239,7 +233,6 @@ if __name__ == '__main__':
 
             ae_th = defaultdict(dict)
             for info in data_th:
-
                 run_id = info[1]
                 name = info[-4]
                 formula_raw = info[0]
@@ -290,8 +283,7 @@ if __name__ == '__main__':
                     print i
                 sys.exit(1)
             else:
-                table = sorted(table, key=lambda x: x[6], reverse=True)
-
+                table = sorted(table, key=lambda x: x[index], reverse=True)
     #______     _       _
     #| ___ \   (_)     | |
     #| |_/ / __ _ _ __ | |_
