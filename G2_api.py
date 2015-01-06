@@ -29,12 +29,10 @@ Options:
   --all_children         Find all the children of the ele.
   All the other          Filter the data or ordering it. See example.
 
-/!\ If you use --get_ae and filter by ele don't forger to use --all_children !
-
 Example of use:
   ./G2_api.py list_run --method cipsi
   ./G2_api.py get_energy --run_id 11 --order_by energy --without_pt2
-  ./G2_api.py get_energy --basis cc-pvdz --ele AlCl --ele Li2 --get_ae --all_children
+  ./G2_api.py get_energy --basis cc-pvdz --ele AlCl --ele Li2 --get_ae --order_by diff
 """
 
 version = "1.0.2"
@@ -119,7 +117,7 @@ if __name__ == '__main__':
     ele = arguments["--ele"]
 
     if ele:
-        if arguments["--all_children"]:
+        if arguments["--all_children"] or arguments["--get_ae"]:
             # Find all this children of the element; this is the new conditions
             cond = " ".join(cond_sql_or("name", ele))
             c.execute("""SELECT name, formula
@@ -237,10 +235,14 @@ if __name__ == '__main__':
                 name = info[-4]
                 formula_raw = info[0]
 
-                ao_tmp = -d_energy[run_id][name]
-                for name_at, number in eval(formula_raw):
-                    ao_tmp += number * d_energy[run_id][name_at]
-                ae_th[run_id][name] = ao_tmp
+                if name in d_energy[run_id]:
+                    ao_tmp = -d_energy[run_id][name]
+                    for name_at, number in eval(formula_raw):
+                        if name_at in d_energy[run_id]:
+                            ao_tmp += number * d_energy[run_id][name_at]
+                            ae_th[run_id][name] = ao_tmp
+                        else:
+                            break
         # ___
         #  |  _. |_  |  _
         #  | (_| |_) | (/_
@@ -248,7 +250,7 @@ if __name__ == '__main__':
 
         line = "#Run_id method basis geo comments ele energy".split()
         if arguments["""--get_ae"""]:
-            line += "Ae_th Ae_exp Diff".split()
+            line += "ae_th ae_exp diff".split()
 
         table.append(line)
 
@@ -259,14 +261,23 @@ if __name__ == '__main__':
             line = list(info[1:7]) + [d_energy[run_id][name]]
 
             if arguments["--get_ae"]:
-                ae_th_tmp = ae_th[run_id][name]
-                line += [ae_th_tmp]
 
-                if name in ae_exp:
-                    ae_exp_tmp = ae_exp[name]
-                    line += [ae_exp_tmp, ae_exp_tmp - ae_th_tmp]
+                if (arguments["--ele"] and
+                        not arguments["--all_children"] and
+                        name not in arguments["--ele"]):
+                    continue
+
+                if name in ae_th[run_id]:
+                    ae_th_tmp = ae_th[run_id][name]
+                    line += [ae_th_tmp]
+
+                    if name in ae_exp:
+                        ae_exp_tmp = ae_exp[name]
+                        line += [ae_exp_tmp, ae_exp_tmp - ae_th_tmp]
+                    else:
+                        line += [""] * 2
                 else:
-                    line += [""] * 2
+                    line += [""] * 3
 
             table.append(line)
         #  _
