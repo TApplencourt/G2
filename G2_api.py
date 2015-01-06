@@ -70,8 +70,7 @@ def isSQLite3(filename):
     if header[:16] == 'SQLite format 3\x00':
         return True
     else:
-        print "'%s' is not a SQLite3 database file" % filename
-        print sys.exit(1)
+        return False
 
 
 def cond_sql_or(table_name, l_value, l=[]):
@@ -85,7 +84,9 @@ def cond_sql_or(table_name, l_value, l=[]):
 if __name__ == '__main__':
 
     path = os.path.dirname(sys.argv[0]) + "/misc/g2.db"
-    isSQLite3(path)
+    if not isSQLite3(path):
+        print "'%s' is not a SQLite3 database file" % path
+        print sys.exit(1)
 
     conn = sqlite3.connect(path)
     c = conn.cursor()
@@ -103,7 +104,7 @@ if __name__ == '__main__':
     #| ||_  _  __ _
     #|^|| |(/_ | (/_
     d = {"run_id": "--run_id",
-         "geo_": "--geo",
+         "geo": "--geo",
          "basis": "--basis",
          "method": "--method"}
 
@@ -139,9 +140,9 @@ if __name__ == '__main__':
     # _
     #/ \ __ _| _  __   |_  \/
     #\_/ | (_|(/_ |    |_) /
-    cmd_by = ",".join(arguments["--order_by"])
-    if not cmd_by:
-        cmd_by = "run_id"
+    cmd_order = ",".join(arguments["--order_by"])
+    if not cmd_order:
+        cmd_order = "run_id"
 
     # _     _     _
     #| |   (_)   | |
@@ -162,7 +163,7 @@ if __name__ == '__main__':
                         FROM output_tab
                        WHERE {where_cond}
                     GROUP BY run_id
-                    ORDER BY {order_by}""".format(where_cond=cmd_where, order_by=cmd_by))
+                    ORDER BY {order_by}""".format(where_cond=cmd_where, order_by=cmd_order))
 
         header = ["Run_id", "Method", "Basis", "Geo", "Comments"]
         print ' '.join('{:<22}'.format(i) for i in header)
@@ -182,7 +183,6 @@ if __name__ == '__main__':
     elif arguments["get_energy"]:
 
         from collections import defaultdict
-
         c.execute("""SELECT formula,
                              run_id,
                         method_name method,
@@ -196,9 +196,9 @@ if __name__ == '__main__':
                       FROM output_tab
                 INNER JOIN id_tab
                         ON output_tab.name = id_tab.name
-                     WHERE {where_cond}
+                     WHERE {cmd_where}
                   ORDER BY {order_by}
-                    """.format(where_cond=cmd_where, order_by=cmd_by))
+                    """.format(cmd_where=cmd_where, order_by=cmd_order))
 
         data_th = c.fetchall()
 
@@ -272,14 +272,15 @@ if __name__ == '__main__':
         #\_|  |_|  |_|_| |_|\__|
         #
 
+        table = []
+
         line = "#Run_id method basis geo comments ele energy".split()
         if arguments["""--get_ae"""]:
             line += "Ae_th Ae_exp Diff".split()
 
-        print ' '.join('{:<22}'.format(i) for i in line)
+        table.append(line)
 
         for info in data_th:
-
             name = info[-4]
             run_id = info[1]
 
@@ -292,8 +293,14 @@ if __name__ == '__main__':
                 if name in ae_exp:
                     ae_exp_tmp = ae_exp[name]
                     line += [ae_exp_tmp, ae_exp_tmp - ae_th_tmp]
+                else:
+                    line += [""] * 2
 
-            print ' '.join('{:<22}'.format(i) for i in line)
+            table.append(line)
+
+        from misc.pprint_table import pprint_table
+
+        pprint_table(table)
 
         print "#GnuPlot cmd for energy : "
         print "# $gnuplot -e",
