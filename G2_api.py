@@ -224,7 +224,9 @@ if __name__ == '__main__':
                              basis_id=1
                          AND method_id=1""")
 
+            print "coucou"
             for name, zpe, kcal in c.fetchall():
+                print '=====',name,'a','b',zpe,'k',kcal
                 zpe = zpe * 4.55633e-06
                 energy = kcal * 0.00159362
                 ae_exp[name] = energy + zpe
