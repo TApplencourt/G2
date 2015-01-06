@@ -224,9 +224,7 @@ if __name__ == '__main__':
                              basis_id=1
                          AND method_id=1""")
 
-            print "coucou"
             for name, zpe, kcal in c.fetchall():
-                print '=====',name,'a','b',zpe,'k',kcal
                 zpe = zpe * 4.55633e-06
                 energy = kcal * 0.00159362
                 ae_exp[name] = energy + zpe
@@ -237,14 +235,17 @@ if __name__ == '__main__':
                 name = info[-4]
                 formula_raw = info[0]
 
-                if name in d_energy[run_id]:
-                    ao_tmp = -d_energy[run_id][name]
-                    for name_at, number in eval(formula_raw):
-                        if name_at in d_energy[run_id]:
-                            ao_tmp += number * d_energy[run_id][name_at]
-                            ae_th[run_id][name] = ao_tmp
-                        else:
-                            break
+                d_e_rid = d_energy[run_id]
+
+                if name in d_e_rid:
+                    try:
+                        ao_th_tmp = -d_e_rid[name]
+                        for name_atome, number in eval(formula_raw):
+                            ao_th_tmp += number * d_e_rid[name_atome]
+                    except KeyError:
+                        pass
+                    else:
+                        ae_th[run_id][name] = ao_th_tmp
         # ___
         #  |  _. |_  |  _
         #  | (_| |_) | (/_
@@ -269,17 +270,13 @@ if __name__ == '__main__':
                         name not in arguments["--ele"]):
                     continue
 
-                if name in ae_th[run_id]:
-                    ae_th_tmp = ae_th[run_id][name]
-                    line += [ae_th_tmp]
+                th = ae_th[run_id]
+                exp = ae_exp
 
-                    if name in ae_exp:
-                        ae_exp_tmp = ae_exp[name]
-                        line += [ae_exp_tmp, ae_exp_tmp - ae_th_tmp]
-                    else:
-                        line += [""] * 2
-                else:
-                    line += [""] * 3
+                line += [th[name] if name in th else ""]
+                line += [exp[name] if name in exp else ""]
+                line += [exp[name] - th[name]
+                         if name in th and name in exp else ""]
 
             table.append(line)
         #  _
@@ -290,7 +287,7 @@ if __name__ == '__main__':
         for arg in cmd_order:
             try:
                 index = table[0].index(arg)
-            except:
+            except ValueError:
                 from misc.docopt import parse_section
                 for i in parse_section('usage:', __doc__):
                     print i
