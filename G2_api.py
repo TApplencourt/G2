@@ -40,11 +40,13 @@ Example of use:
 version = "1.0.1"
 
 import sys
+import os
+from collections import defaultdict
 
 try:
     from misc.docopt import docopt
 except:
-    print "You need docopt"
+    print "You need docopt. Git reset if not exist"
     sys.exit(1)
 
 try:
@@ -53,7 +55,11 @@ except:
     print "Sorry, you need sqlite3"
     sys.exit(1)
 
-import os
+
+try:
+    from misc.pprint_table import pprint_table
+except:
+    print "You need pprint Git reset if not exist"
 
 
 def isSQLite3(filename):
@@ -99,7 +105,6 @@ if __name__ == '__main__':
     # |  _| | | | __/ _ \ '__|
     # | |   | | | ||  __/ |
     # \_|   |_|_|\__\___|_|
-    #
 
     #| ||_  _  __ _
     #|^|| |(/_ | (/_
@@ -137,20 +142,12 @@ if __name__ == '__main__':
     if not cmd_where:
         cmd_where = "(1)"
 
-    # _
-    #/ \ __ _| _  __   |_  \/
-    #\_/ | (_|(/_ |    |_) /
-    cmd_order = ",".join(arguments["--order_by"])
-    if not cmd_order:
-        cmd_order = "run_id"
-
     # _     _     _
     #| |   (_)   | |
     #| |    _ ___| |_   _ __ _   _ _ __
     #| |   | / __| __| | '__| | | | '_ \
     #| |___| \__ \ |_  | |  | |_| | | | |
     #\_____/_|___/\__| |_|   \__,_|_| |_|
-    #
     if arguments["list_run"]:
 
         c.execute(
@@ -162,16 +159,16 @@ if __name__ == '__main__':
                         name ele
                         FROM output_tab
                        WHERE {where_cond}
-                    GROUP BY run_id
-                    ORDER BY {order_by}""".format(where_cond=cmd_where, order_by=cmd_order))
+                    GROUP BY run_id""".format(where_cond=cmd_where))
 
+        # ___
+        #  |  _. |_  |  _
+        #  | (_| |_) | (/_
+        table = []
         header = ["Run_id", "Method", "Basis", "Geo", "Comments"]
-        print ' '.join('{:<22}'.format(i) for i in header)
 
-        for line in c.fetchall():
-            print ' '.join('{:<22}'.format(i) for i in line[:-1])
-        print ""
-
+        table.append(header)
+        table.extend(c.fetchall())
     # _____
     #|  ___|
     #| |__ _ __   ___ _ __ __ _ _   _
@@ -182,7 +179,6 @@ if __name__ == '__main__':
     #                     |___/ |___/
     elif arguments["get_energy"]:
 
-        from collections import defaultdict
         c.execute("""SELECT formula,
                              run_id,
                         method_name method,
@@ -197,8 +193,7 @@ if __name__ == '__main__':
                 INNER JOIN id_tab
                         ON output_tab.name = id_tab.name
                      WHERE {cmd_where}
-                  ORDER BY {order_by}
-                    """.format(cmd_where=cmd_where, order_by=cmd_order))
+                    """.format(cmd_where=cmd_where))
 
         data_th = c.fetchall()
 
@@ -217,23 +212,16 @@ if __name__ == '__main__':
 
             if s_energy:
                 d_energy[run_id][name] = float(s_energy)
-            if c_energy:
-                if arguments["--without_pt2"]:
-                    d_energy[run_id][name] = float(c_energy)
-                else:
-                    d_energy[run_id][name] = float(c_energy) + float(c_pt2)
 
-        #  ___   _____
-        # / _ \ |  ___|
-        #/ /_\ \| |__
-        #|  _  ||  __|
-        #| | | || |___
-        #\_| |_/\____/
+            if c_energy:
+                d_energy[run_id][name] = float(c_energy)
+                if not arguments["--without_pt2"]:
+                    d_energy[run_id][name] += float(c_pt2)
         #
+        #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._
+        # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |
         if arguments["--get_ae"]:
-            # __    _
-            #|_    |_) _  __ o __  _ __ _|_ _  |
-            #|__>< |  (/_ |  | |||(/_| | |_(_| |
+
             ae_exp = defaultdict()
 
             c.execute("""SELECT name,zpe,kcal
@@ -249,9 +237,6 @@ if __name__ == '__main__':
                 energy = kcal * 0.00159362
                 ae_exp[name] = energy + zpe
 
-            #___
-            # | |_  _  _  __ o  _  _  |
-            # | | |(/_(_) |  | (_ (_| |
             ae_th = defaultdict(dict)
             for info in data_th:
 
@@ -263,15 +248,9 @@ if __name__ == '__main__':
                 for name_at, number in eval(formula_raw):
                     ao_tmp += number * d_energy[run_id][name_at]
                 ae_th[run_id][name] = ao_tmp
-
-        #______     _       _
-        #| ___ \   (_)     | |
-        #| |_/ / __ _ _ __ | |_
-        #|  __/ '__| | '_ \| __|
-        #| |  | |  | | | | | |_
-        #\_|  |_|  |_|_| |_|\__|
-        #
-
+        # ___
+        #  |  _. |_  |  _
+        #  | (_| |_) | (/_
         table = []
 
         line = "#Run_id method basis geo comments ele energy".split()
@@ -297,13 +276,31 @@ if __name__ == '__main__':
                     line += [""] * 2
 
             table.append(line)
+        #  _
+        # / \ ._ _|  _  ._   |_
+        # \_/ | (_| (/_ |    |_) \/
+        #                        /
+        cmd_order = arguments["--order_by"]
+        for arg in cmd_order:
+            try:
+                index = table[0].index(arg)
+            except:
+                from misc.docopt import parse_section
+                for i in parse_section('usage:', __doc__):
+                    print i
+                sys.exit(1)
+            else:
+                table = sorted(table, key=lambda x: x[6], reverse=True)
 
-        from misc.pprint_table import pprint_table
-
-        pprint_table(table)
-
-        print "#GnuPlot cmd for energy : "
-        print "# $gnuplot -e",
-        print "\"set xtics rotate;",
-        print "plot 'dat' u 7:xtic(6) w lp title 'energy';",
-        print "pause -1 \""
+    #______     _       _
+    #| ___ \   (_)     | |
+    #| |_/ / __ _ _ __ | |_
+    #|  __/ '__| | '_ \| __|
+    #| |  | |  | | | | | |_
+    #\_|  |_|  |_|_| |_|\__|
+    pprint_table(table)
+    print "#GnuPlot cmd for energy : "
+    print "# $gnuplot -e",
+    print "\"set xtics rotate;",
+    print "plot 'dat' u 7:xtic(6) w lp title 'energy';",
+    print "pause -1 \""
