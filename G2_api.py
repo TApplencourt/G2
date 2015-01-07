@@ -20,6 +20,7 @@ Usage:
                        [--without_pt2]
                        [--get_ae]
                        [--all_children]
+                       [--empirical]
   G2_api.py --version
 
 Options:
@@ -77,8 +78,9 @@ def isSQLite3(filename):
         return False
 
 
-def cond_sql_or(table_name, l_value, l=[]):
+def cond_sql_or(table_name, l_value):
 
+    l = []
     dmy = " OR ".join(['%s = "%s"' % (table_name, i) for i in l_value])
     if dmy:
         l.append("(%s)" % dmy)
@@ -112,12 +114,16 @@ if __name__ == '__main__':
 
     str_ = []
     for k, v in d.items():
-        str_ = cond_sql_or(k, arguments[v], str_)
+        str_ += cond_sql_or(k, arguments[v])
 
     ele = arguments["--ele"]
 
+    str_ele = []
     if ele:
-        if arguments["--all_children"] or arguments["--get_ae"]:
+        str_ele = cond_sql_or("ele", ele)
+
+        if arguments[
+                "--all_children"] or arguments["--get_ae"] or arguments["--empirical"]:
             # Find all this children of the element; this is the new conditions
             cond = " ".join(cond_sql_or("name", ele))
             c.execute("""SELECT name, formula
@@ -130,11 +136,9 @@ if __name__ == '__main__':
                 for atom, number in eval(formula_raw):
                     list_name_needed += (atom,)
 
-            str_ = cond_sql_or("ele", list_name_needed, str_)
-        else:
-            str_ = cond_sql_or("ele", ele, str_)
+            str_ele = cond_sql_or("ele", list_name_needed)
 
-    cmd_where = " AND ".join(str_)
+    cmd_where = " AND ".join(str_ + str_ele)
     if not cmd_where:
         cmd_where = "(1)"
     # _     _     _
@@ -209,26 +213,66 @@ if __name__ == '__main__':
                 d_energy[run_id][name] = float(c_energy)
                 if not arguments["--without_pt2"]:
                     d_energy[run_id][name] += float(c_pt2)
-        #
-        #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._
-        # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |
-        if arguments["--get_ae"]:
+
+        #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._     _     ._
+        # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |   (/_ >< |_)
+        #                                                   |
+        if arguments["--get_ae"] or arguments["--empirical"]:
+
+            str_ = str_ele + ['(basis_id=1)', '(method_id=1)']
+            cmd_where = " AND ".join(str_)
 
             ae_exp = defaultdict()
-
-            c.execute("""SELECT name,zpe,kcal
+            c.execute("""SELECT name ele,formula, zpe,kcal
                          FROM id_tab
                          NATURAL JOIN zpe_tab
                          NATURAL JOIN atomization_tab
-                         WHERE
-                             basis_id=1
-                         AND method_id=1""")
+                         WHERE {cmd_where}
+                      """.format(cmd_where=cmd_where))
 
-            for name, zpe, kcal in c.fetchall():
+            data_ae_zp = c.fetchall()
+            for name, formula_raw, zpe, kcal in data_ae_zp:
                 zpe = zpe * 4.55633e-06
                 energy = kcal * 0.00159362
                 ae_exp[name] = energy + zpe
 
+        #  _
+        # |_ ._ _  ._  o ._ o  _  _. |
+        # |_ | | | |_) | |  | (_ (_| |
+        #          |
+        if arguments["--empirical"]:
+            cmd_where = " AND ".join(str_ele + ['(run_id = "21")'])
+
+            c.execute("""SELECT name ele, energy
+                         FROM simple_energy_tab
+                         NATURAL JOIN id_tab
+                         WHERE {cmd_where}
+                      """.format(cmd_where=cmd_where))
+
+            energy_th = defaultdict()
+            for name, energy in c.fetchall():
+                energy_th[name] = float(energy)
+
+            # Calc the empirical energy value
+            empirical = defaultdict(dict)
+
+            for info in data_ae_zp:
+                name = info[0]
+                formula_raw = info[1]
+
+                try:
+                    emp_tmp = ae_exp[name]
+                    for name_atome, number in eval(formula_raw):
+                        emp_tmp += number * energy_th[name_atome]
+                except KeyError:
+                    pass
+                else:
+                    empirical[name] = -emp_tmp
+
+        #
+        #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    _|_ |_
+        # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |    |_ | |
+        if arguments["--get_ae"]:
             ae_th = defaultdict(dict)
             for info in data_th:
                 run_id = info[1]
@@ -238,19 +282,23 @@ if __name__ == '__main__':
                 d_e_rid = d_energy[run_id]
 
                 try:
-                    ao_th_tmp = -d_e_rid[name]
+                    ao_th_tmp = d_e_rid[name]
                     for name_atome, number in eval(formula_raw):
-                        ao_th_tmp += number * d_e_rid[name_atome]
+                        ao_th_tmp -= number * d_e_rid[name_atome]
                 except KeyError:
-                        pass
+                    pass
                 else:
-                    ae_th[run_id][name] = ao_th_tmp
+                    ae_th[run_id][name] = -ao_th_tmp
         # ___
         #  |  _. |_  |  _
         #  | (_| |_) | (/_
         table = []
 
         line = "#Run_id method basis geo comments ele energy".split()
+
+        if arguments["--empirical"]:
+            line += "empirical".split()
+
         if arguments["""--get_ae"""]:
             line += "ae_th ae_exp diff".split()
 
@@ -262,12 +310,14 @@ if __name__ == '__main__':
 
             line = list(info[1:7]) + [d_energy[run_id][name]]
 
-            if arguments["--get_ae"]:
+            if (arguments["--ele"] and name not in arguments["--ele"]
+                    and not arguments["--all_children"]):
+                continue
 
-                if (arguments["--ele"] and
-                        not arguments["--all_children"] and
-                        name not in arguments["--ele"]):
-                    continue
+            if arguments["--empirical"]:
+                line += [empirical[name] if name in empirical else ""]
+
+            if arguments["--get_ae"]:
 
                 th = ae_th[run_id]
                 exp = ae_exp
