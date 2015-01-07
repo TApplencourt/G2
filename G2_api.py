@@ -237,15 +237,14 @@ if __name__ == '__main__':
 
                 d_e_rid = d_energy[run_id]
 
-                if name in d_e_rid:
-                    try:
-                        ao_th_tmp = -d_e_rid[name]
-                        for name_atome, number in eval(formula_raw):
-                            ao_th_tmp += number * d_e_rid[name_atome]
-                    except KeyError:
+                try:
+                    ao_th_tmp = -d_e_rid[name]
+                    for name_atome, number in eval(formula_raw):
+                        ao_th_tmp += number * d_e_rid[name_atome]
+                except KeyError:
                         pass
-                    else:
-                        ae_th[run_id][name] = ao_th_tmp
+                else:
+                    ae_th[run_id][name] = ao_th_tmp
         # ___
         #  |  _. |_  |  _
         #  | (_| |_) | (/_
