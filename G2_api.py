@@ -151,16 +151,15 @@ if __name__ == '__main__':
     #\_____/_|___/\__| |_|   \__,_|_| |_|
     if arguments["list_run"]:
 
-        c.execute(
-            """SELECT run_id,
-                 method_name method,
-                  basis_name basis,
-                    geo_name geo,
-                    comments,
-                        name ele
-                        FROM output_tab
-                       WHERE {where_cond}
-                    GROUP BY run_id""".format(where_cond=cmd_where))
+        c.execute("""SELECT run_id,
+                method_name method,
+                 basis_name basis,
+                   geo_name geo,
+                   comments,
+                       name ele
+                       FROM output_tab
+                      WHERE {where_cond}
+                   GROUP BY run_id""".format(where_cond=cmd_where))
 
         # ___
         #  |  _. |_  |  _
@@ -197,11 +196,12 @@ if __name__ == '__main__':
                                  ON output_tab.name = id_tab.name
                               WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
-        data_th = c.fetchall()
+        data_cur_energy = c.fetchall()
         # Because formula is wrong for Anion and Cation
-        data_th[:] = [x for x in data_th if not ("+" in x[0] or "-" in x[0])]
+        data_cur_energy[:] = [x for x in data_cur_energy
+                              if not ("+" in x[0] or "-" in x[0])]
 
-        for info in data_th:
+        for info in data_cur_energy:
             run_id = info[1]
             name = info[-4]
             s_energy = info[-3]
@@ -284,7 +284,7 @@ if __name__ == '__main__':
         #
         if arguments["--get_ae"]:
             ae_th = defaultdict(dict)
-            for info in data_th:
+            for info in data_cur_energy:
                 run_id = info[1]
                 name = info[-4]
                 formula_raw = info[0]
@@ -315,7 +315,7 @@ if __name__ == '__main__':
 
         table.append(line)
 
-        for info in data_th:
+        for info in data_cur_energy:
             name = info[-4]
             run_id = info[1]
 
