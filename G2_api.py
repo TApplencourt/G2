@@ -11,16 +11,16 @@ Usage:
                      [--basis=basis_name...]
                      [--method=method_name...]
                      [--all_children]
-  G2_api.py get_energy [--order_by=column...]
+  G2_api.py get_energy [--order_by=column]
                        [--run_id=id...]
                        [--ele=element_name...]
                        [--geo=geometry_name...]
                        [--basis=basis_name...]
                        [--method=method_name...]
                        [--without_pt2]
+                       [--estimated_exact]
                        [--get_ae]
                        [--all_children]
-                       [--empirical]
   G2_api.py --version
 
 Options:
@@ -105,8 +105,9 @@ if __name__ == '__main__':
     # | |   | | | ||  __/ |
     # \_|   |_|_|\__\___|_|
 
-    #| ||_  _  __ _
-    #|^|| |(/_ | (/_
+    # \    / |_   _  ._ _
+    #  \/\/  | | (/_ | (/_
+    #
     d = {"run_id": "--run_id",
          "geo": "--geo",
          "basis": "--basis",
@@ -118,12 +119,11 @@ if __name__ == '__main__':
 
     ele = arguments["--ele"]
 
-    str_ele = []
     if ele:
         str_ele = cond_sql_or("ele", ele)
 
-        if arguments[
-                "--all_children"] or arguments["--get_ae"] or arguments["--empirical"]:
+        list_key = ["--all_children", "--get_ae", "--estimated_exact"]
+        if all(k in arguments for k in list_key):
             # Find all this children of the element; this is the new conditions
             cond = " ".join(cond_sql_or("name", ele))
             c.execute("""SELECT name, formula
@@ -137,6 +137,8 @@ if __name__ == '__main__':
                     list_name_needed += (atom,)
 
             str_ele = cond_sql_or("ele", list_name_needed)
+    else:
+        str_ele = []
 
     cmd_where = " AND ".join(str_ + str_ele)
     if not cmd_where:
@@ -163,6 +165,7 @@ if __name__ == '__main__':
         # ___
         #  |  _. |_  |  _
         #  | (_| |_) | (/_
+        #
         table = []
         header = ["Run_id", "Method", "Basis", "Geo", "Comments"]
 
@@ -189,11 +192,10 @@ if __name__ == '__main__':
                            s_energy,
                            c_energy,
                               c_pt2
-                      FROM output_tab
-                INNER JOIN id_tab
-                        ON output_tab.name = id_tab.name
-                     WHERE {cmd_where}
-                    """.format(cmd_where=cmd_where))
+                               FROM output_tab
+                         INNER JOIN id_tab
+                                 ON output_tab.name = id_tab.name
+                              WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
         data_th = c.fetchall()
         # Because formula is wrong for Anion and Cation
@@ -217,44 +219,51 @@ if __name__ == '__main__':
         #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._     _     ._
         # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |   (/_ >< |_)
         #                                                   |
-        if arguments["--get_ae"] or arguments["--empirical"]:
+        if arguments["--get_ae"] or arguments["--estimated_exact"]:
 
             str_ = str_ele + ['(basis_id=1)', '(method_id=1)']
             cmd_where = " AND ".join(str_)
 
             ae_exp = defaultdict()
-            c.execute("""SELECT name ele,formula, zpe,kcal
-                         FROM id_tab
-                         NATURAL JOIN zpe_tab
-                         NATURAL JOIN atomization_tab
-                         WHERE {cmd_where}
-                      """.format(cmd_where=cmd_where))
+            c.execute("""SELECT name ele,
+                             formula,
+                                 zpe,
+                                kcal
+                                FROM id_tab
+                        NATURAL JOIN zpe_tab
+                        NATURAL JOIN atomization_tab
+                               WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
             data_ae_zp = c.fetchall()
-            for name, formula_raw, zpe, kcal in data_ae_zp:
+            for info in data_ae_zp:
+                name = info[0]
+                zpe = info[2]
+                kcal = info[3]
+
                 zpe = zpe * 4.55633e-06
                 energy = kcal * 0.00159362
                 ae_exp[name] = energy + zpe
 
-        #  _
-        # |_ ._ _  ._  o ._ o  _  _. |
-        # |_ | | | |_) | |  | (_ (_| |
-        #          |
-        if arguments["--empirical"]:
+         #  _
+         # |_  _ _|_      _      _.  _ _|_    _  ._   _  ._ _
+         # |_ _>  |_ o   (/_ >< (_| (_  |_   (/_ | | (/_ | (_| \/
+         #                                                  _| /
+        if arguments["--estimated_exact"]:
+            # Get Davidson est. atomics energies
             cmd_where = " AND ".join(str_ele + ['(run_id = "21")'])
 
-            c.execute("""SELECT name ele, energy
-                         FROM simple_energy_tab
-                         NATURAL JOIN id_tab
-                         WHERE {cmd_where}
-                      """.format(cmd_where=cmd_where))
+            c.execute("""SELECT name ele,
+                              energy
+                                FROM simple_energy_tab
+                        NATURAL JOIN id_tab
+                               WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
             energy_th = defaultdict()
             for name, energy in c.fetchall():
                 energy_th[name] = float(energy)
 
-            # Calc the empirical energy value
-            empirical = defaultdict(dict)
+            # Calc est. molecul energies
+            est_exact_energy = defaultdict(dict)
 
             for info in data_ae_zp:
                 name = info[0]
@@ -267,11 +276,12 @@ if __name__ == '__main__':
                 except KeyError:
                     pass
                 else:
-                    empirical[name] = -emp_tmp
+                    est_exact_energy[name] = -emp_tmp
 
         #
         #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    _|_ |_
         # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |    |_ | |
+        #
         if arguments["--get_ae"]:
             ae_th = defaultdict(dict)
             for info in data_th:
@@ -292,12 +302,13 @@ if __name__ == '__main__':
         # ___
         #  |  _. |_  |  _
         #  | (_| |_) | (/_
+        #
         table = []
 
         line = "#Run_id method basis geo comments ele energy".split()
 
-        if arguments["--empirical"]:
-            line += "empirical".split()
+        if arguments["--estimated_exact"]:
+            line += "estimated_exact diff_est_exact".split()
 
         if arguments["""--get_ae"""]:
             line += "ae_th ae_exp diff".split()
@@ -314,18 +325,19 @@ if __name__ == '__main__':
                     and not arguments["--all_children"]):
                 continue
 
-            if arguments["--empirical"]:
-                line += [empirical[name] if name in empirical else ""]
+            if arguments["--estimated_exact"]:
+
+                line += [est_exact_energy[name]
+                         if name in est_exact_energy else ""]
+                line += [d_energy[run_id][name] - est_exact_energy[name]
+                         if name in est_exact_energy and name in d_energy[run_id] else ""]
 
             if arguments["--get_ae"]:
 
-                th = ae_th[run_id]
-                exp = ae_exp
-
-                line += [th[name] if name in th else ""]
-                line += [exp[name] if name in exp else ""]
-                line += [exp[name] - th[name]
-                         if name in th and name in exp else ""]
+                line += [ae_th[run_id][name] if name in ae_th[run_id] else ""]
+                line += [ae_exp[name] if name in ae_exp else ""]
+                line += [ae_exp[name] - ae_th[run_id][name]
+                         if name in ae_exp and name in ae_th[run_id] else ""]
 
             table.append(line)
         #  _
