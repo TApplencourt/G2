@@ -5,10 +5,11 @@
 
 Usage:
   G2_api.py (-h | --help)
-  G2_api.py list_geometrys     [--ele=element_name...]
+  G2_api.py list_geometrys          [--ele=element_name...]
   G2_api.py list_elements      --geo=geometry_name...
   G2_api.py get_xyz            --geo=geometry_name...
                                --ele=element_name...
+                                    [(--save [--path=path])]
   G2_api.py get_multiplicity   --ele=element_name
 """
 
@@ -61,7 +62,20 @@ if __name__ == '__main__':
                 else:
                     to_print.append(xyz)
 
-        print "\n\n".join(to_print)
+        str_ = "\n\n".join(to_print)
+        if arguments["--save"]:
+
+            if arguments["--path"]:
+                path = arguments["--path"]
+            else:
+                path = "_".join([".".join(l_geo), ".".join(l_ele)])
+                path = "/tmp/" + path + ".xyz"
+
+            with open(path, 'w') as f:
+                f.write(str_ + "\n")
+            print path
+        else:
+            print str_
 
     if arguments["get_multiplicity"]:
         ele = arguments["--ele"][0]
