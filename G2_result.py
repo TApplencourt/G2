@@ -44,8 +44,10 @@ from collections import defaultdict
 
 try:
     from misc.docopt import docopt
+    from misc.pprint_table import pprint_table
+    from misc.SQL_util import isSQLite3, cond_sql_or
 except:
-    print "You need docopt. Git reset if not exist"
+    print "File in misc is corupted. Git reset may cure the diseases"
     sys.exit(1)
 
 try:
@@ -54,38 +56,6 @@ except:
     print "Sorry, you need sqlite3"
     sys.exit(1)
 
-
-try:
-    from misc.pprint_table import pprint_table
-except:
-    print "You need pprint Git reset if not exist"
-
-
-def isSQLite3(filename):
-    from os.path import isfile, getsize
-
-    if not isfile(filename):
-        return False
-    if getsize(filename) < 100:  # SQLite database file header is 100 bytes
-        return False
-
-    with open(filename, 'rb') as fd:
-        header = fd.read(100)
-
-    if header[:16] == 'SQLite format 3\x00':
-        return True
-    else:
-        return False
-
-
-def cond_sql_or(table_name, l_value):
-
-    l = []
-    dmy = " OR ".join(['%s = "%s"' % (table_name, i) for i in l_value])
-    if dmy:
-        l.append("(%s)" % dmy)
-
-    return l
 
 if __name__ == '__main__':
 
