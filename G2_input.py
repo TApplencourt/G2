@@ -5,8 +5,8 @@
 
 Usage:
   G2_api.py (-h | --help)
-  G2_api.py list_geometry           [--ele=element_name...]
-  G2_api.py list_element           --geo=geometry_name...
+  G2_api.py list_geometrys     [--ele=element_name...]
+  G2_api.py list_elements      --geo=geometry_name...
   G2_api.py get_xyz            --geo=geometry_name...
                                --ele=element_name...
   G2_api.py get_multiplicity   --ele=element_name
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     arguments = docopt(__doc__, version='G2 Api ' + version)
 
-    if arguments["list_geometry"]:
+    if arguments["list_geometrys"]:
 
         if arguments["--ele"]:
             str_ = cond_sql_or("id_tab.name", arguments["--ele"])
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
         print ", ".join(list_geo(str_))
 
-    if arguments["list_element"]:
+    if arguments["list_elements"]:
 
         str_ = cond_sql_or("geo_tab.name", arguments["--geo"])
         str_ = "AND".join(str_)
