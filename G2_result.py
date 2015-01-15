@@ -33,11 +33,11 @@ Options:
 
 Example of use:
   ./G2_result.py list_run --method cipsi
-  ./G2_result.py get_energy --run_id 11 --order_by energy --without_pt2
-  ./G2_result.py get_energy --basis cc-pvdz --ele AlCl --ele Li2 --get_ae --order_by diff
+  ./G2_result.py get_energy --run_id 11 --order_by e --without_pt2 --estimated_exact
+  ./G2_result.py get_energy --basis cc-pvdz --ele AlCl --ele Li2 --get_ae --order_by ae_diff
 """
 
-version = "1.0.2"
+version = "1.0.4"
 
 import sys
 import os
@@ -241,13 +241,14 @@ if __name__ == '__main__':
                 formula_raw = info[1]
 
                 try:
-                    emp_tmp = ae_exp[name]
+                    emp_tmp = -ae_exp[name]
                     for name_atome, number in eval(formula_raw):
                         emp_tmp += number * energy_th[name_atome]
                 except KeyError:
                     pass
                 else:
-                    est_exact_energy[name] = -emp_tmp
+                    print emp_tmp
+                    est_exact_energy[name] = emp_tmp
 
         #
         #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    _|_ |_
@@ -276,13 +277,13 @@ if __name__ == '__main__':
         #
         table = []
 
-        line = "#Run_id method basis geo comments ele energy".split()
+        line = "#Run_id method basis geo comments ele e".split()
 
         if arguments["--estimated_exact"]:
-            line += "estimated_exact diff_est_exact".split()
+            line += "e_est_exact e_diff".split()
 
         if arguments["""--get_ae"""]:
-            line += "ae_th ae_exp diff".split()
+            line += "ae_th ae_exp ae_diff".split()
 
         table.append(line)
 
