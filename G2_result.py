@@ -196,6 +196,8 @@ if __name__ == '__main__':
             cmd_where = " AND ".join(str_)
 
             ae_exp = defaultdict()
+            zpe_exp = defaultdict()
+
             c.execute("""SELECT name ele,
                              formula,
                                  zpe,
@@ -213,7 +215,8 @@ if __name__ == '__main__':
 
                 zpe = zpe * 4.55633e-06
                 energy = kcal * 0.00159362
-                ae_exp[name] = energy + zpe
+                ae_exp[name] = energy
+                zpe_exp[name] = zpe
 
          #  _
          # |_  _ _|_      _      _.  _ _|_    _  ._   _  ._ _
@@ -264,7 +267,7 @@ if __name__ == '__main__':
                 d_e_rid = d_energy[run_id]
 
                 try:
-                    ao_th_tmp = d_e_rid[name]
+                    ao_th_tmp = d_e_rid[name] + zpe_exp[name]
                     for name_atome, number in eval(formula_raw):
                         ao_th_tmp -= number * d_e_rid[name_atome]
                 except KeyError:
