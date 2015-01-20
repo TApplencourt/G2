@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>G2 testset api by TApplencourt</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/TApplencourt/G2_TestSet_API">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/TApplencourt/G2_TestSet_API/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/TApplencourt/G2_TestSet_API/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>G2 testset api</h1>
+          <p>All the info on the G2 Test set (Geometries, Energies, zpe, and so on)</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/TApplencourt">TApplencourt</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a id="g2-testset-api" class="anchor" href="#g2-testset-api" aria-hidden="true"><span class="octicon octicon-link"></span></a>G2 TestSet API</h1>
+
+<p>You can find in this repository all the G2 Test set molucule info like:</p>
+
+<ul>
+<li>Geometries (Experimental, MP2, ...)</li>
+<li>Energies (With many method and atomization one)</li>
+<li>Zpe (from NIST, and for all calcul)</li>
+<li>etc.</li>
+</ul>
+
+<h2>
+<a id="dependency" class="anchor" href="#dependency" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dependency</h2>
+
+<ul>
+<li>Python &gt;2.6</li>
+</ul>
+
+<h2>
+<a id="demonstration" class="anchor" href="#demonstration" aria-hidden="true"><span class="octicon octicon-link"></span></a>Demonstration</h2>
+
+<p><img src="http://giant.gfycat.com/TornJaggedAnemoneshrimp.gif" alt=""></p>
+
+<p>(For a beter quality see the <a href="https://asciinema.org/api/asciicasts/15602">Source</a>)</p>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<h6>
+<a id="input" class="anchor" href="#input" aria-hidden="true"><span class="octicon octicon-link"></span></a>Input</h6>
+
+<p>Get the xyz, the multiplicty of the G2 molecule</p>
+
+<pre><code>Welcome to the G2 Api! Grab all the G2 data you're dreaming of.
+
+Usage:
+  G2_input.py (-h | --help)
+  G2_input.py list_geometries         [--ele=&lt;element_name&gt;...]
+  G2_input.py list_elements      --geo=&lt;geometry_name&gt;...
+  G2_input.py get_xyz            --geo=&lt;geometry_name&gt;...
+                                 --ele=&lt;element_name&gt;...
+                                      [(--save [--path=&lt;path&gt;])]
+  G2_input.py get_g09            --geo=&lt;geometry_name&gt;...
+                                 --ele=&lt;element_name&gt;...
+                                      [(--save [--path=&lt;path&gt;])]
+  G2_input.py get_multiplicity   --ele=&lt;element_name&gt;
+
+Example of use:
+  ./G2_input.py list_geometries
+  ./G2_input.py list_elements --geo Experiment
+  ./G2_input.py get_xyz --geo Experiment --ele NaCl --ele H3CCl
+
+</code></pre>
+
+<h6>
+<a id="result" class="anchor" href="#result" aria-hidden="true"><span class="octicon octicon-link"></span></a>Result</h6>
+
+<p>Get energies, zpe, atomization energy</p>
+
+<pre><code>Welcome to the G2 Api! Grab all the G2 data you're dreaming of.
+
+Usage:
+  G2_result.py (-h | --help)
+  G2_result.py list_run [--order_by=&lt;column&gt;...]
+                        [--ele=&lt;element_name&gt;...]
+                        [--geo=&lt;geometry_name&gt;...]
+                        [--basis=&lt;basis_name&gt;...]
+                        [--method=&lt;method_name&gt;...]
+                        [--all_children]
+  G2_result.py get_energy [--order_by=&lt;column&gt;]
+                          [--run_id=&lt;id&gt;...]
+                          [--ele=&lt;element_name&gt;...]
+                          [--geo=&lt;geometry_name&gt;...]
+                          [--basis=&lt;basis_name&gt;...]
+                          [--method=&lt;method_name&gt;...]
+                          [--without_pt2]
+                          [--estimated_exact]
+                          [--get_ae]
+                          [--all_children]
+  G2_result.py --version
+
+Options:
+  --help                 Here you go.
+  --without_pt2          Show all the data without adding the PT2 when avalaible.
+  --get_ae               Show the atomization energy (both theorical and experiment) when avalaible.
+  --all_children         Find all the children of the ele.
+  --estimated_exact      Show the estimated exact energy.
+  All the other          Filter the data or ordering it. See example.
+
+Example of use:
+  ./G2_result.py list_run --method CIPSI
+  ./G2_result.py get_energy --run_id 11 --order_by e --without_pt2 --estimated_exact
+  ./G2_result.py get_energy --basis cc-pvdz --ele AlCl --ele Li2 --get_ae --order_by ae_diff
+</code></pre>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
