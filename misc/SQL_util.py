@@ -150,10 +150,15 @@ def get_g09(geo, ele, only_neutral=True):
                               "Mult:", dic_["multiplicity"],
                               "symmetry:", dic_["symmetry"]]))
 
-    g09_file_format = [ "# cc-pvdz", "", line, "", "%d %d"%(dic_["charge"], dic_["multiplicity"]) ]
+    if dic_["multiplicity"] == 1:
+       method = "RHF"
+    else:
+       method = "ROHF"
+
+    g09_file_format = [ "# cc-pvdz %s"%(method), "", line, "", "%d %d"%(dic_["charge"], dic_["multiplicity"]) ]
 
     for atom, xyz in zip(dic_["formula_clean"], dic_["list_xyz"]):
-        line_xyz = "    ".join(map(str, xyz))
+        line_xyz = "    ".join(map(str, xyz)).replace("1e","1.e")
         line = "    ".join([atom, line_xyz])
 
         g09_file_format.append(line)
