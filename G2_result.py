@@ -114,12 +114,12 @@ if __name__ == '__main__':
     cmd_where = " AND ".join(str_ + str_ele)
     if not cmd_where:
         cmd_where = "(1)"
-    # _     _     _
-    #| |   (_)   | |
-    #| |    _ ___| |_   _ __ _   _ _ __
-    #| |   | / __| __| | '__| | | | '_ \
-    #| |___| \__ \ |_  | |  | |_| | | | |
-    #\_____/_|___/\__| |_|   \__,_|_| |_|
+    #  _     _     _
+    # | |   (_)   | |
+    # | |    _ ___| |_   _ __ _   _ _ __
+    # | |   | / __| __| | '__| | | | '_ \
+    # | |___| \__ \ |_  | |  | |_| | | | |
+    # \_____/_|___/\__| |_|   \__,_|_| |_|
     if arguments["list_run"]:
 
         c.execute("""SELECT run_id,
@@ -141,14 +141,14 @@ if __name__ == '__main__':
 
         table.append(header)
         table.extend(c.fetchall())
-    # _____
-    #|  ___|
-    #| |__ _ __   ___ _ __ __ _ _   _
-    #|  __| '_ \ / _ \ '__/ _` | | | |
-    #| |__| | | |  __/ | | (_| | |_| |
-    #\____/_| |_|\___|_|  \__, |\__, |
-    #                      __/ | __/ |
-    #                     |___/ |___/
+    #  _____
+    # |  ___|
+    # | |__ _ __   ___ _ __ __ _ _   _
+    # |  __| '_ \ / _ \ '__/ _` | | | |
+    # | |__| | | |  __/ | | (_| | |_| |
+    # \____/_| |_|\___|_|  \__, |\__, |
+    #                       __/ | __/ |
+    #                      |___/ |___/
     elif arguments["get_energy"]:
         d_energy = defaultdict(dict)
 
@@ -218,10 +218,10 @@ if __name__ == '__main__':
                 ae_exp[name] = energy
                 zpe_exp[name] = zpe
 
-         #  _
-         # |_  _ _|_      _      _.  _ _|_    _  ._   _  ._ _
-         # |_ _>  |_ o   (/_ >< (_| (_  |_   (/_ | | (/_ | (_| \/
-         #                                                  _| /
+        #  _
+        # |_  _ _|_      _      _.  _ _|_    _  ._   _  ._ _
+        # |_ _>  |_ o   (/_ >< (_| (_  |_   (/_ | | (/_ | (_| \/
+        #                                                  _| /
         if arguments["--estimated_exact"]:
             # Get Davidson est. atomics energies
             cmd_where = " AND ".join(str_ele + ['(run_id = "21")'])
@@ -250,7 +250,6 @@ if __name__ == '__main__':
                 except KeyError:
                     pass
                 else:
-                    print emp_tmp
                     est_exact_energy[name] = emp_tmp
 
         #
@@ -330,12 +329,12 @@ if __name__ == '__main__':
                 sys.exit(1)
             else:
                 table = sorted(table, key=lambda x: x[index], reverse=True)
-    #______     _       _
-    #| ___ \   (_)     | |
-    #| |_/ / __ _ _ __ | |_
-    #|  __/ '__| | '_ \| __|
-    #| |  | |  | | | | | |_
-    #\_|  |_|  |_|_| |_|\__|
+    # ______     _       _
+    # | ___ \   (_)     | |
+    # | |_/ / __ _ _ __ | |_
+    # |  __/ '__| | '_ \| __|
+    # | |  | |  | | | | | |_
+    # \_|  |_|  |_|_| |_|\__|
     pprint_table(table)
     print "#GnuPlot cmd for energy : "
     print "# $gnuplot -e",
