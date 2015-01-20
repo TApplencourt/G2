@@ -137,3 +137,26 @@ def get_xyz(geo, ele, only_neutral=True):
         xyz_file_format.append(line)
 
     return "\n".join(map(str, xyz_file_format))
+
+
+def get_g09(geo, ele, only_neutral=True):
+    a = dict_raw()
+    b = full_dict(a, geo, only_neutral)
+
+    dic_ = b[ele]
+
+    line = " ".join(map(str, [ele,
+                              "Geo:", geo,
+                              "Mult:", dic_["multiplicity"],
+                              "symmetry:", dic_["symmetry"]]))
+
+    g09_file_format = [ "# cc-pvdz", "", line, "", "%d %d"%(dic_["charge"], dic_["multiplicity"]) ]
+
+    for atom, xyz in zip(dic_["formula_clean"], dic_["list_xyz"]):
+        line_xyz = "    ".join(map(str, xyz))
+        line = "    ".join([atom, line_xyz])
+
+        g09_file_format.append(line)
+    g09_file_format.append("\n\n\n")
+    return "\n".join(map(str, g09_file_format))
+

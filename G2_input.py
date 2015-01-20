@@ -10,6 +10,9 @@ Usage:
   G2_input.py get_xyz            --geo=geometry_name...
                                  --ele=element_name...
                                       [(--save [--path=path])]
+  G2_input.py get_g09            --geo=geometry_name...
+                                 --ele=element_name...
+                                      [(--save [--path=path])]
   G2_input.py get_multiplicity   --ele=element_name
 """
 
@@ -47,6 +50,37 @@ if __name__ == '__main__':
         l = [x for x in list_ele(str_) if "-" not in x and "+" not in x]
 
         print ", ".join(l)
+
+    if arguments["get_g09"]:
+        # Creates a Gaussian09 input file
+
+        l_geo = arguments["--geo"]
+        l_ele = arguments["--ele"]
+
+        to_print = []
+        for ele in l_ele:
+            for geo in l_geo:
+                try:
+                    xyz = get_g09(geo, ele)
+                except KeyError:
+                    pass
+                else:
+                    to_print.append(xyz)
+
+        str_ = "\n\n".join(to_print)
+        if arguments["--save"]:
+
+            if arguments["--path"]:
+                path = arguments["--path"]
+            else:
+                path = "_".join([".".join(l_geo), ".".join(l_ele)])
+                path = "/tmp/" + path + ".com"
+
+            with open(path, 'w') as f:
+                f.write(str_ + "\n")
+            print path
+        else:
+            print str_
 
     if arguments["get_xyz"]:
         l_geo = arguments["--geo"]
