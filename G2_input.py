@@ -5,18 +5,23 @@
 
 Usage:
   G2_input.py (-h | --help)
-  G2_input.py list_geometries         [--ele=element_name...]
-  G2_input.py list_elements      --geo=geometry_name...
-  G2_input.py get_xyz            --geo=geometry_name...
-                                 --ele=element_name...
-                                      [(--save [--path=path])]
-  G2_input.py get_g09            --geo=geometry_name...
-                                 --ele=element_name...
-                                      [(--save [--path=path])]
-  G2_input.py get_multiplicity   --ele=element_name
+  G2_input.py list_geometries         [--ele=<element_name>...]
+  G2_input.py list_elements      --geo=<geometry_name>...
+  G2_input.py get_xyz            --geo=<geometry_name>...
+                                 --ele=<element_name>...
+                                      [(--save [--path=<path>])]
+  G2_input.py get_g09            --geo=<geometry_name>...
+                                 --ele=<element_name>...
+                                      [(--save [--path=<path>])]
+  G2_input.py get_multiplicity   --ele=<element_name>
+
+Example of use:
+  ./G2_input.py list_geometries
+  ./G2_input.py list_elements --geo Experiment
+  ./G2_input.py get_xyz --geo Experiment --ele NaCl --ele H3CCl
 """
 
-version = "1.0.3"
+version = "1.0.4"
 
 import sys
 
@@ -51,8 +56,16 @@ if __name__ == '__main__':
 
         print ", ".join(l)
 
-    if arguments["get_g09"]:
-        # Creates a Gaussian09 input file
+    if arguments["get_g09"] or arguments["get_xyz"]:
+
+        from collections import namedtuple
+
+        get_general = namedtuple('get_general', ['get', 'ext'])
+
+        if arguments['get_g09']:
+            g = get_general(get=get_g09, ext='.com')
+        elif arguments['get_xyz']:
+            g = get_general(get=get_xyz, ext='.xyz')
 
         l_geo = arguments["--geo"]
         l_ele = arguments["--ele"]
@@ -61,7 +74,7 @@ if __name__ == '__main__':
         for ele in l_ele:
             for geo in l_geo:
                 try:
-                    xyz = get_g09(geo, ele)
+                    xyz = g.get(geo, ele)
                 except KeyError:
                     pass
                 else:
@@ -74,37 +87,7 @@ if __name__ == '__main__':
                 path = arguments["--path"]
             else:
                 path = "_".join([".".join(l_geo), ".".join(l_ele)])
-                path = "/tmp/" + path + ".com"
-
-            with open(path, 'w') as f:
-                f.write(str_ + "\n")
-            print path
-        else:
-            print str_
-
-    if arguments["get_xyz"]:
-        l_geo = arguments["--geo"]
-        l_ele = arguments["--ele"]
-
-        to_print = []
-        for ele in l_ele:
-            for geo in l_geo:
-                try:
-                    xyz = get_xyz(geo, ele)
-                except KeyError:
-                    pass
-                else:
-                    to_print.append(xyz)
-
-        str_ = "\n\n".join(to_print)
-        if arguments["--save"]:
-
-            if arguments["--path"]:
-                path = arguments["--path"]
-            else:
-                path = "_".join([".".join(l_geo), ".".join(l_ele)])
-                path = "/tmp/" + path + ".xyz"
-
+                path = "/tmp/" + path + g.ext
             with open(path, 'w') as f:
                 f.write(str_ + "\n")
             print path

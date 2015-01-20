@@ -4,39 +4,40 @@
 """Welcome to the G2 Api! Grab all the G2 data you're dreaming of.
 
 Usage:
-  G2_api.py (-h | --help)
-  G2_api.py list_run [--order_by=column...]
-                     [--ele=element_name...]
-                     [--geo=geometry_name...]
-                     [--basis=basis_name...]
-                     [--method=method_name...]
-                     [--all_children]
-  G2_api.py get_energy [--order_by=column]
-                       [--run_id=id...]
-                       [--ele=element_name...]
-                       [--geo=geometry_name...]
-                       [--basis=basis_name...]
-                       [--method=method_name...]
-                       [--without_pt2]
-                       [--estimated_exact]
-                       [--get_ae]
-                       [--all_children]
-  G2_api.py --version
+  G2_result.py (-h | --help)
+  G2_result.py list_run [--order_by=<column>...]
+                        [--ele=<element_name>...]
+                        [--geo=<geometry_name>...]
+                        [--basis=<basis_name>...]
+                        [--method=<method_name>...]
+                        [--all_children]
+  G2_result.py get_energy [--order_by=<column>]
+                          [--run_id=<id>...]
+                          [--ele=<element_name>...]
+                          [--geo=<geometry_name>...]
+                          [--basis=<basis_name>...]
+                          [--method=<method_name>...]
+                          [--without_pt2]
+                          [--estimated_exact]
+                          [--get_ae]
+                          [--all_children]
+  G2_result.py --version
 
 Options:
   --help                 Here you go.
   --without_pt2          Show all the data without adding the PT2 when avalaible.
   --get_ae               Show the atomization energy (both theorical and experiment) when avalaible.
   --all_children         Find all the children of the ele.
+  --estimated_exact      Show the estimated exact energy.
   All the other          Filter the data or ordering it. See example.
 
 Example of use:
-  ./G2_api.py list_run --method cipsi
-  ./G2_api.py get_energy --run_id 11 --order_by energy --without_pt2
-  ./G2_api.py get_energy --basis cc-pvdz --ele AlCl --ele Li2 --get_ae --order_by diff
+  ./G2_result.py list_run --method CIPSI
+  ./G2_result.py get_energy --run_id 11 --order_by e --without_pt2 --estimated_exact
+  ./G2_result.py get_energy --basis cc-pvdz --ele AlCl --ele Li2 --get_ae --order_by ae_diff
 """
 
-version = "1.0.2"
+version = "1.0.4"
 
 import sys
 import os
@@ -113,12 +114,12 @@ if __name__ == '__main__':
     cmd_where = " AND ".join(str_ + str_ele)
     if not cmd_where:
         cmd_where = "(1)"
-    # _     _     _
-    #| |   (_)   | |
-    #| |    _ ___| |_   _ __ _   _ _ __
-    #| |   | / __| __| | '__| | | | '_ \
-    #| |___| \__ \ |_  | |  | |_| | | | |
-    #\_____/_|___/\__| |_|   \__,_|_| |_|
+    #  _     _     _
+    # | |   (_)   | |
+    # | |    _ ___| |_   _ __ _   _ _ __
+    # | |   | / __| __| | '__| | | | '_ \
+    # | |___| \__ \ |_  | |  | |_| | | | |
+    # \_____/_|___/\__| |_|   \__,_|_| |_|
     if arguments["list_run"]:
 
         c.execute("""SELECT run_id,
@@ -140,14 +141,14 @@ if __name__ == '__main__':
 
         table.append(header)
         table.extend(c.fetchall())
-    # _____
-    #|  ___|
-    #| |__ _ __   ___ _ __ __ _ _   _
-    #|  __| '_ \ / _ \ '__/ _` | | | |
-    #| |__| | | |  __/ | | (_| | |_| |
-    #\____/_| |_|\___|_|  \__, |\__, |
-    #                      __/ | __/ |
-    #                     |___/ |___/
+    #  _____
+    # |  ___|
+    # | |__ _ __   ___ _ __ __ _ _   _
+    # |  __| '_ \ / _ \ '__/ _` | | | |
+    # | |__| | | |  __/ | | (_| | |_| |
+    # \____/_| |_|\___|_|  \__, |\__, |
+    #                       __/ | __/ |
+    #                      |___/ |___/
     elif arguments["get_energy"]:
         d_energy = defaultdict(dict)
 
@@ -195,6 +196,8 @@ if __name__ == '__main__':
             cmd_where = " AND ".join(str_)
 
             ae_exp = defaultdict()
+            zpe_exp = defaultdict()
+
             c.execute("""SELECT name ele,
                              formula,
                                  zpe,
@@ -212,12 +215,13 @@ if __name__ == '__main__':
 
                 zpe = zpe * 4.55633e-06
                 energy = kcal * 0.00159362
-                ae_exp[name] = energy + zpe
+                ae_exp[name] = energy
+                zpe_exp[name] = zpe
 
-         #  _
-         # |_  _ _|_      _      _.  _ _|_    _  ._   _  ._ _
-         # |_ _>  |_ o   (/_ >< (_| (_  |_   (/_ | | (/_ | (_| \/
-         #                                                  _| /
+        #  _
+        # |_  _ _|_      _      _.  _ _|_    _  ._   _  ._ _
+        # |_ _>  |_ o   (/_ >< (_| (_  |_   (/_ | | (/_ | (_| \/
+        #                                                  _| /
         if arguments["--estimated_exact"]:
             # Get Davidson est. atomics energies
             cmd_where = " AND ".join(str_ele + ['(run_id = "21")'])
@@ -240,13 +244,13 @@ if __name__ == '__main__':
                 formula_raw = info[1]
 
                 try:
-                    emp_tmp = ae_exp[name]
+                    emp_tmp = -ae_exp[name]
                     for name_atome, number in eval(formula_raw):
                         emp_tmp += number * energy_th[name_atome]
                 except KeyError:
                     pass
                 else:
-                    est_exact_energy[name] = -emp_tmp
+                    est_exact_energy[name] = emp_tmp
 
         #
         #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    _|_ |_
@@ -262,7 +266,7 @@ if __name__ == '__main__':
                 d_e_rid = d_energy[run_id]
 
                 try:
-                    ao_th_tmp = d_e_rid[name]
+                    ao_th_tmp = d_e_rid[name] + zpe_exp[name]
                     for name_atome, number in eval(formula_raw):
                         ao_th_tmp -= number * d_e_rid[name_atome]
                 except KeyError:
@@ -275,13 +279,13 @@ if __name__ == '__main__':
         #
         table = []
 
-        line = "#Run_id method basis geo comments ele energy".split()
+        line = "#Run_id method basis geo comments ele e".split()
 
         if arguments["--estimated_exact"]:
-            line += "estimated_exact diff_est_exact".split()
+            line += "e_est_exact e_diff".split()
 
         if arguments["""--get_ae"""]:
-            line += "ae_th ae_exp diff".split()
+            line += "ae_th ae_exp ae_diff".split()
 
         table.append(line)
 
@@ -325,12 +329,12 @@ if __name__ == '__main__':
                 sys.exit(1)
             else:
                 table = sorted(table, key=lambda x: x[index], reverse=True)
-    #______     _       _
-    #| ___ \   (_)     | |
-    #| |_/ / __ _ _ __ | |_
-    #|  __/ '__| | '_ \| __|
-    #| |  | |  | | | | | |_
-    #\_|  |_|  |_|_| |_|\__|
+    # ______     _       _
+    # | ___ \   (_)     | |
+    # | |_/ / __ _ _ __ | |_
+    # |  __/ '__| | '_ \| __|
+    # | |  | |  | | | | | |_
+    # \_|  |_|  |_|_| |_|\__|
     pprint_table(table)
     print "#GnuPlot cmd for energy : "
     print "# $gnuplot -e",
