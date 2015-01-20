@@ -4,16 +4,16 @@
 """Welcome to the G2 Api! Grab all the G2 data you're dreaming of.
 
 Usage:
-  G2_api.py (-h | --help)
-  G2_api.py list_geometrys          [--ele=element_name...]
-  G2_api.py list_elements      --geo=geometry_name...
-  G2_api.py get_xyz            --geo=geometry_name...
-                               --ele=element_name...
-                                    [(--save [--path=path])]
-  G2_api.py get_multiplicity   --ele=element_name
+  G2_input.py (-h | --help)
+  G2_input.py list_geometries         [--ele=element_name...]
+  G2_input.py list_elements      --geo=geometry_name...
+  G2_input.py get_xyz            --geo=geometry_name...
+                                 --ele=element_name...
+                                      [(--save [--path=path])]
+  G2_input.py get_multiplicity   --ele=element_name
 """
 
-version = "1.0.2"
+version = "1.0.3"
 
 import sys
 
@@ -22,14 +22,14 @@ try:
     from misc.SQL_util import *
 
 except:
-    print "File in misc is corupted. Git reset may cure the diseases"
+    print "File in misc is corupted. Git reset may cure the disease."
     sys.exit(1)
 
 if __name__ == '__main__':
 
     arguments = docopt(__doc__, version='G2 Api ' + version)
 
-    if arguments["list_geometrys"]:
+    if arguments["list_geometries"]:
 
         if arguments["--ele"]:
             str_ = cond_sql_or("id_tab.name", arguments["--ele"])
