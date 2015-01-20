@@ -5,18 +5,23 @@
 
 Usage:
   G2_input.py (-h | --help)
-  G2_input.py list_geometries         [--ele=element_name...]
-  G2_input.py list_elements      --geo=geometry_name...
-  G2_input.py get_xyz            --geo=geometry_name...
-                                 --ele=element_name...
-                                      [(--save [--path=path])]
-  G2_input.py get_g09            --geo=geometry_name...
-                                 --ele=element_name...
-                                      [(--save [--path=path])]
-  G2_input.py get_multiplicity   --ele=element_name
+  G2_input.py list_geometries         [--ele=<element_name>...]
+  G2_input.py list_elements      --geo=<geometry_name>...
+  G2_input.py get_xyz            --geo=<geometry_name>...
+                                 --ele=<element_name>...
+                                      [(--save [--path=<path>])]
+  G2_input.py get_g09            --geo=<geometry_name>...
+                                 --ele=<element_name>...
+                                      [(--save [--path=<path>])]
+  G2_input.py get_multiplicity   --ele=<element_name>
+
+Example of use:
+  ./G2_input.py list_geometries
+  ./G2_input.py list_elements --geo Experiment
+  ./G2_input.py get_xyz --geo Experiment --ele NaCl --ele H3CCl
 """
 
-version = "1.0.3"
+version = "1.0.4"
 
 import sys
 
