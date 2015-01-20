@@ -1,4 +1,4 @@
-G2 Test set API
+G2 TestSet API
 =============================
 
 You can find in this repository all the G2 Test set molucule info like:
@@ -17,6 +17,7 @@ You can find in this repository all the G2 Test set molucule info like:
 
 (For a beter quality see the [Source](https://asciinema.org/api/asciicasts/15602))
 
+##Usage
 
 ###### Input
 Get the xyz, the multiplicty of the G2 molecule
