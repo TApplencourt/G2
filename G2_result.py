@@ -315,12 +315,13 @@ if __name__ == '__main__':
         # \_/ | (_| (/_ |    |_) \/
         #                        /
 
-        # Order by l_ele if given
+        # Order by l_ele if given else order by ele
 	if l_ele:
             table = [l for i in l_ele for l in table if l[5] == i]
+            cmd_order = []
         else:
 	    cmd_order = ["ele"]
-        # Then order by argument if given  else order by name by default
+        # Then order by cli argument if given
         cmd_order += arguments["--order_by"]
 
         for arg in cmd_order:
