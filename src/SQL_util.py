@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os
 import sys
 
@@ -174,22 +176,44 @@ def add_new_run(method, basis, geo, comments):
     conn.commit()
 
 
-def add_energy_cispi(run_id):
-    for geo in ["MP2", "Experiment"]:
-        for basis in ["cc-pvdz"]:
-            d = full_dict(geo)
+def add_energy_cispi(run_list,
+                     geo_list,
+                     basis_list,
+                     path,
+                     tail,
+                     TruePt2=False,
+                     compatibility=False):
 
-            for id_, dic in d.items():
-                name = dic["name"]
-                path = "/home/razoa/work_progress/G2/G2_CIPSI/log_1M_on_1k/"
+    index = 0
+    for geo in geo_list:
 
-                url = path + name + "_" + basis + \
-                    "_" + geo + ".HF_1M_on_1k_true.log"
+        dict_ = full_dict(geo)
 
-                print url
+        for basis in basis_list:
+
+            for name, dic in dict_.items():
+
+                if compatibility:
+                    from misc_info import new_name_to_old
+                    name_path = new_name_to_old[
+                        name] if name in new_name_to_old else name
+                else:
+                    name_path = name
+
+                url = "".join([path, name_path, "_", basis, "_", geo, tail])
+
+                if not os.path.isfile(url):
+                    print "%s not existing"%url
+                    continue
+
                 with open(url, "r") as f:
                     s = f.read()
-                    s = s[s.rfind(' N_det'):]
+
+                    if TruePt2 and s.find("Final step") == -1:
+                        print "No  true PT2 for", url
+                        continue
+                    else:
+                        s = s[s.rfind(' N_det'):]
 
                 s = s.splitlines()
                 for i in s:
@@ -203,6 +227,7 @@ def add_energy_cispi(run_id):
                         time = i.split(":")[-1].strip()
 
                 id_ = get_mol_id(name)
+                run_id = run_list[index]
 
                 print name, run_id, id_, ndet, pt2, e, time
                 c.execute(
@@ -210,6 +235,8 @@ def add_energy_cispi(run_id):
                         run_id, id_, ndet, e, pt2, time])
 
                 conn.commit()
+
+            index += 1
 
 
 # ______                         _
@@ -251,9 +278,8 @@ def get_g09(geo, ele, only_neutral=True):
                               "Mult:", dic_["multiplicity"],
                               "symmetry:", dic_["symmetry"]]))
 
-    g09_file_format = [
-        "# cc-pvdz", "", line, "", "%d %d" %
-        (dic_["charge"], dic_["multiplicity"])]
+    g09_file_format = ["# cc-pvdz", "", line, "",
+                       "%d %d" % (dic_["charge"], dic_["multiplicity"])]
 
     for atom, xyz in zip(dic_["formula_clean"], dic_["list_xyz"]):
         line_xyz = "    ".join(map(str, xyz))
@@ -264,11 +290,16 @@ def get_g09(geo, ele, only_neutral=True):
     return "\n".join(map(str, g09_file_format))
 
 
-#___  ___      _
-#|  \/  |     (_)
-#| .  . | __ _ _ _ __
-#| |\/| |/ _` | | '_ \
-#| |  | | (_| | | | | |
-#\_|  |_/\__,_|_|_| |_|
+# ___  ___      _
+# |  \/  |     (_)
+# | .  . | __ _ _ _ __
+# | |\/| |/ _` | | '_ \
+# | |  | | (_| | | | | |
+# \_|  |_/\__,_|_|_| |_|
 #
 if __name__ == "__main__":
+    pass
+    #    add_new_run("CIPSI", "cc-pvtz", "MP2", "1M_Dets")
+    #add_energy_cispi([26, 27], ["Experiment", "MP2"], ["cc-pvtz"],
+    #                 "/tmp/log_backup/", ".HF_1M_on_10k_true.log",
+    #                 TruePt2=True,compatibility=True)
