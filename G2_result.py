@@ -321,9 +321,13 @@ if __name__ == '__main__':
 
         # Then by order_by if give
         cmd_order = arguments["--order_by"]
+
+        if not cmd_order:
+           cmd_order=["ele"]
+
         for arg in cmd_order:
             try:
-                index = table[0].index(arg)
+                index = header.index(arg)
             except ValueError:
                 print "For --order_by you need a column name"
                 sys.exit(1)
