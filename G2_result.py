@@ -316,11 +316,10 @@ if __name__ == '__main__':
         #                        /
 
         # Order by l_ele if given
-        if l_ele:
-            table = [l for i in l_ele for l in table if l[5] == i]
+        table = [l for i in l_ele for l in table if l[5] == i]
 
         # Then order by argument if given  else order by name by default
-        cmd_order = arguments["--order_by"] if arguments["--order_by"] else ["ele"]
+        cmd_order = arguments["--order_by"]
 
         for arg in cmd_order:
             try:
