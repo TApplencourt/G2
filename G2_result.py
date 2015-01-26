@@ -315,15 +315,12 @@ if __name__ == '__main__':
         # \_/ | (_| (/_ |    |_) \/
         #                        /
 
-        # Order by ele_to_get if givent
+        # Order by ele_to_get if given
         if ele_to_get:
             table = [l for i in ele_to_get for l in table if l[5] == i]
 
-        # Then by order_by if give
-        cmd_order = arguments["--order_by"]
-
-        if not cmd_order:
-           cmd_order=["ele"]
+        # Then order by argument if given  else order by name by default
+        cmd_order = arguments["--order_by"] if arguments["--order_by"] else ["ele"]
 
         for arg in cmd_order:
             try:
