@@ -52,7 +52,8 @@ def get_coord(id, atom, geo_name):
     return c.fetchall()
 
 
-def full_dict(d, geo_name, only_neutral=True):
+def full_dict(geo_name, only_neutral=True):
+    d = dict_raw()
 
     for i, dic_ele in d.items():
 
@@ -106,7 +107,7 @@ def list_geo(where_cond='(1)'):
     return [i[0] for i in c.fetchall()]
 
 
-def list_ele(where_cond):
+def list_ele(where_cond='(1)'):
     c.execute('''SELECT DISTINCT id_tab.name
                             FROM coord_tab
                     NATURAL JOIN geo_tab
@@ -116,9 +117,15 @@ def list_ele(where_cond):
     return [i[0] for i in c.fetchall()]
 
 
+# ______                         _
+# |  ___|                       | |
+# | |_ ___  _ __ _ __ ___   __ _| |_
+# |  _/ _ \| '__| '_ ` _ \ / _` | __|
+# | || (_) | |  | | | | | | (_| | |_
+# \_| \___/|_|  |_| |_| |_|\__,_|\__|
+#
 def get_xyz(geo, ele, only_neutral=True):
-    a = dict_raw()
-    b = full_dict(a, geo, only_neutral)
+    b = full_dict(geo, only_neutral)
 
     dic_ = b[ele]
 
@@ -140,8 +147,7 @@ def get_xyz(geo, ele, only_neutral=True):
 
 
 def get_g09(geo, ele, only_neutral=True):
-    a = dict_raw()
-    b = full_dict(a, geo, only_neutral)
+    b = full_dict(geo, only_neutral)
 
     dic_ = b[ele]
 
