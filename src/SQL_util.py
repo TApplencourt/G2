@@ -123,7 +123,7 @@ def list_ele(where_cond='(1)'):
 def full_dict(geo_name, only_neutral=True):
     d = dict_raw()
 
-    for i, dic_ele in d.items():
+    for i, dic_ele in d.iteritems():
 
         if only_neutral:
             if "+" in i or "-" in i:
@@ -199,7 +199,7 @@ def add_energy_cispi(run_list,
 
         for basis in basis_list:
 
-            for name, dic in dict_.items():
+            for name, dic in dict_.iteritems():
 
                 if compatibility:
                     from .misc_info import new_name_to_old
