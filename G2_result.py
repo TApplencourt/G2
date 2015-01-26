@@ -77,20 +77,20 @@ if __name__ == '__main__':
     # \    / |_   _  ._ _     _  |  _  ._ _   _  ._ _|_
     #  \/\/  | | (/_ | (/_   (/_ | (/_ | | | (/_ | | |_
     #
-    ele_to_get = None
+    l_ele = None
     if arguments["--ele"]:
-        ele_to_get = arguments["--ele"]
+        l_ele = arguments["--ele"]
     elif arguments["--like_toulouse"]:
         from src.misc_info import list_toulouse
-        ele_to_get = list_toulouse
+        l_ele = list_toulouse
 
-    if ele_to_get:
+    if l_ele:
 
         list_key = ["--all_children", "--get_ae", "--estimated_exact"]
         if any(arguments[k] for k in list_key):
 
             # Find all this children of the element; this is the new conditions
-            cond = " ".join(cond_sql_or("name", ele_to_get))
+            cond = " ".join(cond_sql_or("name", l_ele))
             c.execute("""SELECT name, formula
                            FROM id_tab
                           WHERE {where_cond}""".format(where_cond=cond))
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
             str_ele = cond_sql_or("ele", list_name_needed)
         else:
-            str_ele = cond_sql_or("ele", ele_to_get)
+            str_ele = cond_sql_or("ele", l_ele)
     else:
         str_ele = []
 
@@ -315,9 +315,9 @@ if __name__ == '__main__':
         # \_/ | (_| (/_ |    |_) \/
         #                        /
 
-        # Order by ele_to_get if given
-        if ele_to_get:
-            table = [l for i in ele_to_get for l in table if l[5] == i]
+        # Order by l_ele if given
+        if l_ele:
+            table = [l for i in l_ele for l in table if l[5] == i]
 
         # Then order by argument if given  else order by name by default
         cmd_order = arguments["--order_by"] if arguments["--order_by"] else ["ele"]
