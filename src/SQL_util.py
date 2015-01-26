@@ -10,6 +10,13 @@ except:
     sys.exit(1)
 
 
+# ___  ____
+# |  \/  (_)
+# | .  . |_ ___  ___
+# | |\/| | / __|/ __|
+# | |  | | \__ \ (__
+# \_|  |_/_|___/\___|
+#
 def isSQLite3(filename):
     from os.path import isfile, getsize
 
@@ -31,9 +38,6 @@ if not isSQLite3(path):
     print "'%s' is not a SQLite3 database file" % path
     print sys.exit(1)
 
-conn = sqlite3.connect(path)
-c = conn.cursor()
-
 
 def cond_sql_or(table_name, l_value):
 
@@ -43,6 +47,10 @@ def cond_sql_or(table_name, l_value):
         l.append("(%s)" % dmy)
 
     return l
+
+
+conn = sqlite3.connect(path)
+c = conn.cursor()
 
 
 #  _____      _
@@ -194,7 +202,7 @@ def add_energy_cispi(run_list,
             for name, dic in dict_.items():
 
                 if compatibility:
-                    from misc_info import new_name_to_old
+                    from .misc_info import new_name_to_old
                     name_path = new_name_to_old[
                         name] if name in new_name_to_old else name
                 else:
@@ -203,7 +211,7 @@ def add_energy_cispi(run_list,
                 url = "".join([path, name_path, "_", basis, "_", geo, tail])
 
                 if not os.path.isfile(url):
-                    print "%s not existing"%url
+                    print "%s not existing" % url
                     continue
 
                 with open(url, "r") as f:
@@ -231,8 +239,8 @@ def add_energy_cispi(run_list,
 
                 print name, run_id, id_, ndet, pt2, e, time
                 c.execute(
-                    "INSERT OR REPLACE INTO cipsi_energy_tab(run_id,id,ndet,energy,pt2,time) VALUES (?,?,?,?,?,?)", [
-                        run_id, id_, ndet, e, pt2, time])
+                    '''INSERT OR REPLACE INTO cipsi_energy_tab(run_id,id,ndet,energy,pt2,time)
+                        VALUES (?,?,?,?,?,?)''', [run_id, id_, ndet, e, pt2, time])
 
                 conn.commit()
 
@@ -300,6 +308,6 @@ def get_g09(geo, ele, only_neutral=True):
 if __name__ == "__main__":
     pass
     #    add_new_run("CIPSI", "cc-pvtz", "MP2", "1M_Dets")
-    #add_energy_cispi([26, 27], ["Experiment", "MP2"], ["cc-pvtz"],
+    # add_energy_cispi([26, 27], ["Experiment", "MP2"], ["cc-pvtz"],
     #                 "/tmp/log_backup/", ".HF_1M_on_10k_true.log",
     #                 TruePt2=True,compatibility=True)
