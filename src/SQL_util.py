@@ -43,6 +43,13 @@ def cond_sql_or(table_name, l_value):
     return l
 
 
+#  _____      _
+# |  __ \    | |
+# | |  \/ ___| |_
+# | | __ / _ \ __|
+# | |_\ \  __/ |_
+#  \____/\___|\__|
+#
 def get_coord(id, atom, geo_name):
     c.execute(''' SELECT x,y,z FROM coord_tab NATURAL JOIN geo_tab
                 WHERE id =?  AND
@@ -52,6 +59,57 @@ def get_coord(id, atom, geo_name):
     return c.fetchall()
 
 
+def get_mol_id(name):
+    c.execute("SELECT id FROM id_tab WHERE name=?", [name])
+    r = c.fetchone()[0]
+    return r
+
+
+def get_method_id(name):
+    c.execute("SELECT method_id FROM method_tab WHERE name=?", [name])
+    r = c.fetchone()[0]
+    return r
+
+
+def get_basis_id(name):
+    c.execute("SELECT basis_id FROM basis_tab WHERE name=?", [name])
+    r = c.fetchone()[0]
+    return r
+
+
+def get_geo_id(name):
+    c.execute("SELECT geo_id FROM geo_tab WHERE name=?", [name])
+    r = c.fetchone()[0]
+    return r
+
+
+def list_geo(where_cond='(1)'):
+    c.execute('''SELECT DISTINCT geo_tab.name
+                            FROM coord_tab
+                    NATURAL JOIN geo_tab
+                      INNER JOIN id_tab
+                              ON coord_tab.id = id_tab.id
+                           WHERE {where_cond}'''.format(where_cond=where_cond))
+    return [i[0] for i in c.fetchall()]
+
+
+def list_ele(where_cond='(1)'):
+    c.execute('''SELECT DISTINCT id_tab.name
+                            FROM coord_tab
+                    NATURAL JOIN geo_tab
+                      INNER JOIN id_tab
+                              ON coord_tab.id = id_tab.id
+                           WHERE {where_cond}'''.format(where_cond=where_cond))
+    return [i[0] for i in c.fetchall()]
+
+
+# ______ _      _
+# |  _  (_)    | |
+# | | | |_  ___| |_
+# | | | | |/ __| __|
+# | |/ /| | (__| |_
+# |___/ |_|\___|\__|
+#
 def full_dict(geo_name, only_neutral=True):
     d = dict_raw()
 
@@ -97,24 +155,61 @@ def dict_raw():
     return d
 
 
-def list_geo(where_cond='(1)'):
-    c.execute('''SELECT DISTINCT geo_tab.name
-                            FROM coord_tab
-                    NATURAL JOIN geo_tab
-                      INNER JOIN id_tab
-                              ON coord_tab.id = id_tab.id
-                           WHERE {where_cond}'''.format(where_cond=where_cond))
-    return [i[0] for i in c.fetchall()]
+#   ___      _     _
+#  / _ \    | |   | |
+# / /_\ \ __| | __| |
+# |  _  |/ _` |/ _` |
+# | | | | (_| | (_| |
+# \_| |_/\__,_|\__,_|
+#
+def add_new_run(method, basis, geo, comments):
+
+    method_id = get_method_id(method)
+    basis_id = get_basis_id(basis)
+    geo_id = get_geo_id(geo)
+
+    c.execute("""INSERT INTO run_tab(method_id,basis_id,geo_id,comments)
+        VALUES (?,?,?,?)""", [method_id, basis_id, geo_id, comments])
+
+    conn.commit()
 
 
-def list_ele(where_cond='(1)'):
-    c.execute('''SELECT DISTINCT id_tab.name
-                            FROM coord_tab
-                    NATURAL JOIN geo_tab
-                      INNER JOIN id_tab
-                              ON coord_tab.id = id_tab.id
-                           WHERE {where_cond}'''.format(where_cond=where_cond))
-    return [i[0] for i in c.fetchall()]
+def add_energy_cispi(run_id):
+    for geo in ["MP2", "Experiment"]:
+        for basis in ["cc-pvdz"]:
+            d = full_dict(geo)
+
+            for id_, dic in d.items():
+                name = dic["name"]
+                path = "/home/razoa/work_progress/G2/G2_CIPSI/log_1M_on_1k/"
+
+                url = path + name + "_" + basis + \
+                    "_" + geo + ".HF_1M_on_1k_true.log"
+
+                print url
+                with open(url, "r") as f:
+                    s = f.read()
+                    s = s[s.rfind(' N_det'):]
+
+                s = s.splitlines()
+                for i in s:
+                    if "N_det " in i:
+                        ndet = i.split("=")[-1].strip()
+                    if " PT2      =" in i:
+                        pt2 = i.split("=")[-1].strip()
+                    if "E   " in i:
+                        e = i.split("=")[-1].strip()
+                    if "Wall" in i:
+                        time = i.split(":")[-1].strip()
+
+                id_ = get_mol_id(name)
+
+                print name, run_id, id_, ndet, pt2, e, time
+                c.execute(
+                    "INSERT OR REPLACE INTO cipsi_energy_tab(run_id,id,ndet,energy,pt2,time) VALUES (?,?,?,?,?,?)", [
+                        run_id, id_, ndet, e, pt2, time])
+
+                conn.commit()
 
 
 # ______                         _
@@ -167,3 +262,13 @@ def get_g09(geo, ele, only_neutral=True):
         g09_file_format.append(line)
     g09_file_format.append("\n\n\n")
     return "\n".join(map(str, g09_file_format))
+
+
+#___  ___      _
+#|  \/  |     (_)
+#| .  . | __ _ _ _ __
+#| |\/| |/ _` | | '_ \
+#| |  | | (_| | | | | |
+#\_|  |_/\__,_|_|_| |_|
+#
+if __name__ == "__main__":
