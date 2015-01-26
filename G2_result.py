@@ -6,7 +6,7 @@
 Usage:
   G2_result.py (-h | --help)
   G2_result.py list_run [--order_by=<column>...]
-                        [--ele=<element_name>...]
+                        [--ele=<element_name>... | --like_toulouse]
                         [--geo=<geometry_name>...]
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
@@ -46,7 +46,7 @@ try:
     from src.docopt import docopt
     from src.pprint_table import pprint_table
     from src.SQL_util import cond_sql_or
-    from src.SQL_util import c as c
+    from src.SQL_util import c
 except:
     print "File in misc is corupted. Git reset may cure the diseases"
     sys.exit(1)
@@ -279,15 +279,13 @@ if __name__ == '__main__':
         #
         table = []
 
-        line = "#Run_id method basis geo comments ele e".split()
+        header = "#Run_id method basis geo comments ele e".split()
 
         if arguments["--estimated_exact"]:
-            line += "e_est_exact e_diff".split()
+            header += "e_est_exact e_diff".split()
 
         if arguments["""--get_ae"""]:
-            line += "ae_th ae_exp ae_diff".split()
-
-        table.append(line)
+            header += "ae_th ae_exp ae_diff".split()
 
         for info in data_cur_energy:
             name = info[-4]
@@ -318,23 +316,29 @@ if __name__ == '__main__':
         # / \ ._ _|  _  ._   |_
         # \_/ | (_| (/_ |    |_) \/
         #                        /
+
+        # Order by ele_to_get if givent
+        if ele_to_get:
+            table = [l for i in ele_to_get for l in table if l[5] == i]
+
+        # Then by order_by if give
         cmd_order = arguments["--order_by"]
         for arg in cmd_order:
             try:
                 index = table[0].index(arg)
             except ValueError:
-                from misc.docopt import parse_section
-                for i in parse_section('usage:', __doc__):
-                    print i
+                print "For --order_by you need a column name"
                 sys.exit(1)
             else:
                 table = sorted(table, key=lambda x: x[index], reverse=True)
+
     # ______     _       _
     # | ___ \   (_)     | |
     # | |_/ / __ _ _ __ | |_
     # |  __/ '__| | '_ \| __|
     # | |  | |  | | | | | |_
     # \_|  |_|  |_|_| |_|\__|
+    table.insert(0, header)
     pprint_table(table)
     print "#GnuPlot cmd for energy : "
     print "# $gnuplot -e",
