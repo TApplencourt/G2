@@ -8,36 +8,6 @@ except:
     sys.exit(1)
 
 
-old_name_to_new = {"OH2": "H2O",
-                   "FH": "HF",
-                   "SH2": "H2S",
-                   "ClH": "HCl",
-                   "H2NNH2": "N2H4",
-                   "HOOH": "H2O2",
-                   "OSi": "SiO",
-                   "OS": "SO",
-                   "OCl": "ClO",
-                   "FCl": "ClF",
-                   "H3SiSiH3": "Si2H6",
-                   "H3CCl": "CH3Cl",
-                   "O2S": "SO2"}
-
-new_name_to_old = {"H2O": "OH2",
-                   "HF": "FH",
-                   "H2S": "SH2",
-                   "HCl": "ClH",
-                   "N2H4 ": "H2NNH2",
-                   "H2O2": "HOOH",
-                   "SiO": "OSi",
-                   "SO": "OS",
-                   "ClO": "OCl",
-                   "ClF": "FCl",
-                   "Si2H6": "H3SiSiH3",
-                   "CH3Cl": "H3CCl",
-                   "SO2": "O2S",
-                   }
-
-
 def isSQLite3(filename):
     from os.path import isfile, getsize
 
