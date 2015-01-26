@@ -138,8 +138,6 @@ if __name__ == '__main__':
         #
         table = []
         header = ["Run_id", "Method", "Basis", "Geo", "Comments"]
-
-        table.append(header)
         table.extend(c.fetchall())
     #  _____
     # |  ___|
