@@ -8,6 +8,36 @@ except:
     sys.exit(1)
 
 
+old_name_to_new = {"OH2": "H2O",
+                   "FH": "HF",
+                   "SH2": "H2S",
+                   "ClH": "HCl",
+                   "H2NNH2": "N2H4",
+                   "HOOH": "H2O2",
+                   "OSi": "SiO",
+                   "OS": "SO",
+                   "OCl": "ClO",
+                   "FCl": "ClF",
+                   "H3SiSiH3": "Si2H6",
+                   "H3CCl": "CH3Cl",
+                   "O2S": "SO2"}
+
+new_name_to_old = {"H2O": "OH2",
+                   "HF": "FH",
+                   "H2S": "SH2",
+                   "HCl": "ClH",
+                   "N2H4 ": "H2NNH2",
+                   "H2O2": "HOOH",
+                   "SiO": "OSi",
+                   "SO": "OS",
+                   "ClO": "OCl",
+                   "ClF": "FCl",
+                   "Si2H6": "H3SiSiH3",
+                   "CH3Cl": "H3CCl",
+                   "SO2": "O2S",
+                   }
+
+
 def isSQLite3(filename):
     from os.path import isfile, getsize
 
@@ -24,7 +54,7 @@ def isSQLite3(filename):
     else:
         return False
 
-path = os.path.dirname(sys.argv[0]) + "/misc/g2.db"
+path = os.path.dirname(__file__) + "/../db/g2.db"
 if not isSQLite3(path):
     print "'%s' is not a SQLite3 database file" % path
     print sys.exit(1)
@@ -150,7 +180,9 @@ def get_g09(geo, ele, only_neutral=True):
                               "Mult:", dic_["multiplicity"],
                               "symmetry:", dic_["symmetry"]]))
 
-    g09_file_format = [ "# cc-pvdz", "", line, "", "%d %d"%(dic_["charge"], dic_["multiplicity"]) ]
+    g09_file_format = [
+        "# cc-pvdz", "", line, "", "%d %d" %
+        (dic_["charge"], dic_["multiplicity"])]
 
     for atom, xyz in zip(dic_["formula_clean"], dic_["list_xyz"]):
         line_xyz = "    ".join(map(str, xyz))
@@ -159,4 +191,3 @@ def get_g09(geo, ele, only_neutral=True):
         g09_file_format.append(line)
     g09_file_format.append("\n\n\n")
     return "\n".join(map(str, g09_file_format))
-

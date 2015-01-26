@@ -26,9 +26,9 @@ version = "1.0.4"
 import sys
 
 try:
-    from misc.docopt import docopt
-    from misc.SQL_util import *
-
+    from src.docopt import docopt
+    from src.SQL_util import cond_sql_or, list_geo, list_ele, dict_raw
+    from src.SQL_util import get_xyz, get_g09
 except:
     print "File in misc is corupted. Git reset may cure the disease."
     sys.exit(1)

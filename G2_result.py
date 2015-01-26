@@ -40,33 +40,19 @@ Example of use:
 version = "1.0.4"
 
 import sys
-import os
 from collections import defaultdict
 
 try:
-    from misc.docopt import docopt
-    from misc.pprint_table import pprint_table
-    from misc.SQL_util import isSQLite3, cond_sql_or
+    from src.docopt import docopt
+    from src.pprint_table import pprint_table
+    from src.SQL_util import cond_sql_or
+    from src.SQL_util import c as c
 except:
     print "File in misc is corupted. Git reset may cure the diseases"
     sys.exit(1)
 
-try:
-    import sqlite3
-except:
-    print "Sorry, you need sqlite3"
-    sys.exit(1)
-
 
 if __name__ == '__main__':
-
-    path = os.path.dirname(sys.argv[0]) + "/misc/g2.db"
-    if not isSQLite3(path):
-        print "'%s' is not a SQLite3 database file" % path
-        print sys.exit(1)
-
-    conn = sqlite3.connect(path)
-    c = conn.cursor()
 
     arguments = docopt(__doc__, version='G2 Api ' + version)
     # ______ _ _ _
