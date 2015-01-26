@@ -13,7 +13,7 @@ Usage:
                         [--all_children]
   G2_result.py get_energy [--order_by=<column>]
                           [--run_id=<id>...]
-                          [--ele=<element_name>...]
+                          [--ele=<element_name>... | --like_toulouse]
                           [--geo=<geometry_name>...]
                           [--basis=<basis_name>...]
                           [--method=<method_name>...]
@@ -62,8 +62,8 @@ if __name__ == '__main__':
     # | |   | | | ||  __/ |
     # \_|   |_|_|\__\___|_|
 
-    # \    / |_   _  ._ _
-    #  \/\/  | | (/_ | (/_
+    # \    / |_   _  ._ _    ._ _  o  _  _
+    #  \/\/  | | (/_ | (/_   | | | | _> (_
     #
     d = {"run_id": "--run_id",
          "geo": "--geo",
@@ -74,15 +74,23 @@ if __name__ == '__main__':
     for k, v in d.items():
         str_ += cond_sql_or(k, arguments[v])
 
-    ele = arguments["--ele"]
+    # \    / |_   _  ._ _     _  |  _  ._ _   _  ._ _|_
+    #  \/\/  | | (/_ | (/_   (/_ | (/_ | | | (/_ | | |_
+    #
+    ele_to_get = None
+    if arguments["--ele"]:
+        ele_to_get = arguments["--ele"]
+    elif arguments["--like_toulouse"]:
+        from src.misc_info import list_toulouse
+        ele_to_get = list_toulouse
 
-    if ele:
-        str_ele = cond_sql_or("ele", ele)
+    if ele_to_get:
 
         list_key = ["--all_children", "--get_ae", "--estimated_exact"]
-        if all(k in arguments for k in list_key):
+        if any(arguments[k] for k in list_key):
+
             # Find all this children of the element; this is the new conditions
-            cond = " ".join(cond_sql_or("name", ele))
+            cond = " ".join(cond_sql_or("name", ele_to_get))
             c.execute("""SELECT name, formula
                            FROM id_tab
                           WHERE {where_cond}""".format(where_cond=cond))
@@ -94,9 +102,15 @@ if __name__ == '__main__':
                     list_name_needed += (atom,)
 
             str_ele = cond_sql_or("ele", list_name_needed)
+        else:
+            str_ele = cond_sql_or("ele", ele_to_get)
     else:
         str_ele = []
 
+    #      _  ___
+    #   | / \  |  |\ |
+    # \_| \_/ _|_ | \|
+    #
     cmd_where = " AND ".join(str_ + str_ele)
     if not cmd_where:
         cmd_where = "(1)"
