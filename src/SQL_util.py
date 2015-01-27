@@ -123,7 +123,7 @@ def list_ele(where_cond='(1)'):
 def full_dict(geo_name, only_neutral=True):
     d = dict_raw()
 
-    for i, dic_ele in d.iteritems():
+    for i, dic_ele in d.items():
 
         if only_neutral:
             if "+" in i or "-" in i:
@@ -202,7 +202,7 @@ def add_energy_cispi(run_list,
             for name, dic in dict_.iteritems():
 
                 if compatibility:
-                    from .misc_info import new_name_to_old
+                    from misc_info import new_name_to_old
                     name_path = new_name_to_old[
                         name] if name in new_name_to_old else name
                 else:
@@ -218,7 +218,7 @@ def add_energy_cispi(run_list,
                     s = f.read()
 
                     if TruePt2 and s.find("Final step") == -1:
-                        print "No  true PT2 for", url
+                        print "%s have not a true PT2 for"%url
                         continue
                     else:
                         s = s[s.rfind(' N_det'):]
@@ -237,7 +237,8 @@ def add_energy_cispi(run_list,
                     if "Wall" in i:
                         time = i.split(":")[-1].strip()
 
-                if not all(ndet,e,time):
+                if not all([ndet, e, time]):
+                    print "%s file is buggy"%url
                     continue
 
                 id_ = get_mol_id(name)
@@ -312,8 +313,12 @@ def get_g09(geo, ele, only_neutral=True):
 # \_|  |_/\__,_|_|_| |_|
 #
 if __name__ == "__main__":
+
+#    add_new_run("CIPSI", "cc-pvtz", "Experiment", "1M_Dets")
+#    add_new_run("CIPSI", "cc-pvtz", "MP2", "1M_Dets")
+
+    add_energy_cispi([22, 23], ["Experiment", "MP2"], ["cc-pvtz"],
+                     "/tmp/log_backup/", ".HF_1M.log",
+                     TruePt2=False, compatibility=True)
+
     pass
-    #    add_new_run("CIPSI", "cc-pvtz", "MP2", "1M_Dets")
-    # add_energy_cispi([26, 27], ["Experiment", "MP2"], ["cc-pvtz"],
-    #                 "/tmp/log_backup/", ".HF_1M_on_10k_true.log",
-    #                 TruePt2=True,compatibility=True)
