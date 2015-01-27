@@ -224,6 +224,9 @@ def add_energy_cispi(run_list,
                         s = s[s.rfind(' N_det'):]
 
                 s = s.splitlines()
+
+                ndet = pt2 = time = None
+
                 for i in s:
                     if "N_det " in i:
                         ndet = i.split("=")[-1].strip()
@@ -233,6 +236,9 @@ def add_energy_cispi(run_list,
                         e = i.split("=")[-1].strip()
                     if "Wall" in i:
                         time = i.split(":")[-1].strip()
+
+                if not all(ndet,e,time):
+                    continue
 
                 id_ = get_mol_id(name)
                 run_id = run_list[index]
