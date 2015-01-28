@@ -13,14 +13,14 @@ Usage:
                         [--all_children]
   G2_result.py get_energy [--order_by=<column>]
                           [--run_id=<id>...]
-                          [--ele=<element_name>... | --like_toulouse]
+                          [--ele=<element_name>...  [--all_children] | --like_toulouse]
                           [--geo=<geometry_name>...]
                           [--basis=<basis_name>...]
                           [--method=<method_name>...]
                           [--without_pt2]
                           [--estimated_exact]
                           [--get_ae]
-                          [--all_children]
+
   G2_result.py --version
 
 Options:
@@ -92,16 +92,17 @@ if __name__ == '__main__':
     #  \/\/  | | (/_ | (/_   (/_ | (/_ | | | (/_ | | |_
     #
 
-    # Set the list of element to get
-    l_ele = None
+    # Set the list of element to get and to print
+    # By defalt, if l_ele is empty get all
     if arguments["--ele"]:
         l_ele = arguments["--ele"]
     elif arguments["--like_toulouse"]:
         from src.misc_info import list_toulouse
         l_ele = list_toulouse
+    else:
+        l_ele = None
 
-    # Set the command for filter the element to get
-    # By default get all the element
+    # Get the aditionary ele maybe needed and set the commande
     if not l_ele:
         cmd_filter_ele = []
     else:
@@ -114,15 +115,19 @@ if __name__ == '__main__':
                            FROM id_tab
                           WHERE {where_cond}""".format(where_cond=cond))
 
-            list_name_needed = ()
+            l_ele_tmp = set()
             for name, formula_raw in c.fetchall():
-                list_name_needed += (name,)
+                l_ele_tmp.add(name)
                 for atom, number in eval(formula_raw):
-                    list_name_needed += (atom,)
+                    l_ele_tmp.add(atom)
 
-            cmd_filter_ele = cond_sql_or("ele", list_name_needed)
+            cmd_filter_ele = cond_sql_or("ele", l_ele_tmp)
+
         else:
             cmd_filter_ele = cond_sql_or("ele", l_ele)
+
+    # If all children we need to print all the l_ele_tmp
+    l_ele = l_ele_tmp if arguments["--all_children"] else l_ele
 
     #
     #   |  _  o ._
