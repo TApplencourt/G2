@@ -310,29 +310,25 @@ if __name__ == '__main__':
                          if name in ae_exp and name in ae_th[run_id] else ""]
 
             table.append(line)
-        #  _
-        # / \ ._ _|  _  ._   |_
-        # \_/ | (_| (/_ |    |_) \/
-        #                        /
 
-        # Order by l_ele if given else order by ele
-        if l_ele:
-            table = [l for i in l_ele for l in table if l[5] == i]
-            cmd_order = []
+            # Order by l_ele if given
+            if l_ele:
+                table = [l for i in l_ele for l in table if l[5] == i]
+
+    #  _
+    # / \ ._ _|  _  ._   |_
+    # \_/ | (_| (/_ |    |_) \/
+    #                        /
+
+    # Order by cli argument if given
+    for arg in arguments["--order_by"]:
+        try:
+            index = header.index(arg)
+        except ValueError:
+            print "For --order_by you need a column name"
+            sys.exit(1)
         else:
-            cmd_order = ["ele"]
-
-        # Then order by cli argument if given
-        cmd_order += arguments["--order_by"]
-
-        for arg in cmd_order:
-            try:
-                index = header.index(arg)
-            except ValueError:
-                print "For --order_by you need a column name"
-                sys.exit(1)
-            else:
-                table = sorted(table, key=lambda x: x[index], reverse=True)
+            table = sorted(table, key=lambda x: x[index], reverse=True)
 
     # ______     _       _
     # | ___ \   (_)     | |
