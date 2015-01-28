@@ -184,14 +184,64 @@ def add_new_run(method, basis, geo, comments):
     conn.commit()
 
 
-def add_energy_cispi(run_list,
-                     geo_list,
-                     basis_list,
-                     path,
-                     tail,
-                     TruePt2=False,
-                     compatibility=False,
-                     debug=False):
+def add_energy_cispi(url, run_id, name,
+                     true_pt2=False, debug=False):
+
+    # Try if the file is existing
+    if not os.path.isfile(url):
+        print "%s not existing" % url
+        raise Exception
+    else:
+        with open(url, "r") as f:
+            s = f.read()
+
+    # If true_pt2 check if Final step is in the data
+    if true_pt2 and s.find("Final step") == -1:
+        print "%s have not a true PT2" % url
+        raise Exception
+    else:
+        s = s[s.rfind(' N_det'):]
+
+    # Now get the data
+    s = s.splitlines()
+
+    ndet = pt2 = time = None
+
+    for i in s:
+        if "N_det " in i:
+            ndet = i.split("=")[-1].strip()
+        if " PT2      =" in i:
+            pt2 = i.split("=")[-1].strip()
+        if "E   " in i:
+            e = i.split("=")[-1].strip()
+        if "Wall" in i:
+            time = i.split(":")[-1].strip()
+
+    # If a data is missing continue
+    if not all([ndet, e, time]):
+        print "%s file is buggy" % url
+        raise Exception
+
+    id_ = get_mol_id(name)
+
+    print name, run_id, id_, ndet, pt2, e, time
+
+    if not debug:
+        try:
+            c.execute('''INSERT OR REPLACE INTO
+                        cipsi_energy_tab(run_id,id,ndet,energy,pt2,time)
+                        VALUES (?,?,?,?,?,?)''', [run_id, id_, ndet, e, pt2, time])
+
+            conn.commit()
+        except:
+            print "Cannot add to the db"
+            raise Exception
+
+
+def add_energies_cispi(run_list, geo_list, basis_list, path, tail,
+                       true_pt2=False, compatibility=False, debug=False):
+
+    from misc_info import new_name_to_old
 
     index = 0
     for geo in geo_list:
@@ -199,60 +249,20 @@ def add_energy_cispi(run_list,
         dict_ = full_dict(geo)
 
         for basis in basis_list:
-
             for name, dic in dict_.iteritems():
 
-                if compatibility:
-                    from misc_info import new_name_to_old
-                    name_path = new_name_to_old[
-                        name] if name in new_name_to_old else name
+                if compatibility and name in new_name_to_old:
+                    name_path = new_name_to_old[name]
                 else:
                     name_path = name
 
                 url = "".join([path, name_path, "_", basis, "_", geo, tail])
 
-                if not os.path.isfile(url):
-                    print "%s not existing" % url
-                    continue
-
-                with open(url, "r") as f:
-                    s = f.read()
-
-                    if TruePt2 and s.find("Final step") == -1:
-                        print "%s have not a true PT2 for" % url
-                        continue
-                    else:
-                        s = s[s.rfind(' N_det'):]
-
-                s = s.splitlines()
-
-                ndet = pt2 = time = None
-
-                for i in s:
-                    if "N_det " in i:
-                        ndet = i.split("=")[-1].strip()
-                    if " PT2      =" in i:
-                        pt2 = i.split("=")[-1].strip()
-                    if "E   " in i:
-                        e = i.split("=")[-1].strip()
-                    if "Wall" in i:
-                        time = i.split(":")[-1].strip()
-
-                if not all([ndet, e, time]):
-                    print "%s file is buggy" % url
-                    continue
-
-                id_ = get_mol_id(name)
                 run_id = run_list[index]
-
-                print name, run_id, id_, ndet, pt2, e, time
-
-                if not debug:
-                    c.execute('''INSERT OR REPLACE INTO
-                                cipsi_energy_tab(run_id,id,ndet,energy,pt2,time)
-                                VALUES (?,?,?,?,?,?)''', [run_id, id_, ndet, e, pt2, time])
-
-                    conn.commit()
+                try:
+                    add_energy_cispi(url, run_id, name, true_pt2, debug)
+                except:
+                    pass
 
             index += 1
 
@@ -296,11 +306,14 @@ def get_g09(geo, ele, only_neutral=True):
                               "Mult:", dic_["multiplicity"],
                               "symmetry:", dic_["symmetry"]]))
 
-    g09_file_format = ["# cc-pvdz", "", line, "",
+    method = "RHF" if dic_["multiplicity"] == 1 else "ROHF"
+
+    g09_file_format = ["# cc-pvdz %s" %
+                       (method), "", line, "",
                        "%d %d" % (dic_["charge"], dic_["multiplicity"])]
 
     for atom, xyz in zip(dic_["formula_clean"], dic_["list_xyz"]):
-        line_xyz = "    ".join(map(str, xyz))
+        line_xyz = "    ".join(map(str, xyz)).replace("1e", "1.e")
         line = "    ".join([atom, line_xyz])
 
         g09_file_format.append(line)
@@ -317,11 +330,11 @@ def get_g09(geo, ele, only_neutral=True):
 #
 if __name__ == "__main__":
 
-#    add_new_run("CIPSI", "cc-pvtz", "Experiment", "1M_Dets_NO_1k_Dets_TruePT2")
-#    add_new_run("CIPSI", "cc-pvtz", "MP2", "1M_Dets_NO_1k_Dets_TruePT2")
+    #    add_new_run("CIPSI", "cc-pvtz", "Experiment", "1M_Dets_NO_1k_Dets_TruePT2")
+    #    add_new_run("CIPSI", "cc-pvtz", "MP2", "1M_Dets_NO_1k_Dets_TruePT2")
 
-    add_energy_cispi([26, 27], ["Experiment", "MP2"], ["cc-pvtz"],
-                     "/tmp/log_backup/", ".HF_1M_on_10k_true.log",
-                     TruePt2=False, compatibility=True, debug=False)
+    add_energies_cispi([26, 27], ["Experiment", "MP2"], ["cc-pvtz"],
+                       "/tmp/log_backup/", ".HF_1M_on_10k_true.log",
+                       true_pt2=True, compatibility=True, debug=True)
 
     pass
