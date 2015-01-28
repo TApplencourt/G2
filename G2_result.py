@@ -177,13 +177,24 @@ if __name__ == '__main__':
     # \_____/_|___/\__| |_|   \__,_|_| |_|
     if arguments["list_run"]:
 
+        # mad = mean( abs( x_i - mean(x) ) )
+
+        for run_id in d_energy:
+            l_energy = d_energy[run_id].values()
+            mean = sum(l_energy) / len(l_energy)
+
+            abs_e_m = [abs(energy - mean) for energy in l_energy]
+
+            mad = sum(abs_e_m) / len(l_energy)
+
+            d_list_run[run_id] += [mad]
         # ___
         #  |  _. |_  |  _
         #  | (_| |_) | (/_
         #
 
-        header = ["Run_id", "Method", "Basis", "Geo", "Comments"]
-        table_body = [([i] + j) for i, j in d_list_run.items()]
+        header = ["Run_id", "Method", "Basis", "Geo", "Comments", "mad"]
+        table_body = [([run_id] + j) for run_id, j in d_list_run.items()]
     #  _____
     # |  ___|
     # | |__ _ __   ___ _ __ __ _ _   _
@@ -337,7 +348,10 @@ if __name__ == '__main__':
             print "For --order_by you need a column name"
             sys.exit(1)
         else:
-            table_body = sorted(table_body, key=lambda x: x[index], reverse=True)
+            table_body = sorted(
+                table_body,
+                key=lambda x: x[index],
+                reverse=True)
 
     # ______     _       _
     # | ___ \   (_)     | |
