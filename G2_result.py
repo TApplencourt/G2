@@ -26,8 +26,10 @@ Usage:
 Options:
   --help                 Here you go.
   --without_pt2          Show all the data without adding the PT2 when avalaible.
-  --get_ae               Show the atomization energy (both theorical and experiment) when avalaible.
-  --all_children         Find all the children of the ele.
+  --get_ae               Show the atomization energy when avalaible
+                         (both theorical and experiment).
+  --all_children         Find all the children of the element
+                         (Example for AlCl will find Al and Cl).
   --estimated_exact      Show the estimated exact energy.
   All the other          Filter the data or ordering it. See example.
 
@@ -41,6 +43,7 @@ version = "1.0.4"
 
 import sys
 from collections import defaultdict
+from collections import OrderedDict
 
 try:
     from src.docopt import docopt
@@ -114,40 +117,17 @@ if __name__ == '__main__':
     cmd_where = " AND ".join(str_ + str_ele)
     if not cmd_where:
         cmd_where = "(1)"
-    #  _     _     _
-    # | |   (_)   | |
-    # | |    _ ___| |_   _ __ _   _ _ __
-    # | |   | / __| __| | '__| | | | '_ \
-    # | |___| \__ \ |_  | |  | |_| | | | |
-    # \_____/_|___/\__| |_|   \__,_|_| |_|
-    if arguments["list_run"]:
 
-        c.execute("""SELECT run_id,
-                method_name method,
-                 basis_name basis,
-                   geo_name geo,
-                   comments,
-                       name ele
-                       FROM output_tab
-                      WHERE {where_cond}
-                   GROUP BY run_id""".format(where_cond=cmd_where))
+    #  _____      _ _
+    # |_   _|    (_) |
+    #   | | _ __  _| |_
+    #   | || '_ \| | __|
+    #  _| || | | | | |_
+    #  \___/_| |_|_|\__|
+    #
 
-        # ___
-        #  |  _. |_  |  _
-        #  | (_| |_) | (/_
-        #
-        table = []
-        header = ["Run_id", "Method", "Basis", "Geo", "Comments"]
-        table.extend(c.fetchall())
-    #  _____
-    # |  ___|
-    # | |__ _ __   ___ _ __ __ _ _   _
-    # |  __| '_ \ / _ \ '__/ _` | | | |
-    # | |__| | | |  __/ | | (_| | |_| |
-    # \____/_| |_|\___|_|  \__, |\__, |
-    #                       __/ | __/ |
-    #                      |___/ |___/
-    elif arguments["get_energy"]:
+    if arguments["list_run"] or arguments["get_energy"]:
+
         d_energy = defaultdict(dict)
 
         c.execute("""SELECT formula,
@@ -170,12 +150,16 @@ if __name__ == '__main__':
         data_cur_energy[:] = [x for x in data_cur_energy
                               if not ("+" in x[0] or "-" in x[0])]
 
+        d_list_run = OrderedDict()
+
         for info in data_cur_energy:
             run_id = info[1]
             name = info[-4]
             s_energy = info[-3]
             c_energy = info[-2]
             c_pt2 = info[-1]
+
+            d_list_run[run_id] = [info[2], info[3], info[4], info[5]]
 
             if s_energy:
                 d_energy[run_id][name] = float(s_energy)
@@ -184,6 +168,31 @@ if __name__ == '__main__':
                 d_energy[run_id][name] = float(c_energy)
                 if not arguments["--without_pt2"]:
                     d_energy[run_id][name] += float(c_pt2)
+
+    #  _     _     _
+    # | |   (_)   | |
+    # | |    _ ___| |_   _ __ _   _ _ __
+    # | |   | / __| __| | '__| | | | '_ \
+    # | |___| \__ \ |_  | |  | |_| | | | |
+    # \_____/_|___/\__| |_|   \__,_|_| |_|
+    if arguments["list_run"]:
+
+        # ___
+        #  |  _. |_  |  _
+        #  | (_| |_) | (/_
+        #
+
+        header = ["Run_id", "Method", "Basis", "Geo", "Comments"]
+        table_body = [([i] + j) for i, j in d_list_run.items()]
+    #  _____
+    # |  ___|
+    # | |__ _ __   ___ _ __ __ _ _   _
+    # |  __| '_ \ / _ \ '__/ _` | | | |
+    # | |__| | | |  __/ | | (_| | |_| |
+    # \____/_| |_|\___|_|  \__, |\__, |
+    #                       __/ | __/ |
+    #                      |___/ |___/
+    elif arguments["get_energy"]:
 
         #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._     _     ._
         # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |   (/_ >< |_)
@@ -275,7 +284,7 @@ if __name__ == '__main__':
         #  |  _. |_  |  _
         #  | (_| |_) | (/_
         #
-        table = []
+        table_body = []
 
         header = "#Run_id method basis geo comments ele e".split()
 
@@ -309,11 +318,11 @@ if __name__ == '__main__':
                 line += [ae_exp[name] - ae_th[run_id][name]
                          if name in ae_exp and name in ae_th[run_id] else ""]
 
-            table.append(line)
+            table_body.append(line)
 
-            # Order by l_ele if given
-            if l_ele:
-                table = [l for i in l_ele for l in table if l[5] == i]
+        # Order by l_ele if given
+        if l_ele:
+            table_body = [l for i in l_ele for l in table_body if l[5] == i]
 
     #  _
     # / \ ._ _|  _  ._   |_
@@ -328,7 +337,7 @@ if __name__ == '__main__':
             print "For --order_by you need a column name"
             sys.exit(1)
         else:
-            table = sorted(table, key=lambda x: x[index], reverse=True)
+            table_body = sorted(table_body, key=lambda x: x[index], reverse=True)
 
     # ______     _       _
     # | ___ \   (_)     | |
@@ -336,7 +345,7 @@ if __name__ == '__main__':
     # |  __/ '__| | '_ \| __|
     # | |  | |  | | | | | |_
     # \_|  |_|  |_|_| |_|\__|
-    table.insert(0, header)
+    table = [header] + table_body
     pprint_table(table)
     print "#GnuPlot cmd for energy : "
     print "# $gnuplot -e",
