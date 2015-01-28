@@ -58,6 +58,17 @@ except:
 if __name__ == '__main__':
 
     arguments = docopt(__doc__, version='G2 Api ' + version)
+
+    #  ___
+    #   |  ._  o _|_
+    #  _|_ | | |  |_
+    #
+
+    # For calculating the MAD we need the AE
+    if arguments["list_run"]:
+        arguments["--get_ae"] = True
+
+    DEFAULT_CARACTER = ""
     # ______ _ _ _
     # |  ___(_) | |
     # | |_   _| | |_ ___ _ __
@@ -73,13 +84,15 @@ if __name__ == '__main__':
          "basis": "--basis",
          "method": "--method"}
 
-    str_ = []
+    cmd_filter = []
     for k, v in d.items():
-        str_ += cond_sql_or(k, arguments[v])
+        cmd_filter += cond_sql_or(k, arguments[v])
 
     # \    / |_   _  ._ _     _  |  _  ._ _   _  ._ _|_
     #  \/\/  | | (/_ | (/_   (/_ | (/_ | | | (/_ | | |_
     #
+
+    # Set the list of element to get
     l_ele = None
     if arguments["--ele"]:
         l_ele = arguments["--ele"]
@@ -87,8 +100,11 @@ if __name__ == '__main__':
         from src.misc_info import list_toulouse
         l_ele = list_toulouse
 
-    if l_ele:
-
+    # Set the command for filter the element to get
+    # By default get all the element
+    if not l_ele:
+        cmd_filter_ele = []
+    else:
         list_key = ["--all_children", "--get_ae", "--estimated_exact"]
         if any(arguments[k] for k in list_key):
 
@@ -104,97 +120,18 @@ if __name__ == '__main__':
                 for atom, number in eval(formula_raw):
                     list_name_needed += (atom,)
 
-            str_ele = cond_sql_or("ele", list_name_needed)
+            cmd_filter_ele = cond_sql_or("ele", list_name_needed)
         else:
-            str_ele = cond_sql_or("ele", l_ele)
-    else:
-        str_ele = []
+            cmd_filter_ele = cond_sql_or("ele", l_ele)
 
-    #      _  ___
-    #   | / \  |  |\ |
-    # \_| \_/ _|_ | \|
     #
-    cmd_where = " AND ".join(str_ + str_ele)
+    #   |  _  o ._
+    # \_| (_) | | |
+    #
+    cmd_where = " AND ".join(cmd_filter + cmd_filter_ele)
     if not cmd_where:
         cmd_where = "(1)"
 
-    #  _____      _ _
-    # |_   _|    (_) |
-    #   | | _ __  _| |_
-    #   | || '_ \| | __|
-    #  _| || | | | | |_
-    #  \___/_| |_|_|\__|
-    #
-
-    if arguments["list_run"] or arguments["get_energy"]:
-
-        d_energy = defaultdict(dict)
-
-        c.execute("""SELECT formula,
-                             run_id,
-                        method_name method,
-                         basis_name basis,
-                           geo_name geo,
-                           comments,
-                    output_tab.name ele,
-                           s_energy,
-                           c_energy,
-                              c_pt2
-                               FROM output_tab
-                         INNER JOIN id_tab
-                                 ON output_tab.name = id_tab.name
-                              WHERE {cmd_where}""".format(cmd_where=cmd_where))
-
-        data_cur_energy = c.fetchall()
-        # Because formula is wrong for Anion and Cation
-        data_cur_energy[:] = [x for x in data_cur_energy
-                              if not ("+" in x[0] or "-" in x[0])]
-
-        d_list_run = OrderedDict()
-
-        for info in data_cur_energy:
-            run_id = info[1]
-            name = info[-4]
-            s_energy = info[-3]
-            c_energy = info[-2]
-            c_pt2 = info[-1]
-
-            d_list_run[run_id] = [info[2], info[3], info[4], info[5]]
-
-            if s_energy:
-                d_energy[run_id][name] = float(s_energy)
-
-            if c_energy:
-                d_energy[run_id][name] = float(c_energy)
-                if not arguments["--without_pt2"]:
-                    d_energy[run_id][name] += float(c_pt2)
-
-    #  _     _     _
-    # | |   (_)   | |
-    # | |    _ ___| |_   _ __ _   _ _ __
-    # | |   | / __| __| | '__| | | | '_ \
-    # | |___| \__ \ |_  | |  | |_| | | | |
-    # \_____/_|___/\__| |_|   \__,_|_| |_|
-    if arguments["list_run"]:
-
-        # mad = mean( abs( x_i - mean(x) ) )
-
-        for run_id in d_energy:
-            l_energy = d_energy[run_id].values()
-            mean = sum(l_energy) / len(l_energy)
-
-            abs_e_m = [abs(energy - mean) for energy in l_energy]
-
-            mad = sum(abs_e_m) / len(l_energy)
-
-            d_list_run[run_id] += [mad]
-        # ___
-        #  |  _. |_  |  _
-        #  | (_| |_) | (/_
-        #
-
-        header = ["Run_id", "Method", "Basis", "Geo", "Comments", "mad"]
-        table_body = [([run_id] + j) for run_id, j in d_list_run.items()]
     #  _____
     # |  ___|
     # | |__ _ __   ___ _ __ __ _ _   _
@@ -203,20 +140,56 @@ if __name__ == '__main__':
     # \____/_| |_|\___|_|  \__, |\__, |
     #                       __/ | __/ |
     #                      |___/ |___/
-    elif arguments["get_energy"]:
 
-        #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._     _     ._
-        # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |   (/_ >< |_)
-        #                                                   |
-        if arguments["--get_ae"] or arguments["--estimated_exact"]:
+    d_energy = defaultdict(dict)
 
-            str_ = str_ele + ['(basis_id=1)', '(method_id=1)']
-            cmd_where = " AND ".join(str_)
+    c.execute("""SELECT formula,
+                         run_id,
+                    method_name method,
+                     basis_name basis,
+                       geo_name geo,
+                       comments,
+                output_tab.name ele,
+                       s_energy,
+                       c_energy,
+                          c_pt2
+                           FROM output_tab
+                     INNER JOIN id_tab
+                             ON output_tab.name = id_tab.name
+                          WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
-            ae_exp = defaultdict()
-            zpe_exp = defaultdict()
+    data_cur_energy = c.fetchall()
+    # Because formula is wrong for Anion and Cation
+    data_cur_energy[:] = [x for x in data_cur_energy
+                          if not ("+" in x[0] or "-" in x[0])]
 
-            c.execute("""SELECT name ele,
+    for info in data_cur_energy:
+        run_id = info[1]
+        name = info[-4]
+        s_energy = info[-3]
+        c_energy = info[-2]
+        c_pt2 = info[-1]
+
+        if s_energy:
+            d_energy[run_id][name] = float(s_energy)
+
+        if c_energy:
+            d_energy[run_id][name] = float(c_energy)
+            if not arguments["--without_pt2"]:
+                d_energy[run_id][name] += float(c_pt2)
+
+    #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._     _     ._
+    # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |   (/_ >< |_)
+    #                                                   |
+    if arguments["--get_ae"] or arguments["--estimated_exact"]:
+
+        cmd_filter = cmd_filter_ele + ['(basis_id=1)', '(method_id=1)']
+        cmd_where = " AND ".join(cmd_filter)
+
+        ae_exp = defaultdict()
+        zpe_exp = defaultdict()
+
+        c.execute("""SELECT name ele,
                              formula,
                                  zpe,
                                 kcal
@@ -225,76 +198,119 @@ if __name__ == '__main__':
                         NATURAL JOIN atomization_tab
                                WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
-            data_ae_zp = c.fetchall()
-            for info in data_ae_zp:
-                name = info[0]
-                zpe = info[2]
-                kcal = info[3]
+        data_ae_zp = c.fetchall()
+        for info in data_ae_zp:
+            name = info[0]
+            zpe = info[2]
+            kcal = info[3]
 
-                zpe = zpe * 4.55633e-06
-                energy = kcal * 0.00159362
-                ae_exp[name] = energy
-                zpe_exp[name] = zpe
+            zpe = zpe * 4.55633e-06
+            energy = kcal * 0.00159362
+            ae_exp[name] = energy
+            zpe_exp[name] = zpe
 
-        #  _
-        # |_  _ _|_      _      _.  _ _|_    _  ._   _  ._ _
-        # |_ _>  |_ o   (/_ >< (_| (_  |_   (/_ | | (/_ | (_| \/
-        #                                                  _| /
-        if arguments["--estimated_exact"]:
-            # Get Davidson est. atomics energies
-            cmd_where = " AND ".join(str_ele + ['(run_id = "21")'])
+    #  _
+    # |_  _ _|_      _      _.  _ _|_    _  ._   _  ._ _
+    # |_ _>  |_ o   (/_ >< (_| (_  |_   (/_ | | (/_ | (_| \/
+    #                                                  _| /
+    if arguments["--estimated_exact"]:
+        # Get Davidson est. atomics energies
+        cmd_where = " AND ".join(cmd_filter_ele + ['(run_id = "21")'])
 
-            c.execute("""SELECT name ele,
+        c.execute("""SELECT name ele,
                               energy
                                 FROM simple_energy_tab
                         NATURAL JOIN id_tab
                                WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
-            energy_th = defaultdict()
-            for name, energy in c.fetchall():
-                energy_th[name] = float(energy)
+        energy_th = defaultdict()
+        for name, energy in c.fetchall():
+            energy_th[name] = float(energy)
 
-            # Calc est. molecul energies
-            est_exact_energy = defaultdict(dict)
+        # Calc estimated exact molecules energies
+        est_exact_energy = defaultdict(dict)
 
-            for info in data_ae_zp:
-                name = info[0]
-                formula_raw = info[1]
+        for info in data_ae_zp:
+            name = info[0]
+            formula_raw = info[1]
 
-                try:
-                    emp_tmp = -ae_exp[name]
-                    for name_atome, number in eval(formula_raw):
-                        emp_tmp += number * energy_th[name_atome]
-                except KeyError:
-                    pass
-                else:
-                    est_exact_energy[name] = emp_tmp
+            try:
+                emp_tmp = -ae_exp[name]
+                for name_atome, number in eval(formula_raw):
+                    emp_tmp += number * energy_th[name_atome]
+            except KeyError:
+                pass
+            else:
+                est_exact_energy[name] = emp_tmp
 
-        #
-        #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    _|_ |_
-        # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |    |_ | |
-        #
-        if arguments["--get_ae"]:
-            ae_th = defaultdict(dict)
-            for info in data_cur_energy:
-                run_id = info[1]
-                name = info[-4]
-                formula_raw = info[0]
+    #   /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    _|_ |_
+    #  /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |    |_ | |
+    if arguments["--get_ae"]:
 
-                d_e_rid = d_energy[run_id]
+        # Init all the dict
+        ae_th = defaultdict(dict)
+        ae_diff = defaultdict(dict)
 
-                try:
-                    ao_th_tmp = d_e_rid[name] + zpe_exp[name]
-                    for name_atome, number in eval(formula_raw):
-                        ao_th_tmp -= number * d_e_rid[name_atome]
-                except KeyError:
-                    pass
-                else:
-                    ae_th[run_id][name] = -ao_th_tmp
-        # ___
-        #  |  _. |_  |  _
-        #  | (_| |_) | (/_
-        #
+        # Update dict if data avalaible
+        for info in data_cur_energy:
+            run_id = info[1]
+            name = info[-4]
+            formula_raw = info[0]
+
+            d_e_rid = d_energy[run_id]
+
+            try:
+                ao_th_tmp = d_e_rid[name] + zpe_exp[name]
+                for name_atome, number in eval(formula_raw):
+                    ao_th_tmp -= number * d_e_rid[name_atome]
+            except KeyError:
+                pass
+            else:
+                ae_th[run_id][name] = -ao_th_tmp
+
+            try:
+                ae_diff[run_id][name] = ae_exp[name] - ae_th[run_id][name]
+            except KeyError:
+                pass
+    #  _____     _     _
+    # |_   _|   | |   | |
+    #   | | __ _| |__ | | ___
+    #   | |/ _` | '_ \| |/ _ \
+    #   | | (_| | |_) | |  __/
+    #   \_/\__,_|_.__/|_|\___|
+
+    # Create the table which will be printed
+    #  | o  _ _|_   ._    ._
+    #  | | _>  |_   | |_| | |
+    if arguments["list_run"]:
+
+        d_mad = defaultdict()
+        # mad = mean( abs( x_i - mean(x) ) )
+        for run_id in ae_diff:
+            l_energy = ae_diff[run_id].values()
+
+            mean = sum(l_energy) / len(l_energy)
+            abs_e_m = [abs(energy - mean) for energy in l_energy]
+            mad = sum(abs_e_m) / len(l_energy)
+
+            d_mad[run_id] = mad
+
+        header = ["Run_id", "Method", "Basis", "Geo", "Comments", "mad"]
+
+        # Group by Run_id and then put the mad if existing
+        table_body = []
+        from itertools import groupby
+        for key, group in groupby(data_cur_energy, lambda x: x[1:6]):
+
+            mad = d_mad[key[0]] if key[0] in d_mad else DEFAULT_CARACTER
+            table_body.append(key + (mad,))
+
+    #  _
+    # |_ ._   _  ._ _
+    # |_ | | (/_ | (_| \/
+    #               _| /
+    elif arguments["get_energy"]:
+
         table_body = []
 
         header = "#Run_id method basis geo comments ele e".split()
@@ -302,7 +318,7 @@ if __name__ == '__main__':
         if arguments["--estimated_exact"]:
             header += "e_est_exact e_diff".split()
 
-        if arguments["""--get_ae"""]:
+        if arguments["--get_ae"]:
             header += "ae_th ae_exp ae_diff".split()
 
         for info in data_cur_energy:
@@ -318,16 +334,18 @@ if __name__ == '__main__':
             if arguments["--estimated_exact"]:
 
                 line += [est_exact_energy[name]
-                         if name in est_exact_energy else ""]
+                         if name in est_exact_energy else DEFAULT_CARACTER]
                 line += [d_energy[run_id][name] - est_exact_energy[name]
-                         if name in est_exact_energy and name in d_energy[run_id] else ""]
+                         if name in est_exact_energy and
+                         name in d_energy[run_id] else DEFAULT_CARACTER]
 
             if arguments["--get_ae"]:
 
-                line += [ae_th[run_id][name] if name in ae_th[run_id] else ""]
-                line += [ae_exp[name] if name in ae_exp else ""]
-                line += [ae_exp[name] - ae_th[run_id][name]
-                         if name in ae_exp and name in ae_th[run_id] else ""]
+                line += [ae_th[run_id][name]
+                         if name in ae_th[run_id] else DEFAULT_CARACTER]
+                line += [ae_exp[name] if name in ae_exp else DEFAULT_CARACTER]
+                line += [ae_diff[run_id][name]
+                         if name in ae_th[run_id] else DEFAULT_CARACTER]
 
             table_body.append(line)
 
@@ -360,6 +378,7 @@ if __name__ == '__main__':
     # | |  | |  | | | | | |_
     # \_|  |_|  |_|_| |_|\__|
     table = [header] + table_body
+
     pprint_table(table)
     print "#GnuPlot cmd for energy : "
     print "# $gnuplot -e",
