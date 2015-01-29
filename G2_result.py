@@ -233,7 +233,7 @@ if __name__ == '__main__':
             formula_raw = info[1]
 
             try:
-                emp_tmp = -ae_exp[name]
+                emp_tmp = -ae_exp[name] - zpe_exp[name]
                 for name_atome, number in eval(formula_raw):
                     emp_tmp += number * energy_th[name_atome]
             except KeyError:
@@ -286,12 +286,7 @@ if __name__ == '__main__':
         # mad = mean( abs( x_i - mean(x) ) )
         for run_id in ae_diff:
             l_energy = ae_diff[run_id].values()
-
-            mean = sum(l_energy) / len(l_energy)
-            abs_e_m = [abs(energy - mean) for energy in l_energy]
-            mad = sum(abs_e_m) / len(l_energy)
-
-            d_mad[run_id] = mad
+            d_mad[run_id] = sum(map(abs, l_energy)) / len(l_energy)
 
         header = ["Run_id", "Method", "Basis", "Geo", "Comments", "mad"]
 
