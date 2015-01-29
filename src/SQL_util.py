@@ -308,12 +308,11 @@ def get_g09(geo, ele, only_neutral=True):
 
     method = "RHF" if dic_["multiplicity"] == 1 else "ROHF"
 
-    g09_file_format = ["# cc-pvdz %s" %
-                       (method), "", line, "",
+    g09_file_format = ["# cc-pvdz %s" % (method), "", line, "",
                        "%d %d" % (dic_["charge"], dic_["multiplicity"])]
 
     for atom, xyz in zip(dic_["formula_clean"], dic_["list_xyz"]):
-        line_xyz = "    ".join(map(str, xyz)).replace("1e", "1.e")
+        line_xyz = "    ".join(map(str, xyz)).replace("e", ".e")
         line = "    ".join([atom, line_xyz])
 
         g09_file_format.append(line)

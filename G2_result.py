@@ -11,6 +11,7 @@ Usage:
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
                         [--all_children]
+                        [--literature]
   G2_result.py get_energy [--order_by=<column>]
                           [--run_id=<id>...]
                           [--ele=<element_name>...  [--all_children] | --like_toulouse]
@@ -18,8 +19,8 @@ Usage:
                           [--basis=<basis_name>...]
                           [--method=<method_name>...]
                           [--without_pt2]
-                          [--estimated_exact]
-                          [--get_ae]
+                          [--estimated_exact [--literature]]
+                          [--get_ae [--literature]]
 
   G2_result.py --version
 
@@ -108,6 +109,7 @@ if __name__ == '__main__':
             for atom, number in eval(formula_raw):
                 l_ele.add(atom)
 
+    # Ordered l_ele for the printing in order
     l_ele_to_print = list_toulouse if arguments["--like_toulouse"] else l_ele
 
     #  _
@@ -183,7 +185,11 @@ if __name__ == '__main__':
     #                                                   |
     if arguments["--get_ae"] or arguments["--estimated_exact"]:
 
-        cmd_filter = cmd_filter_ele + ['(basis_id=1)', '(method_id=1)']
+        method_id = 1 if not arguments["--literature"] else 10
+
+        cmd_filter = cmd_filter_ele + ['(basis_id=1)',
+                                       '(method_id=%d)' % (method_id)]
+
         cmd_where = " AND ".join(cmd_filter)
 
         ae_exp = defaultdict()
@@ -347,7 +353,8 @@ if __name__ == '__main__':
 
         # Order by l_ele if given
         if l_ele:
-            table_body = [l for i in l_ele_to_print for l in table_body if l[5] == i]
+            table_body = [
+                l for i in l_ele_to_print for l in table_body if l[5] == i]
 
     #  _
     # / \ ._ _|  _  ._   |_
