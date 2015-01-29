@@ -91,7 +91,7 @@ if __name__ == '__main__':
     else:
         l_ele = set()
 
-    # Add new ele to l_ele if need : all the children of a element
+    # Add all the children of a element to l_ele if need.
     # For example for the calculate the AE of AlCl we need Al and Cl
     if l_ele and any(arguments[k] for k in ["--all_children",
                                             "--get_ae",
@@ -105,7 +105,6 @@ if __name__ == '__main__':
                           WHERE {where_cond}""".format(where_cond=cond))
 
         for name, formula_raw in c.fetchall():
-            l_ele.add(name)
             for atom, number in eval(formula_raw):
                 l_ele.add(atom)
 
