@@ -43,7 +43,6 @@ version = "1.0.4"
 
 import sys
 from collections import defaultdict
-from collections import OrderedDict
 
 try:
     from src.docopt import docopt
@@ -94,12 +93,13 @@ if __name__ == '__main__':
 
     # Add new ele to l_ele if need : all the children of a element
     # For example for the calculate the AE of AlCl we need Al and Cl
-    if any(arguments[k] for k in ["--all_children",
-                                  "--get_ae",
-                                  "--estimated_exact"]):
+    if l_ele and any(arguments[k] for k in ["--all_children",
+                                            "--get_ae",
+                                            "--estimated_exact"]):
 
         # Find all this children of the element; this is the new conditions
         cond = " ".join(cond_sql_or("name", l_ele))
+
         c.execute("""SELECT name, formula
                            FROM id_tab
                           WHERE {where_cond}""".format(where_cond=cond))
