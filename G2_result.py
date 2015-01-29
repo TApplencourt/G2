@@ -108,6 +108,8 @@ if __name__ == '__main__':
             for atom, number in eval(formula_raw):
                 l_ele.add(atom)
 
+    l_ele_to_print = list_toulouse if arguments["--like_toulouse"] else l_ele
+
     #  _
     # |_ o | _|_  _  ._    _ _|_ ._ o ._   _
     # |  | |  |_ (/_ |    _>  |_ |  | | | (_|
@@ -345,7 +347,7 @@ if __name__ == '__main__':
 
         # Order by l_ele if given
         if l_ele:
-            table_body = [l for i in l_ele for l in table_body if l[5] == i]
+            table_body = [l for i in l_ele_to_print for l in table_body if l[5] == i]
 
     #  _
     # / \ ._ _|  _  ._   |_
