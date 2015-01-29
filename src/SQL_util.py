@@ -333,8 +333,8 @@ if __name__ == "__main__":
     #    add_new_run("CIPSI", "cc-pvtz", "Experiment", "1M_Dets_NO_1k_Dets_TruePT2")
     #    add_new_run("CIPSI", "cc-pvtz", "MP2", "1M_Dets_NO_1k_Dets_TruePT2")
 
-    add_energies_cispi([26, 27], ["Experiment", "MP2"], ["cc-pvtz"],
-                       "/tmp/log_backup/", ".HF_1M_on_10k_true.log",
+    add_energies_cispi([24, 25], ["Experiment", "MP2"], ["cc-pvtz"],
+                       "/tmp/TZ10k/", ".HF_10k.log",
                        true_pt2=True, compatibility=True, debug=True)
 
     pass
