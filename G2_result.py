@@ -76,9 +76,46 @@ if __name__ == '__main__':
     # | |   | | | ||  __/ |
     # \_|   |_|_|\__\___|_|
 
-    # \    / |_   _  ._ _    ._ _  o  _  _
-    #  \/\/  | | (/_ | (/_   | | | | _> (_
     #
+    # |  o  _ _|_    _  |  _  ._ _   _  ._ _|_
+    # |_ | _>  |_   (/_ | (/_ | | | (/_ | | |_
+    #
+
+    # Set the list of element to get and to print
+    # By defalt, if l_ele is empty get all
+
+    if arguments["--ele"]:
+        l_ele = set(arguments["--ele"])
+    elif arguments["--like_toulouse"]:
+        from src.misc_info import list_toulouse
+        l_ele = set(list_toulouse)
+    else:
+        l_ele = set()
+
+    # Add new ele to l_ele if need : all the children of a element
+    # For example for the calculate the AE of AlCl we need Al and Cl
+    if any(arguments[k] for k in ["--all_children",
+                                  "--get_ae",
+                                  "--estimated_exact"]):
+
+        # Find all this children of the element; this is the new conditions
+        cond = " ".join(cond_sql_or("name", l_ele))
+        c.execute("""SELECT name, formula
+                           FROM id_tab
+                          WHERE {where_cond}""".format(where_cond=cond))
+
+        for name, formula_raw in c.fetchall():
+            l_ele.add(name)
+            for atom, number in eval(formula_raw):
+                l_ele.add(atom)
+
+    #  _
+    # |_ o | _|_  _  ._    _ _|_ ._ o ._   _
+    # |  | |  |_ (/_ |    _>  |_ |  | | | (_|
+    #                                      _|
+    #
+    # Create the cmd string who will be executed by the db
+
     d = {"run_id": "--run_id",
          "geo": "--geo",
          "basis": "--basis",
@@ -88,51 +125,8 @@ if __name__ == '__main__':
     for k, v in d.items():
         cmd_filter += cond_sql_or(k, arguments[v])
 
-    # \    / |_   _  ._ _     _  |  _  ._ _   _  ._ _|_
-    #  \/\/  | | (/_ | (/_   (/_ | (/_ | | | (/_ | | |_
-    #
+    cmd_filter_ele = cond_sql_or("ele", l_ele) if l_ele else []
 
-    # Set the list of element to get and to print
-    # By defalt, if l_ele is empty get all
-    if arguments["--ele"]:
-        l_ele = arguments["--ele"]
-    elif arguments["--like_toulouse"]:
-        from src.misc_info import list_toulouse
-        l_ele = list_toulouse
-    else:
-        l_ele = None
-
-    # Get the aditionary ele maybe needed and set the commande
-    if not l_ele:
-        cmd_filter_ele = []
-    else:
-        list_key = ["--all_children", "--get_ae", "--estimated_exact"]
-        if any(arguments[k] for k in list_key):
-
-            # Find all this children of the element; this is the new conditions
-            cond = " ".join(cond_sql_or("name", l_ele))
-            c.execute("""SELECT name, formula
-                           FROM id_tab
-                          WHERE {where_cond}""".format(where_cond=cond))
-
-            l_ele_tmp = set()
-            for name, formula_raw in c.fetchall():
-                l_ele_tmp.add(name)
-                for atom, number in eval(formula_raw):
-                    l_ele_tmp.add(atom)
-
-            cmd_filter_ele = cond_sql_or("ele", l_ele_tmp)
-
-        else:
-            cmd_filter_ele = cond_sql_or("ele", l_ele)
-
-    # If all children we need to print all the l_ele_tmp
-    l_ele = l_ele_tmp if arguments["--all_children"] else l_ele
-
-    #
-    #   |  _  o ._
-    # \_| (_) | | |
-    #
     cmd_where = " AND ".join(cmd_filter + cmd_filter_ele)
     if not cmd_where:
         cmd_where = "(1)"
@@ -327,6 +321,7 @@ if __name__ == '__main__':
             header += "ae_th ae_exp ae_diff".split()
 
         for info in data_cur_energy:
+
             name = info[-4]
             run_id = info[1]
 
