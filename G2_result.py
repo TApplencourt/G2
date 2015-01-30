@@ -32,8 +32,8 @@ Options:
 Options for both:
   --order_by                You can order by a collumn name displayed:
                                 `--order_by mad` for example.
-  --ele OR --like_toulouse  Show only run's who contain ALL of the Element.
-  --geo,basis,method        Show only run's who satisfy all the requirements.
+  --ele OR --like_toulouse  Show only run's who contain ALL of the element required.
+  --geo,basis,method        Show only run's who satisfy ALL the requirements.
                                 For example `--geo MP2 --basis cc-pvDZ`
                                 show only the run who contain
                                 both this geo and this basis set.
@@ -42,7 +42,7 @@ Options for both:
                                 the MAD, estimated_exact and the theorical
                                 atomization energies.
 
-Options for get_energy:
+Options specifics to get_energy:
   --without_pt2         Show all the data without adding the PT2 when avalaible.
   --get_ae              Show the atomization energy when avalaible
                            (both theorical and experiment).
@@ -55,7 +55,7 @@ Options for get_energy:
   All the other          Filter the data or ordering it. See example.
 
 Example of use:
-  ./G2_result.py list_run --method CIPSI
+  ./G2_result.py list_run --method 'CCSD(T)'
   ./G2_result.py get_energy --run_id 11 --order_by e --without_pt2 --estimated_exact
   ./G2_result.py get_energy --basis "cc-pvdz" --ele AlCl --ele Li2 --get_ae --order_by ae_diff
 """
@@ -155,7 +155,11 @@ if __name__ == '__main__':
 
         # Select all the run_id where all the condition is good
         c.execute("""SELECT run_id
-                    FROM (SELECT run_id, name
+                    FROM (SELECT run_id,
+                                   name,
+                     method_name method,
+                        basis_name basis,
+                            geo_name geo
                           FROM output_tab
                           WHERE {})
                     GROUP BY run_id
