@@ -148,12 +148,30 @@ if __name__ == '__main__':
     for k, v in d.items():
         cmd_filter += cond_sql_or(k, arguments[v])
 
-    cmd_filter_ele = cond_sql_or("ele", l_ele) if l_ele else []
+    cmd_filter_ele = ["name in ('" + "','".join(l_ele) + "')"] if l_ele else []
 
-    cmd_where = " AND ".join(cmd_filter + cmd_filter_ele)
+    if cmd_filter_ele:
+        cmd_where = " AND ".join(cmd_filter + cmd_filter_ele)
+
+        # Select all the run_id where all the condition is good
+        c.execute("""SELECT run_id
+                    FROM (SELECT run_id, name
+                          FROM output_tab
+                          WHERE {cmd_where})
+                    GROUP BY run_id
+                    HAVING count(name) = {len}""".format(cmd_where=cmd_where,
+                                                         len=len(l_ele)))
+
+        l_run_id = [i[0] for i in c.fetchall()]
+
+        cmd_id = "run_id in (" + ",".join(map(str, l_run_id)) + ")"
+
+        cmd_where = cmd_id + " AND " + cmd_filter_ele[0].replace("name", "ele")
+    else:
+        cmd_where = " AND ".join(cmd_filter)
+
     if not cmd_where:
         cmd_where = "(1)"
-
     #  _____
     # |  ___|
     # | |__ _ __   ___ _ __ __ _ _   _
