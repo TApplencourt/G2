@@ -68,7 +68,6 @@ from collections import defaultdict
 
 try:
     from src.docopt import docopt
-    from src.pprint_table import pprint_table
     from src.SQL_util import cond_sql_or
     from src.SQL_util import c
 except:
