@@ -144,16 +144,24 @@ if __name__ == '__main__':
          "basis": "--basis",
          "method": "--method"}
 
-    cmd_filter = []
+    cond_filter = []
     for k, v in d.items():
-        cmd_filter += cond_sql_or(k, arguments[v])
+        cond_filter += cond_sql_or(k, arguments[v])
 
-    cmd_filter_ele = ["name in ('" + "','".join(l_ele) + "')"] if l_ele else []
+    # We need to find the run_id who containt ALL the ele is needed
+    cond_filter_ele = ["name in ('" + "','".join(l_ele) + "')"] if l_ele else []
 
-    if cmd_filter_ele:
-        cmd_where = " AND ".join(cmd_filter + cmd_filter_ele)
+    # Maybe we dont need to filter
+    # Else just simplify the expresion :
+    #   geo basis method -> run_id
+    if not cond_filter + cond_filter_ele:
+        cmd_where = "(1)"
+    else:
+        cmd_where_tmp = " AND ".join(cond_filter + cond_filter_ele)
 
         # Select all the run_id where all the condition is good
+        cmd_having = "count(name) = {0}".format(len(l_ele)) if l_ele else "(1)"
+
         c.execute("""SELECT run_id
                     FROM (SELECT run_id,
                                    name,
@@ -161,18 +169,17 @@ if __name__ == '__main__':
                         basis_name basis,
                             geo_name geo
                           FROM output_tab
-                          WHERE {})
+                          WHERE {0})
                     GROUP BY run_id
-                    HAVING count(name) = {}""".format(cmd_where, len(l_ele)))
+                    HAVING {1}""".format(cmd_where_tmp, cmd_having))
 
         l_run_id = [i[0] for i in c.fetchall()]
 
-        cmd_filter = ["run_id in (" + ",".join(map(str, l_run_id)) + ")"]
+        # Now only the run_id count. It containt all information
+        cond_filter = ["run_id in (" + ",".join(map(str, l_run_id)) + ")"]
 
-    cmd_where = " AND ".join(cmd_filter + cmd_filter_ele)
+        cmd_where = " AND ".join(cond_filter + cond_filter_ele)
 
-    if not cmd_where:
-        cmd_where = "(1)"
     #  _____
     # |  ___|
     # | |__ _ __   ___ _ __ __ _ _   _
@@ -226,10 +233,10 @@ if __name__ == '__main__':
 
         method_id = 1 if not arguments["--literature"] else 10
 
-        cmd_filter = cmd_filter_ele + ['(basis_id=1)',
+        cond_filter = cond_filter_ele + ['(basis_id=1)',
                                        '(method_id=%d)' % (method_id)]
 
-        cmd_where = " AND ".join(cmd_filter)
+        cmd_where = " AND ".join(cond_filter)
 
         ae_exp = defaultdict()
         zpe_exp = defaultdict()
@@ -260,7 +267,7 @@ if __name__ == '__main__':
     #                                                  _| /
     if arguments["--estimated_exact"]:
         # Get Davidson est. atomics energies
-        cmd_where = " AND ".join(cmd_filter_ele + ['(run_id = "21")'])
+        cmd_where = " AND ".join(cond_filter_ele + ['(run_id = "21")'])
 
         c.execute("""SELECT name,
                           energy
@@ -342,7 +349,7 @@ if __name__ == '__main__':
         from itertools import groupby
         for key, group in groupby(data_cur_energy, lambda x: x[1:6]):
 
-            mad = d_mad[key[0]] if key[0] in d_mad else DEFAULT_CARACTER
+            mad = d_mad[key[0]]*630 if key[0] in d_mad else DEFAULT_CARACTER
             table_body.append(key + (mad,))
 
     #  _
