@@ -32,8 +32,8 @@ Options:
 Options for both:
   --order_by                You can order by a collumn name displayed:
                                 `--order_by mad` for example.
-  --ele OR --like_toulouse  Show only run's who contain ONE of the Element.
-  --geo,basis,method        Show only run's who satisfy all the recuriment.
+  --ele OR --like_toulouse  Show only run's who contain ALL of the Element.
+  --geo,basis,method        Show only run's who satisfy all the requirements.
                                 For example `--geo MP2 --basis cc-pvDZ`
                                 show only the run who contain
                                 both this geo and this basis set.
@@ -60,7 +60,7 @@ Example of use:
   ./G2_result.py get_energy --basis "cc-pvdz" --ele AlCl --ele Li2 --get_ae --order_by ae_diff
 """
 
-version = "2.0.4"
+version = "2.5.4"
 
 import sys
 from collections import defaultdict
@@ -157,18 +157,15 @@ if __name__ == '__main__':
         c.execute("""SELECT run_id
                     FROM (SELECT run_id, name
                           FROM output_tab
-                          WHERE {cmd_where})
+                          WHERE {})
                     GROUP BY run_id
-                    HAVING count(name) = {len}""".format(cmd_where=cmd_where,
-                                                         len=len(l_ele)))
+                    HAVING count(name) = {}""".format(cmd_where, len(l_ele)))
 
         l_run_id = [i[0] for i in c.fetchall()]
 
-        cmd_id = "run_id in (" + ",".join(map(str, l_run_id)) + ")"
+        cmd_filter = ["run_id in (" + ",".join(map(str, l_run_id)) + ")"]
 
-        cmd_where = cmd_id + " AND " + cmd_filter_ele[0].replace("name", "ele")
-    else:
-        cmd_where = " AND ".join(cmd_filter)
+    cmd_where = " AND ".join(cmd_filter + cmd_filter_ele)
 
     if not cmd_where:
         cmd_where = "(1)"
@@ -196,7 +193,7 @@ if __name__ == '__main__':
                            FROM output_tab
                      INNER JOIN id_tab
                              ON output_tab.name = id_tab.name
-                          WHERE {cmd_where}""".format(cmd_where=cmd_where))
+                          WHERE {}""".format(cmd_where.replace("name", "ele")))
 
     data_cur_energy = c.fetchall()
     # Because formula is wrong for Anion and Cation
@@ -233,14 +230,14 @@ if __name__ == '__main__':
         ae_exp = defaultdict()
         zpe_exp = defaultdict()
 
-        c.execute("""SELECT name ele,
-                             formula,
-                                 zpe,
-                                kcal
-                                FROM id_tab
-                        NATURAL JOIN zpe_tab
-                        NATURAL JOIN atomization_tab
-                               WHERE {cmd_where}""".format(cmd_where=cmd_where))
+        c.execute("""SELECT name,
+                         formula,
+                             zpe,
+                            kcal
+                            FROM id_tab
+                    NATURAL JOIN zpe_tab
+                    NATURAL JOIN atomization_tab
+                           WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
         data_ae_zp = c.fetchall()
         for info in data_ae_zp:
@@ -261,11 +258,11 @@ if __name__ == '__main__':
         # Get Davidson est. atomics energies
         cmd_where = " AND ".join(cmd_filter_ele + ['(run_id = "21")'])
 
-        c.execute("""SELECT name ele,
-                              energy
-                                FROM simple_energy_tab
-                        NATURAL JOIN id_tab
-                               WHERE {cmd_where}""".format(cmd_where=cmd_where))
+        c.execute("""SELECT name,
+                          energy
+                            FROM simple_energy_tab
+                    NATURAL JOIN id_tab
+                           WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
         energy_th = defaultdict()
         for name, energy in c.fetchall():
