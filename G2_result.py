@@ -452,7 +452,7 @@ if __name__ == '__main__':
     from src.terminaltables import AsciiTable
 
     # Convert good
-    table_body = [["{:>9.4f}".format(i) if isinstance(i, float) else i
+    table_body = [["{:>9.5f}".format(i) if isinstance(i, float) else i
                    for i in line]
                   for line in table_body]
 
