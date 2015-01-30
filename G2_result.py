@@ -10,7 +10,6 @@ Usage:
                         [--geo=<geometry_name>...]
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
-                        [--all_children]
                         [--literature]
   G2_result.py get_energy [--order_by=<column>]
                           [--run_id=<id>...]
@@ -25,13 +24,36 @@ Usage:
   G2_result.py --version
 
 Options:
-  --help                 Here you go.
-  --without_pt2          Show all the data without adding the PT2 when avalaible.
-  --get_ae               Show the atomization energy when avalaible
-                         (both theorical and experiment).
-  --all_children         Find all the children of the element
-                         (Example for AlCl will find Al and Cl).
-  --estimated_exact      Show the estimated exact energy.
+  --help        Here you go.
+  list_run      List all the data avalaible and the MAD
+  get_energy    Print the energy & energy related values
+                    (PT2, error bar, atomization energies,
+                    estimated_exact, ...)
+Options for both:
+  --order_by                You can order by a collumn name displayed:
+                                `--order_by mad` for example.
+  --ele OR --like_toulouse  Show only run's who contain ONE of the Element.
+  --geo,basis,method        Show only run's who satisfy all the recuriment.
+                                For example `--geo MP2 --basis cc-pvDZ`
+                                show only the run who contain
+                                both this geo and this basis set.
+  --literature              If you want to use the literature ZPE/AE,
+                                 and not the NIST one for the calcul of
+                                 the MAD, estimated_exact and the theorical
+                                 atomization energies.
+
+Options for get_energy:
+  --without_pt2         Show all the data without adding the PT2 when avalaible.
+  --get_ae              Show the atomization energy when avalaible
+                           (both theorical and experiment).
+                           Theorical ae is calculate like this:
+                               ae_th = E_mol - \sum E_atom  + zpe
+  --estimated_exact     Show the estimated exact energy.
+                           Ccalculated like this:
+                               E_est_exact = \sum E^{exact}_{atom} - zpe
+  --all_children        Show all the children of the element
+                           Example for AlCl will show Al and Cl).
+
   All the other          Filter the data or ordering it. See example.
 
 Example of use:
@@ -40,7 +62,7 @@ Example of use:
   ./G2_result.py get_energy --basis "cc-pvdz" --ele AlCl --ele Li2 --get_ae --order_by ae_diff
 """
 
-version = "1.0.4"
+version = "2.0.4"
 
 import sys
 from collections import defaultdict
