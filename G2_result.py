@@ -38,21 +38,19 @@ Options for both:
                                 show only the run who contain
                                 both this geo and this basis set.
   --literature              If you want to use the literature ZPE/AE,
-                                 and not the NIST one for the calcul of
-                                 the MAD, estimated_exact and the theorical
-                                 atomization energies.
+                                and not the NIST one for the calcul of
+                                the MAD, estimated_exact and the theorical
+                                atomization energies.
 
 Options for get_energy:
   --without_pt2         Show all the data without adding the PT2 when avalaible.
   --get_ae              Show the atomization energy when avalaible
                            (both theorical and experiment).
-                           Theorical ae is calculate like this:
-                               ae_th = E_mol - \sum E_atom  + zpe
+                            ae_th = E_mol - \sum E_atom  + zpe
   --estimated_exact     Show the estimated exact energy.
-                           Ccalculated like this:
-                               E_est_exact = \sum E^{exact}_{atom} - zpe
+                            E_est_exact = \sum E^{exact}_{atom} - zpe
   --all_children        Show all the children of the element
-                           Example for AlCl will show Al and Cl).
+                            Example for AlCl will show Al and Cl).
 
   All the other          Filter the data or ordering it. See example.
 
