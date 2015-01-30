@@ -296,7 +296,7 @@ if __name__ == '__main__':
             l_energy = ae_diff[run_id].values()
             d_mad[run_id] = sum(map(abs, l_energy)) / len(l_energy)
 
-        header = ["Run_id", "Method", "Basis", "Geo", "Comments", "mad"]
+        header = "Run_id Method Basis Geo Comments mad".split()
 
         # Group by Run_id and then put the mad if existing
         table_body = []
