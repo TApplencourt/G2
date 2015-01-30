@@ -18,8 +18,9 @@ Usage:
                           [--basis=<basis_name>...]
                           [--method=<method_name>...]
                           [--without_pt2]
+                          [--zpe]
                           [--estimated_exact [--literature]]
-                          [--get_ae [--literature]]
+                          [--ae [--literature]]
 
   G2_result.py --version
 
@@ -44,7 +45,7 @@ Options for both:
 
 Options specifics to get_energy:
   --without_pt2         Show all the data without adding the PT2 when avalaible.
-  --get_ae              Show the atomization energy when avalaible
+  --ae              Show the atomization energy when avalaible
                            (both theorical and experiment).
                             ae_th = E_mol - \sum E_atom  + zpe
   --estimated_exact     Show the estimated exact energy.
@@ -57,7 +58,7 @@ Options specifics to get_energy:
 Example of use:
   ./G2_result.py list_run --method 'CCSD(T)'
   ./G2_result.py get_energy --run_id 11 --order_by e --without_pt2 --estimated_exact
-  ./G2_result.py get_energy --basis "cc-pvdz" --ele AlCl --ele Li2 --get_ae --order_by ae_diff
+  ./G2_result.py get_energy --basis "cc-pvdz" --ele AlCl --ele Li2 --ae --order_by ae_diff
 """
 
 version = "2.5.4"
@@ -86,9 +87,10 @@ if __name__ == '__main__':
 
     # For calculating the MAD we need the AE
     if arguments["list_run"]:
-        arguments["--get_ae"] = True
+        arguments["--ae"] = True
 
     DEFAULT_CARACTER = ""
+
     # ______ _ _ _
     # |  ___(_) | |
     # | |_   _| | |_ ___ _ __
@@ -115,7 +117,7 @@ if __name__ == '__main__':
     # Add all the children of a element to l_ele if need.
     # For example for the calculate the AE of AlCl we need Al and Cl
     if l_ele and any(arguments[k] for k in ["--all_children",
-                                            "--get_ae",
+                                            "--ae",
                                             "--estimated_exact"]):
 
         # Find all this children of the element; this is the new conditions
@@ -149,12 +151,15 @@ if __name__ == '__main__':
         cond_filter += cond_sql_or(k, arguments[v])
 
     # We need to find the run_id who containt ALL the ele is needed
-    cond_filter_ele = ["name in ('" + "','".join(l_ele) + "')"] if l_ele else []
+    if l_ele:
+        cond_filter_ele = ["".join(["name in ('", "','".join(l_ele), "')"])]
+    else:
+        cond_filter_ele = []
 
     # Maybe we dont need to filter
     # Else just simplify the expresion :
     #   geo basis method -> run_id
-    if not cond_filter + cond_filter_ele:
+    if not any((cond_filter, cond_filter_ele)):
         cmd_where = "(1)"
     else:
         cmd_where_tmp = " AND ".join(cond_filter + cond_filter_ele)
@@ -165,8 +170,8 @@ if __name__ == '__main__':
         c.execute("""SELECT run_id
                     FROM (SELECT run_id,
                                    name,
-                     method_name method,
-                        basis_name basis,
+                            method_name method,
+                             basis_name basis,
                             geo_name geo
                           FROM output_tab
                           WHERE {0})
@@ -226,15 +231,18 @@ if __name__ == '__main__':
             if not arguments["--without_pt2"]:
                 d_energy[run_id][name] += float(c_pt2)
 
-    #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._     _     ._
-    # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |   (/_ >< |_)
-    #                                                   |
-    if arguments["--get_ae"] or arguments["--estimated_exact"]:
+    #  __
+    #   / ._   _    ()     /\   _     _     ._
+    #  /_ |_) (/_   (_X   /--\ (/_   (/_ >< |_)
+    #     |                                 |
+    if any(arguments[k] for k in ["--zpe",
+                                  "--ae",
+                                  "--estimated_exact"]):
 
-        method_id = 1 if not arguments["--literature"] else 10
+        method_id = 10 if arguments["--literature"] else 1
 
         cond_filter = cond_filter_ele + ['(basis_id=1)',
-                                       '(method_id=%d)' % (method_id)]
+                                         '(method_id=%d)' % (method_id)]
 
         cmd_where = " AND ".join(cond_filter)
 
@@ -297,7 +305,7 @@ if __name__ == '__main__':
 
     #   /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    _|_ |_
     #  /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |    |_ | |
-    if arguments["--get_ae"]:
+    if arguments["--ae"]:
 
         # Init all the dict
         ae_th = defaultdict(dict)
@@ -342,14 +350,15 @@ if __name__ == '__main__':
             l_energy = ae_diff[run_id].values()
             d_mad[run_id] = sum(map(abs, l_energy)) / len(l_energy)
 
-        header = "Run_id Method Basis Geo Comments mad".split()
+        header_name = "Run_id Method Basis Geo Comments mad".split()
+        header_unit = [DEFAULT_CARACTER]*6
 
         # Group by Run_id and then put the mad if existing
         table_body = []
         from itertools import groupby
         for key, group in groupby(data_cur_energy, lambda x: x[1:6]):
 
-            mad = d_mad[key[0]]*630 if key[0] in d_mad else DEFAULT_CARACTER
+            mad = d_mad[key[0]] * 630 if key[0] in d_mad else DEFAULT_CARACTER
             table_body.append(key + (mad,))
 
     #  _
@@ -360,24 +369,38 @@ if __name__ == '__main__':
 
         table_body = []
 
-        header = "#Run_id method basis geo comments ele e".split()
+        header_name = "#Run_id method basis geo comments ele e".split()
+        header_unit = [DEFAULT_CARACTER] * 7
+
+        if arguments["--zpe"]:
+            header_name += "zpe".split()
+            header_unit += "cm^-1".split()
 
         if arguments["--estimated_exact"]:
-            header += "e_est_exact e_diff".split()
-
-        if arguments["--get_ae"]:
-            header += "ae_th ae_exp ae_diff".split()
+            header_name += "e_est_exact e_diff".split()
+            header_unit += "ua ua".split()
+        if arguments["--ae"]:
+            header_name += "ae_th ae_exp ae_diff".split()
+            header_unit += "ua ua ua".split()
 
         for info in data_cur_energy:
 
             name = info[-4]
             run_id = info[1]
 
-            line = list(info[1:7]) + [d_energy[run_id][name]]
+            comments = info[5].replace("1M_Dets_NO_10k_Dets_TruePT2",
+                                       "1M_Dets_NO\n_10k_Dets_TruePT2")
+
+            line = list(info[1:5])
+            line += [comments, info[6], d_energy[run_id][name]]
 
             if (arguments["--ele"] and name not in arguments["--ele"]
                     and not arguments["--all_children"]):
                 continue
+
+            if arguments["--zpe"]:
+                line += [zpe_exp[name]
+                         if name in zpe_exp else DEFAULT_CARACTER]
 
             if arguments["--estimated_exact"]:
 
@@ -387,7 +410,7 @@ if __name__ == '__main__':
                          if name in est_exact_energy and
                          name in d_energy[run_id] else DEFAULT_CARACTER]
 
-            if arguments["--get_ae"]:
+            if arguments["--ae"]:
 
                 line += [ae_th[run_id][name]
                          if name in ae_th[run_id] else DEFAULT_CARACTER]
@@ -410,7 +433,7 @@ if __name__ == '__main__':
     # Order by cli argument if given
     for arg in arguments["--order_by"]:
         try:
-            index = header.index(arg)
+            index = header_name.index(arg)
         except ValueError:
             print "For --order_by you need a column name"
             sys.exit(1)
@@ -426,9 +449,22 @@ if __name__ == '__main__':
     # |  __/ '__| | '_ \| __|
     # | |  | |  | | | | | |_
     # \_|  |_|  |_|_| |_|\__|
-    table = [header] + table_body
 
-    pprint_table(table)
+    from src.terminaltables import AsciiTable
+
+    # Convert good
+    table_body = [["{:>9.4f}".format(i) if isinstance(i, float) else i
+                   for i in line]
+                  for line in table_body]
+
+    # AsciiTable need str
+    table_body = [map(str, i) for i in table_body]
+
+    table_data = [header_name] + [header_unit] + table_body
+
+    table = AsciiTable(table_data)
+    print table.table
+
     print "#GnuPlot cmd for energy : "
     print "# $gnuplot -e",
     print "\"set xtics rotate;",
