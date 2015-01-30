@@ -40,6 +40,7 @@ if not isSQLite3(path):
 
 
 def cond_sql_or(table_name, l_value):
+    # Create the OR condition for a WHERE filter
 
     l = []
     dmy = " OR ".join(['%s = "%s"' % (table_name, i) for i in l_value])
@@ -60,37 +61,53 @@ c = conn.cursor()
 # | |_\ \  __/ |_
 #  \____/\___|\__|
 #
-def get_coord(id, atom, geo_name):
+def get_coord(id, atom, geo):
+    # Only work if, id, atom, already exist
     c.execute(''' SELECT x,y,z FROM coord_tab NATURAL JOIN geo_tab
                 WHERE id =?  AND
                       atom=? AND
-                      name = ?''', [id, atom, geo_name])
+                      name = ?''', [id, atom, geo])
 
     return c.fetchall()
 
 
 def get_mol_id(name):
+    # Only work if name already exist
     c.execute("SELECT id FROM id_tab WHERE name=?", [name])
-    r = c.fetchone()[0]
-    return r
+    return c.fetchone()[0]
 
 
 def get_method_id(name):
+    # Only work if name already exist
     c.execute("SELECT method_id FROM method_tab WHERE name=?", [name])
-    r = c.fetchone()[0]
-    return r
+    return c.fetchone()[0]
 
 
 def get_basis_id(name):
+    # Only work if name already exist
     c.execute("SELECT basis_id FROM basis_tab WHERE name=?", [name])
-    r = c.fetchone()[0]
-    return r
+    return c.fetchone()[0]
 
 
 def get_geo_id(name):
+    # Only work if name already exist
     c.execute("SELECT geo_id FROM geo_tab WHERE name=?", [name])
-    r = c.fetchone()[0]
-    return r
+    return c.fetchone()[0]
+
+
+def get_run_id(method, basis, geo, comments):
+    # Only work if method,basis,geo already exist
+    method_id = get_method_id(method)
+    basis_id = get_basis_id(basis)
+    geo_id = get_geo_id(geo)
+
+    c.execute("""SELECT run_id FROM run_tab
+                WHERE method_id =(?) AND
+                      basis_id = (?) AND
+                      geo_id = (?)   AND
+                      comments =(?)""", [method_id, basis_id, geo_id, comments])
+
+    return c.fetchone()[0]
 
 
 def list_geo(where_cond='(1)'):
@@ -173,7 +190,7 @@ def dict_raw():
 # \_| |_/\__,_|\__,_|
 #
 def add_new_run(method, basis, geo, comments):
-
+    # Only work id method,basis,geo already exist
     method_id = get_method_id(method)
     basis_id = get_basis_id(basis)
     geo_id = get_geo_id(geo)
@@ -184,8 +201,19 @@ def add_new_run(method, basis, geo, comments):
     conn.commit()
 
 
+def add_or_get_run(method, basis, geo, comments):
+
+    try:
+        return get_run_id(method, basis, geo, comments)
+    except TypeError:
+        add_new_run(method, basis, geo, comments)
+    finally:
+        return get_run_id(method, basis, geo, comments)
+
+
 def add_energy_cispi(url, run_id, name,
                      true_pt2=False, debug=False):
+    # Add a cipsi energy containt in a log file to the run_id
 
     # Try if the file is existing
     if not os.path.isfile(url):
@@ -240,6 +268,7 @@ def add_energy_cispi(url, run_id, name,
 
 def add_energies_cispi(run_list, geo_list, basis_list, path, tail,
                        true_pt2=False, compatibility=False, debug=False):
+    # Add a list of cipsi log to the run_id (check for all name)
 
     from misc_info import new_name_to_old
 
