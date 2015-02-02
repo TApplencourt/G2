@@ -11,6 +11,7 @@ Usage:
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
                         [--literature]
+  G2_result.py list_ele --run_id=<id> [--mising]
   G2_result.py get_energy [--order_by=<column>]
                           [--run_id=<id>...]
                           [--ele=<element_name>...  [--all_children] | --like_toulouse]
@@ -21,16 +22,17 @@ Usage:
                           [--zpe]
                           [--estimated_exact [--literature]]
                           [--ae [--literature]]
-
   G2_result.py --version
 
 Options:
   --help        Here you go.
   list_run      List all the data avalaible and the MAD
+  list_ele      List the element in the selected run_id
   get_energy    Print the energy & energy related values
                     (PT2, error bar, atomization energies,
                     estimated_exact, ...)
-Options for both:
+
+Options for list_run and get_energy:
   --order_by                You can order by a collumn name displayed:
                                 `--order_by mad` for example.
   --ele OR --like_toulouse  Show only run's who contain ALL of the element required.
@@ -42,6 +44,10 @@ Options for both:
                                 and not the NIST one for the calcul of
                                 the MAD, estimated_exact and the theorical
                                 atomization energies.
+
+Options for list_ele:
+  --run_id                  Show the list_ele for this run_id
+  --missing                 Show the diffence between "like_toulouse" list and "list_ele"
 
 Options specifics to get_energy:
   --without_pt2         Show all the data without adding the PT2 when avalaible.
@@ -368,8 +374,8 @@ if __name__ == '__main__':
 
         table_body = []
 
-        header_name = "#Run_id method basis geo comments ele e".split()
-        header_unit = [DEFAULT_CARACTER] * 7
+        header_name = "run_id method basis geo comments ele e".split()
+        header_unit = [DEFAULT_CARACTER] * 6 + ["Hartree"]
 
         if arguments["--zpe"]:
             header_name += "zpe".split()
@@ -377,10 +383,10 @@ if __name__ == '__main__':
 
         if arguments["--estimated_exact"]:
             header_name += "e_est_exact e_diff".split()
-            header_unit += "ua ua".split()
+            header_unit += "Hartree Hartree".split()
         if arguments["--ae"]:
             header_name += "ae_th ae_exp ae_diff".split()
-            header_unit += "ua ua ua".split()
+            header_unit += "Hartree Hartree Hartree".split()
 
         for info in data_cur_energy:
 
@@ -430,6 +436,34 @@ if __name__ == '__main__':
         if l_ele:
             table_body = [
                 l for i in l_ele_to_print for l in table_body if l[5] == i]
+
+    #  _____ _                           _                      _
+    # |  ___| |                         | |                    ( )
+    # | |__ | | ___ _ __ ___   ___ _ __ | |_   _ __ _   _ _ __ |/ ___
+    # |  __|| |/ _ \ '_ ` _ \ / _ \ '_ \| __|  | '__| | | | '_ \  / __|
+    # | |___| |  __/ | | | | |  __/ | | | |_   | |  | |_| | | | | \__ \
+    # \____/|_|\___|_| |_| |_|\___|_| |_|\__|  |_|   \__,_|_| |_| |___/
+    #
+    # List all the element of a run_id
+    if arguments["list_ele"]:
+
+        run_id = arguments["--run_id"]
+
+        c.execute("""SELECT name
+                    FROM output_tab
+                    WHERE run_id = (?)""", run_id)
+
+        l_ele = [ele[0] for ele in c.fetchall()]
+
+        header_name = ["ele"]
+        header_unit = [""]
+
+        if arguments["--mising"]:
+            from src.misc_info import list_toulouse
+
+            table_body = [[ele] for ele in list_toulouse if ele not in l_ele]
+        else:
+            table_body = [[ele] for ele in l_ele]
 
     #  _
     # / \ ._ _|  _  ._   |_
