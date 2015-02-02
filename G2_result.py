@@ -510,12 +510,10 @@ if __name__ == '__main__':
     table_body = [map(str, i) for i in table_body]
 
     if not arguments["--gnuplot"]:
-        # Convert good
-        table_data = [header_name] + [header_unit] + table_body
 
+        table_data = [header_name] + [header_unit] + table_body
         table = AsciiTable(table_data)
         print table.table
-        
     else:
         JOIN_CARACTER = ", "
         print "#" + ", ".join(header_name)
