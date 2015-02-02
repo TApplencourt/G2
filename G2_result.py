@@ -350,7 +350,7 @@ if __name__ == '__main__':
             d_mad[run_id] = sum(map(abs, l_energy)) / len(l_energy)
 
         header_name = "Run_id Method Basis Geo Comments mad".split()
-        header_unit = [DEFAULT_CARACTER]*5+["kcal/mol"]
+        header_unit = [DEFAULT_CARACTER] * 5 + ["kcal/mol"]
 
         # Group by Run_id and then put the mad if existing
         table_body = []
@@ -391,10 +391,11 @@ if __name__ == '__main__':
                                        "1M_Dets_NO\n_10k_Dets_TruePT2")
 
             comments = comments.replace("1M_Dets_NO_1k_Dets_TruePT2",
-                                       "1M_Dets_NO\n_1k_Dets_TruePT2")
+                                        "1M_Dets_NO\n_1k_Dets_TruePT2")
 
-            comments = comments.replace("Davidson nonrelativistics atomics energies",
-                                        "Davidson nonrelativistics\natomics energies")
+            comments = comments.replace(
+                "Davidson nonrelativistics atomics energies",
+                "Davidson nonrelativistics\natomics energies")
 
             line = list(info[1:5])
             line += [comments, info[6], d_energy[run_id][name]]
