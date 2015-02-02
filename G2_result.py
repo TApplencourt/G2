@@ -199,6 +199,8 @@ if __name__ == '__main__':
     #                       __/ | __/ |
     #                      |___/ |___/
 
+    from src.object import *
+
     d_energy = defaultdict(dict)
 
     c.execute("""SELECT formula,
@@ -230,7 +232,7 @@ if __name__ == '__main__':
         c_energy = info[8]
         c_pt2 = info[9]
         q_energy = info[10]
-        q_err    = info[11]
+        q_err = info[11]
 
         if s_energy:
             d_energy[run_id][name] = float(s_energy)
@@ -241,7 +243,8 @@ if __name__ == '__main__':
                 d_energy[run_id][name] += float(c_pt2)
 
         if q_energy:
-            d_energy[run_id][name] = float(q_energy)
+            d_energy[run_id][name] = v_un(float(q_energy), float(q_err))
+
     #  __
     #   / ._   _    ()     /\   _     _     ._
     #  /_ |_) (/_   (_X   /--\ (/_   (/_ >< |_)
@@ -333,7 +336,7 @@ if __name__ == '__main__':
             try:
                 ao_th_tmp = d_e_rid[name] + zpe_exp[name]
                 for name_atome, number in eval(formula_raw):
-                    ao_th_tmp -= number * d_e_rid[name_atome]
+                    ao_th_tmp -= d_e_rid[name_atome] * number
             except KeyError:
                 pass
             else:
@@ -385,7 +388,7 @@ if __name__ == '__main__':
 
         if arguments["--zpe"]:
             header_name += "zpe".split()
-            header_unit += "cm^-1".split()
+            header_unit += "Hartree".split()
 
         if arguments["--estimated_exact"]:
             header_name += "e_est_exact e_diff".split()
