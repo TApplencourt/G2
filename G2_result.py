@@ -210,7 +210,9 @@ if __name__ == '__main__':
                 output_tab.name ele,
                        s_energy,
                        c_energy,
-                          c_pt2
+                          c_pt2,
+                       q_energy,
+                          q_err
                            FROM output_tab
                      INNER JOIN id_tab
                              ON output_tab.name = id_tab.name
@@ -223,10 +225,12 @@ if __name__ == '__main__':
 
     for info in data_cur_energy:
         run_id = info[1]
-        name = info[-4]
-        s_energy = info[-3]
-        c_energy = info[-2]
-        c_pt2 = info[-1]
+        name = info[6]
+        s_energy = info[7]
+        c_energy = info[8]
+        c_pt2 = info[9]
+        q_energy = info[10]
+        q_err    = info[11]
 
         if s_energy:
             d_energy[run_id][name] = float(s_energy)
@@ -236,6 +240,8 @@ if __name__ == '__main__':
             if not arguments["--without_pt2"]:
                 d_energy[run_id][name] += float(c_pt2)
 
+        if q_energy:
+            d_energy[run_id][name] = float(q_energy)
     #  __
     #   / ._   _    ()     /\   _     _     ._
     #  /_ |_) (/_   (_X   /--\ (/_   (/_ >< |_)
@@ -390,7 +396,7 @@ if __name__ == '__main__':
 
         for info in data_cur_energy:
 
-            name = info[-4]
+            name = info[6]
             run_id = info[1]
 
             comments = info[5].replace("1M_Dets_NO_10k_Dets_TruePT2",
@@ -493,7 +499,7 @@ if __name__ == '__main__':
     from src.terminaltables import AsciiTable
 
     # Convert good
-    table_body = [["{:>9.5f}".format(i) if isinstance(i, float) else i
+    table_body = [["{:>10.5f}".format(i) if isinstance(i, float) else i
                    for i in line]
                   for line in table_body]
 
