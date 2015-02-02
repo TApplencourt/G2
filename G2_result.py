@@ -22,6 +22,7 @@ Usage:
                           [--zpe]
                           [--estimated_exact [--literature]]
                           [--ae [--literature]]
+                          [--gnuplot]
   G2_result.py --version
 
 Options:
@@ -51,15 +52,15 @@ Options for list_ele:
 
 Options specifics to get_energy:
   --without_pt2         Show all the data without adding the PT2 when avalaible.
-  --ae              Show the atomization energy when avalaible
+  --ae                  Show the atomization energy when avalaible
                            (both theorical and experiment).
                             ae_th = E_mol - \sum E_atom  + zpe
   --estimated_exact     Show the estimated exact energy.
                             E_est_exact = \sum E^{exact}_{atom} - zpe
   --all_children        Show all the children of the element
-                            Example for AlCl will show Al and Cl).
-
-  All the other          Filter the data or ordering it. See example.
+                            Example for AlCl will show Al and Cl.
+  --gnuplot             Print the result in a GNUPLOT readable format.
+  All the other         Filter the data or ordering it. See example.
 
 Example of use:
   ./G2_result.py list_run --method 'CCSD(T)'
@@ -501,7 +502,6 @@ if __name__ == '__main__':
 
     from src.terminaltables import AsciiTable
 
-    # Convert good
     table_body = [["{:>10.5f}".format(i) if isinstance(i, float) else i
                    for i in line]
                   for line in table_body]
@@ -509,13 +509,21 @@ if __name__ == '__main__':
     # AsciiTable need str
     table_body = [map(str, i) for i in table_body]
 
-    table_data = [header_name] + [header_unit] + table_body
+    if not arguments["--gnuplot"]:
+        # Convert good
+        table_data = [header_name] + [header_unit] + table_body
 
-    table = AsciiTable(table_data)
-    print table.table
+        table = AsciiTable(table_data)
+        print table.table
+        
+    else:
+        JOIN_CARACTER = ", "
+        print "#" + ", ".join(header_name)
+        for i in table_body:
+            print ", ".join([l.replace(" ", "") for l in i])
 
-    print "#GnuPlot cmd for energy : "
-    print "# $gnuplot -e",
-    print "\"set xtics rotate;",
-    print "plot 'dat' u 7:xtic(6) w lp title 'energy';",
-    print "pause -1 \""
+        print "#GnuPlot cmd for energy : "
+        print "# $gnuplot -e",
+        print "\"set xtics rotate;",
+        print "plot 'dat' u 7:xtic(6) w lp title 'energy';",
+        print "pause -1 \""
