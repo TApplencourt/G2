@@ -325,7 +325,7 @@ if __name__ == '__main__':
         # Update dict if data avalaible
         for info in data_cur_energy:
             run_id = info[1]
-            name = info[-4]
+            name = info[6]
             formula_raw = info[0]
 
             d_e_rid = d_energy[run_id]
