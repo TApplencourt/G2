@@ -298,13 +298,11 @@ if __name__ == '__main__':
                     NATURAL JOIN id_tab
                            WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
-        energy_th = defaultdict()
+        est_exact_energy = defaultdict(dict)
         for name, energy in c.fetchall():
-            energy_th[name] = float(energy)
+            est_exact_energy[name] = float(energy)
 
         # Calc estimated exact molecules energies
-        est_exact_energy = defaultdict(dict)
-
         for info in data_ae_zp:
             name = info[0]
             formula_raw = info[1]
@@ -312,7 +310,7 @@ if __name__ == '__main__':
             try:
                 emp_tmp = -ae_exp[name] - zpe_exp[name]
                 for name_atome, number in eval(formula_raw):
-                    emp_tmp += number * energy_th[name_atome]
+                    emp_tmp += number * est_exact_energy[name_atome]
             except KeyError:
                 pass
             else:
