@@ -38,10 +38,7 @@ class v_un(namedtuple('v_un', 'e err')):
             return v_un(self.e + x, self.err)
 
     def __radd__(self, x):
-        try:
-            return v_un(self.e + x.e, self.err + x.err)
-        except AttributeError:
-            return v_un(self.e + x, self.err)
+        return self.__add__(x)
 
     # Minis Left right
     def __sub__(self, x):
@@ -63,6 +60,9 @@ class v_un(namedtuple('v_un', 'e err')):
         except AttributeError:
             return v_un(self.e * x, self.err * x)
 
+    def __rmul__(self, x):
+        return self.__mul__(x)
+
     # Division
     def __div__(self, x):
         try:
@@ -74,14 +74,28 @@ class v_un(namedtuple('v_un', 'e err')):
     def __neg__(self):
         return v_un(-self.e, self.err)
 
+    # abs
     def __abs__(self):
         return v_un(abs(self.e), self.err)
+
+    # __lt__
+    def __lt__(self, x):
+        try:
+            return self.e < x.e
+        except AttributeError:
+            return self.e < x
+
+    def __gt__(self, x):
+        try:
+            return self.e > x.e
+        except AttributeError:
+            return self.e > x
 
 if __name__ == '__main__':
     roger = v_un(1005, 0.2264545454)
     dudule = v_un(1, 0.00001)
-#    print -roger
-#    print roger + 2
-#    print 2.06 + roger
-#    print roger - 2
+    print -roger
+    print roger + 2
+    print 2.06 + roger
+    print roger - 2
     print dudule - roger
