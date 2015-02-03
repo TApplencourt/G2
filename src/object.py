@@ -19,7 +19,12 @@ class v_un(namedtuple('v_un', 'e err')):
             len_format = len(m.group(1))
             good_digit = m.group(2)
         except AttributeError:
-            return "{}({})".format(int(self.e), int(self.err))
+            len_format = len(str(int(self.e)))
+
+            format_string = "{:>%dd}" % (len_format + 2)
+            str_e = format_string.format(int(self.e))
+
+            return "{}({})".format(str_e, int(self.err))
         else:
             format_string = "{:>%d.%df}" % (len_format + 5, len_format)
             str_e = format_string.format(self.e)
