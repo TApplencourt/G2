@@ -431,17 +431,9 @@ if __name__ == '__main__':
                 line += [est_exact_energy[name]
                          if name in est_exact_energy else DEFAULT_CARACTER]
 
-                if name in est_exact_energy and name in d_energy[run_id]:
-                    print "wtf"
-                    print d_energy[run_id][name], est_exact_energy[name]
-                    print d_energy[run_id][name] - est_exact_energy[name]
-                else:
-                    print "fail"
-
-
-#                line += [d_energy[run_id][name] - est_exact_energy[name]
-#                         if name in est_exact_energy and
-#                         name in d_energy[run_id] else DEFAULT_CARACTER]
+                line += [d_energy[run_id][name] - est_exact_energy[name]
+                         if name in est_exact_energy and
+                         name in d_energy[run_id] else DEFAULT_CARACTER]
 
             if arguments["--ae"]:
 
