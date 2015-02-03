@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from collections import namedtuple
 import re
 
@@ -21,11 +24,11 @@ class v_un(namedtuple('v_un', 'e err')):
         except AttributeError:
             return v_un(self.e + x, self.err)
 
-    def __mul__(self, x):
+    def __radd__(self, x):
         try:
-            return v_un(self.e * x.e, self.err * x.err)
+            return v_un(self.e + x.e, self.err + x.err)
         except AttributeError:
-            return v_un(self.e * x, self.err * x)
+            return v_un(self.e + x, self.err)
 
     def __sub__(self, x):
         try:
@@ -33,8 +36,25 @@ class v_un(namedtuple('v_un', 'e err')):
         except AttributeError:
             return v_un(self.e - x, self.err)
 
-    def __div__(self, x):
+    def __rsub__(self, x):
         try:
-            return v_un(self.e / x.e, self.err / x.err)
+            return v_un(self.e - x.e, self.err - x.err)
         except AttributeError:
-            return v_un(self.e / x, self.err / x)
+            return v_un(self.e - x, self.err)
+
+    def __mul__(self, x):
+        try:
+            return v_un(self.e * x.e, self.err * x.err)
+        except AttributeError:
+            return v_un(self.e * x, self.err * x)
+
+    def __neg__(self):
+        return v_un(-self.e, self.err)
+
+if __name__ == '__main__':
+    roger = v_un(0.10,0.12)
+    print -roger
+    print roger + 2
+    print 2.06 + roger
+    print roger - 2
+    print 2.06 - roger
