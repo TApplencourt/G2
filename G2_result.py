@@ -283,9 +283,9 @@ if __name__ == '__main__':
 
             zpe = zpe * 4.55633e-06
             energy = kcal * 0.00159362
-            energy_err = kcal_err * 0.00159362
+            energy_err = kcal_err * 0.00159362 if kcal_err else 0.
 
-            ae_exp[name] = v_un(energy,energy_err)
+            ae_exp[name] = v_un(energy, energy_err)
             zpe_exp[name] = zpe
 
     #  _
