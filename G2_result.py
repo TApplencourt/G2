@@ -267,7 +267,8 @@ if __name__ == '__main__':
         c.execute("""SELECT name,
                          formula,
                              zpe,
-                            kcal
+                            kcal,
+                        kcal_err
                             FROM id_tab
                     NATURAL JOIN zpe_tab
                     NATURAL JOIN atomization_tab
@@ -278,10 +279,13 @@ if __name__ == '__main__':
             name = info[0]
             zpe = info[2]
             kcal = info[3]
+            kcal_err = info[4]
 
             zpe = zpe * 4.55633e-06
             energy = kcal * 0.00159362
-            ae_exp[name] = energy
+            energy_err = kcal_err * 0.00159362
+
+            ae_exp[name] = v_un(energy,energy_err)
             zpe_exp[name] = zpe
 
     #  _
@@ -426,9 +430,18 @@ if __name__ == '__main__':
 
                 line += [est_exact_energy[name]
                          if name in est_exact_energy else DEFAULT_CARACTER]
-                line += [d_energy[run_id][name] - est_exact_energy[name]
-                         if name in est_exact_energy and
-                         name in d_energy[run_id] else DEFAULT_CARACTER]
+
+                if name in est_exact_energy and name in d_energy[run_id]:
+                    print "wtf"
+                    print d_energy[run_id][name], est_exact_energy[name]
+                    print d_energy[run_id][name] - est_exact_energy[name]
+                else:
+                    print "fail"
+
+
+#                line += [d_energy[run_id][name] - est_exact_energy[name]
+#                         if name in est_exact_energy and
+#                         name in d_energy[run_id] else DEFAULT_CARACTER]
 
             if arguments["--ae"]:
 
