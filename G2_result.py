@@ -405,11 +405,12 @@ if __name__ == '__main__':
     #               _| /
     elif arguments["get_energy"]:
 
-        def create_line(d, n, f):
-            return f.format(d[n]) if n in d else DEFAULT_CARACTER
+        def create_line(df, n):
 
-        def create_line2(df, n):
-            return [create_line(d[0], name, d[1]) for d in df]
+            def dump(d, f, n): 
+                return f.format(d[n]) if n in d else DEFAULT_CARACTER
+
+            return [dump(d[0], d[1], n) for d in df]
 
         table_body = []
 
@@ -444,7 +445,9 @@ if __name__ == '__main__':
 
             line = list(info[1:5])
             line += [comments, name]
-            line += [create_line(e_th[run_id], name, "{:>10.5f}")]
+
+            l = [(e_th[run_id], "{:>10.5f}")]
+            line += create_line(l,name)
 
             if not any([arguments["--all_children"],
                         not arguments["--ele"],
@@ -455,13 +458,13 @@ if __name__ == '__main__':
             if arguments["--zpe"]:
                 l = [(zpe_exp, "{:>2.5f}")]
 
-                line += create_line2(l, name)
+                line += create_line(l, name)
 
             if arguments["--estimated_exact"]:
                 l = [(e_ee, "{:>10.5f}"),
                      (e_diff[run_id], "{:>2.5f}")]
 
-                line += create_line2(l, name)
+                line += create_line(l, name)
 
             if arguments["--ae"]:
 
@@ -469,7 +472,7 @@ if __name__ == '__main__':
                      (ae_exp, "{:>2.5f}"),
                      (ae_diff[run_id], "{:>8.5f}")]
 
-                line += create_line2(l, name)
+                line += create_line(l, name)
 
             table_body.append(line)
 
