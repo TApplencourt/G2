@@ -371,8 +371,8 @@ if __name__ == '__main__':
                 e_ee[name] = emp_tmp
 
         e_diff = defaultdict(dict)
-        for run_id, e_th_run_id in e_th.items():
-            for name, energies in e_th_run_id.items():
+        for run_id, e_th_rd in e_th.iteritems():
+            for name, energies in e_th_rd.iteritems():
                 try:
                     e_diff[run_id][name] = energies - e_ee[name]
                 except KeyError:
@@ -421,8 +421,10 @@ if __name__ == '__main__':
     #   \_/\__,_|_.__/|_|\___|
 
     # Create the table which will be printed
-    #  | o  _ _|_   ._    ._
-    #  | | _>  |_   | |_| | |
+    #
+    # |  o  _ _|_   ._    ._
+    # |_ | _>  |_   | |_| | |
+    #
     if arguments["list_run"]:
 
         d_mad = defaultdict()
@@ -482,9 +484,11 @@ if __name__ == '__main__':
         if arguments["--ae"]:
             header_name += "ae_th ae_exp ae_diff".split()
             header_unit += "Hartree Hartree Hartree".split()
+
         # -#-#-#- #
         # B o d y #
         # -#-#-#- #
+
         for info in data_cur_energy:
 
             name = info[6]
@@ -576,10 +580,9 @@ if __name__ == '__main__':
             print "For --order_by you need a column name"
             sys.exit(1)
         else:
-            table_body = sorted(
-                table_body,
-                key=lambda x: x[index],
-                reverse=True)
+            table_body = sorted(table_body,
+                                key=lambda x: x[index],
+                                reverse=True)
 
     # ______     _       _
     # | ___ \   (_)     | |
