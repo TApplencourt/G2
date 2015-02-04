@@ -407,10 +407,14 @@ if __name__ == '__main__':
 
         def create_line(df, n):
 
-            def dump(d, f, n): 
+            def dump(d, f, n):
                 return f.format(d[n]) if n in d else DEFAULT_CARACTER
 
             return [dump(d[0], d[1], n) for d in df]
+
+        def good_ele_to_print(name):
+            return any([arguments["--all_children"], not arguments["--ele"],
+                        name in arguments["--ele"]])
 
         table_body = []
 
@@ -446,33 +450,26 @@ if __name__ == '__main__':
             line = list(info[1:5])
             line += [comments, name]
 
-            l = [(e_th[run_id], "{:>10.5f}")]
-            line += create_line(l, name)
+            line += create_line([(e_th[run_id], "{:>10.5f}")],
+                                name)
 
-            if not any([arguments["--all_children"],
-                        not arguments["--ele"],
-                        name in arguments["--ele"]
-                        ]):
+            if not good_ele_to_print:
                 continue
 
             if arguments["--zpe"]:
-                l = [(zpe_exp, "{:>2.5f}")]
-
-                line += create_line(l, name)
+                line += create_line([(zpe_exp, "{:>2.5f}")],
+                                    name)
 
             if arguments["--estimated_exact"]:
-                l = [(e_ee, "{:>10.5f}"),
-                     (e_diff[run_id], "{:>2.5f}")]
-
-                line += create_line(l, name)
+                line += create_line([(e_ee, "{:>10.5f}"),
+                                     (e_diff[run_id], "{:>2.5f}")],
+                                    name)
 
             if arguments["--ae"]:
-
-                l = [(ae_th[run_id], "{:>2.5f}"),
-                     (ae_exp, "{:>2.5f}"),
-                     (ae_diff[run_id], "{:>8.5f}")]
-
-                line += create_line(l, name)
+                line += create_line([(ae_th[run_id], "{:>2.5f}"),
+                                     (ae_exp, "{:>2.5f}"),
+                                     (ae_diff[run_id], "{:>8.5f}")],
+                                    name)
 
             table_body.append(line)
 
