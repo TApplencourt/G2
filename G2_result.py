@@ -452,8 +452,10 @@ if __name__ == '__main__':
                 line += create_line(zpe_exp, name)
 
             if arguments["--estimated_exact"]:
-                line += create_line(e_ee, name)
-                line += create_line(e_diff[run_id], name)
+            #    line += create_line(e_ee, name)
+            #    line += create_line(e_diff[run_id], name)
+                 line += [create_line(i,name) for i in [e_ee,e_diff]]
+
 
             if arguments["--ae"]:
                 line += create_line(ae_th[run_id], name)
