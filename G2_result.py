@@ -97,6 +97,21 @@ if __name__ == '__main__':
 
     DEFAULT_CARACTER = ""
 
+    # Usefull Variable:
+
+    # Get & print
+
+    # * l_ele           List element for geting the value
+
+    # Calcule one
+
+    # * e_th    Dict of energies theorical / calculated      (e_th[run_id][name])
+    # * ae_th   Dict of atomization energye theorcai         (ae_th[run_id][name])
+    # * ae_exp  Dict of atomization experimental             (ae_ext[name])
+    # * e_ee    Dict of energy estimated exact               (e_ee[name])
+    # * ae_diff Dict of ae_th energy minus expriement one    (ae_diff[run_id][name])
+    # * e_diff  Dict of e_th exact minus estimated exact one (e_diff[run_id][name])
+
     # ______ _ _ _
     # |  ___(_) | |
     # | |_   _| | |_ ___ _ __
@@ -136,9 +151,6 @@ if __name__ == '__main__':
         for name, formula_raw in c.fetchall():
             for atom, number in eval(formula_raw):
                 l_ele.add(atom)
-
-    # Ordered l_ele for the printing in order
-    l_ele_to_print = list_toulouse if arguments["--like_toulouse"] else l_ele
 
     #  _
     # |_ o | _|_  _  ._    _ _|_ ._ o ._   _
@@ -202,7 +214,7 @@ if __name__ == '__main__':
 
     from src.object import *
 
-    d_energy = defaultdict(dict)
+    e_th = defaultdict(dict)
 
     c.execute("""SELECT formula,
                          run_id,
@@ -236,15 +248,15 @@ if __name__ == '__main__':
         q_err = info[11]
 
         if s_energy:
-            d_energy[run_id][name] = float(s_energy)
+            e_th[run_id][name] = float(s_energy)
 
         if c_energy:
-            d_energy[run_id][name] = float(c_energy)
+            e_th[run_id][name] = float(c_energy)
             if not arguments["--without_pt2"]:
-                d_energy[run_id][name] += float(c_pt2)
+                e_th[run_id][name] += float(c_pt2)
 
         if q_energy:
-            d_energy[run_id][name] = v_un(float(q_energy), float(q_err))
+            e_th[run_id][name] = v_un(float(q_energy), float(q_err))
 
     #  __
     #   / ._   _    ()     /\   _     _     ._
@@ -302,9 +314,10 @@ if __name__ == '__main__':
                     NATURAL JOIN id_tab
                            WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
-        est_exact_energy = defaultdict(dict)
+        # e_ee  => estimated exact energy
+        e_ee = defaultdict()
         for name, energy in c.fetchall():
-            est_exact_energy[name] = float(energy)
+            e_ee[name] = float(energy)
 
         # Calc estimated exact molecules energies
         for info in data_ae_zp:
@@ -314,11 +327,19 @@ if __name__ == '__main__':
             try:
                 emp_tmp = -ae_exp[name] - zpe_exp[name]
                 for name_atome, number in eval(formula_raw):
-                    emp_tmp += number * est_exact_energy[name_atome]
+                    emp_tmp += number * e_ee[name_atome]
             except KeyError:
                 pass
             else:
-                est_exact_energy[name] = emp_tmp
+                e_ee[name] = emp_tmp
+
+        e_diff = defaultdict(dict)
+        for run_id, e_d in e_th.items():
+            for name, energies in e_d.items():
+                try:
+                    e_diff[run_id][name] = energies - e_ee[name]
+                except KeyError:
+                    pass
 
     #   /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    _|_ |_
     #  /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |    |_ | |
@@ -334,7 +355,7 @@ if __name__ == '__main__':
             name = info[6]
             formula_raw = info[0]
 
-            d_e_rid = d_energy[run_id]
+            d_e_rid = e_th[run_id]
 
             try:
                 ao_th_tmp = d_e_rid[name] + zpe_exp[name]
@@ -384,6 +405,9 @@ if __name__ == '__main__':
     #               _| /
     elif arguments["get_energy"]:
 
+        def create_line(d, n):
+            return [d[n] if n in d else DEFAULT_CARACTER]
+
         table_body = []
 
         header_name = "run_id method basis geo comments ele e".split()
@@ -416,39 +440,33 @@ if __name__ == '__main__':
                 "Davidson nonrelativistics\natomics energies")
 
             line = list(info[1:5])
-            line += [comments, info[6], d_energy[run_id][name]]
+            line += [comments, name, e_th[run_id][name]]
 
-            if (arguments["--ele"] and name not in arguments["--ele"]
-                    and not arguments["--all_children"]):
+            if all([arguments["--ele"],
+                    name not in arguments["--ele"],
+                    not arguments["--all_children"]
+                    ]):
                 continue
 
             if arguments["--zpe"]:
-                line += [zpe_exp[name]
-                         if name in zpe_exp else DEFAULT_CARACTER]
+                line += create_line(zpe_exp, name)
 
             if arguments["--estimated_exact"]:
-
-                line += [est_exact_energy[name]
-                         if name in est_exact_energy else DEFAULT_CARACTER]
-
-                line += [d_energy[run_id][name] - est_exact_energy[name]
-                         if name in est_exact_energy and
-                         name in d_energy[run_id] else DEFAULT_CARACTER]
+                line += create_line(e_ee, name)
+                line += create_line(e_diff[run_id], name)
 
             if arguments["--ae"]:
-
-                line += [ae_th[run_id][name]
-                         if name in ae_th[run_id] else DEFAULT_CARACTER]
-                line += [ae_exp[name] if name in ae_exp else DEFAULT_CARACTER]
-                line += [ae_diff[run_id][name]
-                         if name in ae_th[run_id] else DEFAULT_CARACTER]
+                line += create_line(ae_th[run_id], name)
+                line += create_line(ae_exp, name)
+                line += create_line(ae_diff[run_id], name)
 
             table_body.append(line)
 
-        # Order by l_ele if given
-        if l_ele:
-            table_body = [
-                l for i in l_ele_to_print for l in table_body if l[5] == i]
+        # Ordered by like_toulousse if needed else by l_ele.
+        # l_ele can be None if not --ele
+        order = list_toulouse if arguments["--like_toulouse"] else l_ele
+        if order:
+            table_body = [l for i in order for l in table_body if l[5] == i]
 
     #  _____ _                           _                      _
     # |  ___| |                         | |                    ( )
@@ -473,7 +491,6 @@ if __name__ == '__main__':
 
         if arguments["--mising"]:
             from src.misc_info import list_toulouse
-
             table_body = [[ele] for ele in list_toulouse if ele not in l_ele]
         else:
             table_body = [[ele] for ele in l_ele]
