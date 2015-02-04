@@ -46,7 +46,7 @@ Options for list_run and get_energy:
                                 and not the NIST one for the calcul of
                                 the MAD, estimated_exact and the theorical
                                 atomization energies.
-  --without_pt2         Show all the data without adding the PT2 when avalaible.
+  --without_pt2             Show all the data without adding the PT2 when avalaible.
 Options for list_ele:
   --run_id                  Show the list_ele for this run_id
   --missing                 Show the diffence between "like_toulouse" list and "list_ele"
