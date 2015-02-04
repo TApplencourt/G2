@@ -427,21 +427,38 @@ if __name__ == '__main__':
     #
     if arguments["list_run"]:
 
-        d_mad = defaultdict()
+        # -#-#- #
+        # M A D #
+        # -#-#- #
         # mad = mean( abs( x_i - mean(x) ) )
+
+        d_mad = defaultdict()
         for run_id in ae_diff:
             l_energy = ae_diff[run_id].values()
-            d_mad[run_id] = sum(map(abs, l_energy)) / len(l_energy)
+            mad = sum(map(abs, l_energy)) / len(l_energy) * 630
+            d_mad[run_id] = "{:>6.2f}".format(mad)
+
+        # -#-#-#- #
+        # I n i t #
+        # -#-#-#- #
+        table_body = []
+
+        # -#-#-#-#-#- #
+        # H e a d e r #
+        # -#-#-#-#-#- #
 
         header_name = "Run_id Method Basis Geo Comments mad".split()
         header_unit = [DEFAULT_CARACTER] * 5 + ["kcal/mol"]
 
+        # -#-#-#- #
+        # B o d y #
+        # -#-#-#- #
+
         # Group by Run_id and then put the mad if existing
-        table_body = []
         from itertools import groupby
         for key, group in groupby(data_cur_energy, lambda x: x[1:6]):
 
-            mad = d_mad[key[0]] * 630 if key[0] in d_mad else DEFAULT_CARACTER
+            mad = d_mad[key[0]] if key[0] in d_mad else DEFAULT_CARACTER
             table_body.append(key + (mad,))
 
     #  _
