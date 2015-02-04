@@ -447,7 +447,7 @@ if __name__ == '__main__':
             line += [comments, name]
 
             l = [(e_th[run_id], "{:>10.5f}")]
-            line += create_line(l,name)
+            line += create_line(l, name)
 
             if not any([arguments["--all_children"],
                         not arguments["--ele"],
