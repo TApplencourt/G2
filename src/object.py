@@ -16,6 +16,9 @@ class v_un(namedtuple('v_un', 'e err')):
         # Same formating and take the non zero value
         err = '%f' % float(self.err)
 
+        if not self.err:
+            return format_e
+
         if self.err >= 1.:
             return "{}+/-{}".format(self.e, float(self.err))
 
@@ -96,6 +99,9 @@ class v_un(namedtuple('v_un', 'e err')):
 
         format_e = self.e.__format__(format_spec)
         format_err = self.err.__format__(format_spec)
+
+        if not self.err:
+            return format_e
 
         if ">" in format_spec:
             format_err = format_err.lstrip()
