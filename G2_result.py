@@ -408,6 +408,9 @@ if __name__ == '__main__':
         def create_line(d, n, f):
             return f.format(d[n]) if n in d else DEFAULT_CARACTER
 
+        def create_line2(df, n):
+            return [create_line(d[0], name, d[1]) for d in df]
+
         table_body = []
 
         header_name = "run_id method basis geo comments ele e".split()
@@ -450,13 +453,15 @@ if __name__ == '__main__':
                 continue
 
             if arguments["--zpe"]:
-                line += [create_line(zpe_exp, name, "{:>2.5f}")]
+                l = [(zpe_exp, "{:>2.5f}")]
+
+                line += create_line2(l, name)
 
             if arguments["--estimated_exact"]:
                 l = [(e_ee, "{:>10.5f}"),
                      (e_diff[run_id], "{:>2.5f}")]
 
-                line += [create_line(d[0], name, d[1]) for d in l]
+                line += create_line2(l, name)
 
             if arguments["--ae"]:
 
@@ -464,7 +469,7 @@ if __name__ == '__main__':
                      (ae_exp, "{:>2.5f}"),
                      (ae_diff[run_id], "{:>8.5f}")]
 
-                line += [create_line(d[0], name, d[1]) for d in l]
+                line += create_line2(l, name)
 
             table_body.append(line)
 
