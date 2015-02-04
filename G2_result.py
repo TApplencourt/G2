@@ -405,8 +405,8 @@ if __name__ == '__main__':
     #               _| /
     elif arguments["get_energy"]:
 
-        def create_line(d, n):
-            return d[n] if n in d else DEFAULT_CARACTER
+        def create_line(d, n, f):
+            return f.format(d[n]) if n in d else DEFAULT_CARACTER
 
         table_body = []
 
@@ -440,7 +440,8 @@ if __name__ == '__main__':
                 "Davidson nonrelativistics\natomics energies")
 
             line = list(info[1:5])
-            line += [comments, name, e_th[run_id][name]]
+            line += [comments, name]
+            line += [create_line(e_th[run_id], name, "{:>10.5f}")]
 
             if not any([arguments["--all_children"],
                         not arguments["--ele"],
@@ -449,15 +450,21 @@ if __name__ == '__main__':
                 continue
 
             if arguments["--zpe"]:
-                line += [create_line(zpe_exp, name)]
+                line += [create_line(zpe_exp, name, "{:>2.5f}")]
 
             if arguments["--estimated_exact"]:
-                line += [create_line(d, name) for d in [e_ee, e_diff[run_id]]]
+                l = [(e_ee, "{:>10.5f}"),
+                     (e_diff[run_id], "{:>2.5f}")]
+
+                line += [create_line(d[0], name, d[1]) for d in l]
 
             if arguments["--ae"]:
-                line += [create_line(d, name) for d in [ae_th[run_id],
-                                                        ae_exp,
-                                                        ae_diff[run_id]]]
+
+                l = [(ae_th[run_id], "{:>2.5f}"),
+                     (ae_exp, "{:>2.5f}"),
+                     (ae_diff[run_id], "{:>8.5f}")]
+
+                line += [create_line(d[0], name, d[1]) for d in l]
 
             table_body.append(line)
 
@@ -521,9 +528,10 @@ if __name__ == '__main__':
 
     from src.terminaltables import AsciiTable
 
-    table_body = [["{:>10.5f}".format(i) if isinstance(i, float) else i
-                   for i in line]
-                  for line in table_body]
+#    table_body = [["{:>10.2f}".format(i) if isinstance(i, float) or isinstance(i, v_un) else i
+#                   for i in line]
+#                  for line in table_body]
+#
 
     # AsciiTable need str
     table_body = [map(str, i) for i in table_body]
