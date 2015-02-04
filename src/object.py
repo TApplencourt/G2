@@ -114,8 +114,11 @@ class v_un(namedtuple('v_un', 'e err')):
             p2 = re.compile(ur'^0*\.0*(\d*)')
             m = re.search(p2, format_err.strip())
             good_digit = m.group(1)
-            return "{}({})".format(format_e, good_digit)
 
+            if good_digit:
+                return "{}({})".format(format_e, good_digit)
+            else:
+                return format_e
 
 if __name__ == '__main__':
 

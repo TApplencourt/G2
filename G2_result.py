@@ -212,9 +212,11 @@ if __name__ == '__main__':
     #                       __/ | __/ |
     #                      |___/ |___/
 
-    from src.object import *
+    from src.object import v_un
 
-    e_th = defaultdict(dict)
+    # -#-#- #
+    # S q l #
+    # -#-#- #
 
     c.execute("""SELECT formula,
                          run_id,
@@ -233,10 +235,19 @@ if __name__ == '__main__':
                              ON output_tab.name = id_tab.name
                           WHERE {}""".format(cmd_where.replace("name", "ele")))
 
+    # -#-#-#- #
+    # I n i t #
+    # -#-#-#- #
+
+    e_th = defaultdict(dict)
     data_cur_energy = c.fetchall()
     # Because formula is wrong for Anion and Cation
     data_cur_energy[:] = [x for x in data_cur_energy
                           if not ("+" in x[0] or "-" in x[0])]
+
+    # -#-#-#-#-#- #
+    # F i l l I n #
+    # -#-#-#-#-#- *
 
     for info in data_cur_energy:
         run_id = info[1]
@@ -266,6 +277,10 @@ if __name__ == '__main__':
                                   "--ae",
                                   "--estimated_exact"]):
 
+        # -#-#- #
+        # S q l #
+        # -#-#- #
+
         method_id = 10 if arguments["--literature"] else 1
 
         cond_filter = cond_filter_ele + ['(basis_id=1)',
@@ -286,7 +301,16 @@ if __name__ == '__main__':
                     NATURAL JOIN atomization_tab
                            WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
+        # -#-#-#- #
+        # I n i t #
+        # -#-#-#- #
+
         data_ae_zp = c.fetchall()
+
+        # -#-#-#-#-#- #
+        # F i l l I n #
+        # -#-#-#-#-#- *
+
         for info in data_ae_zp:
             name = info[0]
             zpe = info[2]
@@ -305,6 +329,11 @@ if __name__ == '__main__':
     # |_ _>  |_ o   (/_ >< (_| (_  |_   (/_ | | (/_ | (_| \/
     #                                                  _| /
     if arguments["--estimated_exact"]:
+
+        # -#-#- #
+        # S q l #
+        # -#-#- #
+
         # Get Davidson est. atomics energies
         cmd_where = " AND ".join(cond_filter_ele + ['(run_id = "21")'])
 
@@ -314,8 +343,16 @@ if __name__ == '__main__':
                     NATURAL JOIN id_tab
                            WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
-        # e_ee  => estimated exact energy
+        # -#-#-#- #
+        # I n i t #
+        # -#-#-#- #
         e_ee = defaultdict()
+
+        # -#-#-#-#-#- #
+        # F i l l I n #
+        # -#-#-#-#-#- *
+
+        # e_ee  => estimated exact energy
         for name, energy in c.fetchall():
             e_ee[name] = float(energy)
 
@@ -345,11 +382,17 @@ if __name__ == '__main__':
     #  /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |    |_ | |
     if arguments["--ae"]:
 
-        # Init all the dict
+        # -#-#-#- #
+        # I n i t #
+        # -#-#-#- #
+
         ae_th = defaultdict(dict)
         ae_diff = defaultdict(dict)
 
-        # Update dict if data avalaible
+        # -#-#-#-#-#- #
+        # F i l l I n #
+        # -#-#-#-#-#- *
+
         for info in data_cur_energy:
             run_id = info[1]
             name = info[6]
@@ -405,6 +448,10 @@ if __name__ == '__main__':
     #               _| /
     elif arguments["get_energy"]:
 
+        # -#-#-#- #
+        # I n i t #
+        # -#-#-#- #
+
         def create_line(df, n):
 
             def dump(d, f, n):
@@ -417,6 +464,10 @@ if __name__ == '__main__':
                         name in arguments["--ele"]])
 
         table_body = []
+
+        # -#-#-#-#-#- #
+        # H e a d e r #
+        # -#-#-#-#-#- #
 
         header_name = "run_id method basis geo comments ele e".split()
         header_unit = [DEFAULT_CARACTER] * 6 + ["Hartree"]
@@ -431,7 +482,9 @@ if __name__ == '__main__':
         if arguments["--ae"]:
             header_name += "ae_th ae_exp ae_diff".split()
             header_unit += "Hartree Hartree Hartree".split()
-
+        # -#-#-#- #
+        # B o d y #
+        # -#-#-#- #
         for info in data_cur_energy:
 
             name = info[6]
@@ -450,31 +503,35 @@ if __name__ == '__main__':
             line = list(info[1:5])
             line += [comments, name]
 
-            line += create_line([(e_th[run_id], "{:>10.2f}")],
+            line += create_line([(e_th[run_id], "{:>10.5f}")],
                                 name)
 
             if not good_ele_to_print:
                 continue
 
             if arguments["--zpe"]:
-                line += create_line([(zpe_exp, "{:>2.2f}")],
+                line += create_line([(zpe_exp, "{:>2.5f}")],
                                     name)
 
             if arguments["--estimated_exact"]:
-                line += create_line([(e_ee, "{:>10.2f}"),
-                                     (e_diff[run_id], "{:>2.2f}")],
+                line += create_line([(e_ee, "{:>10.5f}"),
+                                     (e_diff[run_id], "{:>2.5f}")],
                                     name)
 
             if arguments["--ae"]:
-                line += create_line([(ae_th[run_id], "{:>2.2f}"),
-                                     (ae_exp, "{:>2.2f}"),
-                                     (ae_diff[run_id], "{:>8.2f}")],
+                line += create_line([(ae_th[run_id], "{:>2.5f}"),
+                                     (ae_exp, "{:>2.5f}"),
+                                     (ae_diff[run_id], "{:>8.5f}")],
                                     name)
 
             table_body.append(line)
 
-        # Ordered by like_toulousse if needed else by l_ele.
-        # l_ele can be None if not --ele
+        # -#-#-#-#- #
+        # O r d e r #
+        # -#-#-#-#- #
+
+        # Order like_toulousse if needed.If not by l_ele.
+        # If l_ele is None don't order
         order = list_toulouse if arguments["--like_toulouse"] else l_ele
         if order:
             table_body = [l for i in order for l in table_body if l[5] == i]
@@ -531,21 +588,20 @@ if __name__ == '__main__':
     # | |  | |  | | | | | |_
     # \_|  |_|  |_|_| |_|\__|
 
-    from src.terminaltables import AsciiTable
-
-#    table_body = [["{:>10.2f}".format(i) if isinstance(i, float) or isinstance(i, v_un) else i
-#                   for i in line]
-#                  for line in table_body]
-#
-
-    # AsciiTable need str
-    table_body = [map(str, i) for i in table_body]
-
+    #               ___
+    #  /\   _  _ o o |  _. |_  |  _
+    # /--\ _> (_ | | | (_| |_) | (/_
+    #
     if not arguments["--gnuplot"]:
-
+        from src.terminaltables import AsciiTable
+        table_body = [map(str, i) for i in table_body]
         table_data = [header_name] + [header_unit] + table_body
         table = AsciiTable(table_data)
         print table.table
+    #  __
+    # /__ ._      ._  |  _ _|_
+    # \_| | | |_| |_) | (_) |_
+    #             |
     else:
         JOIN_CARACTER = ", "
         print "#" + ", ".join(header_name)
