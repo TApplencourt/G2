@@ -450,25 +450,25 @@ if __name__ == '__main__':
             line = list(info[1:5])
             line += [comments, name]
 
-            line += create_line([(e_th[run_id], "{:>10.5f}")],
+            line += create_line([(e_th[run_id], "{:>10.2f}")],
                                 name)
 
             if not good_ele_to_print:
                 continue
 
             if arguments["--zpe"]:
-                line += create_line([(zpe_exp, "{:>2.5f}")],
+                line += create_line([(zpe_exp, "{:>2.2f}")],
                                     name)
 
             if arguments["--estimated_exact"]:
-                line += create_line([(e_ee, "{:>10.5f}"),
-                                     (e_diff[run_id], "{:>2.5f}")],
+                line += create_line([(e_ee, "{:>10.2f}"),
+                                     (e_diff[run_id], "{:>2.2f}")],
                                     name)
 
             if arguments["--ae"]:
-                line += create_line([(ae_th[run_id], "{:>2.5f}"),
-                                     (ae_exp, "{:>2.5f}"),
-                                     (ae_diff[run_id], "{:>8.5f}")],
+                line += create_line([(ae_th[run_id], "{:>2.2f}"),
+                                     (ae_exp, "{:>2.2f}"),
+                                     (ae_diff[run_id], "{:>8.2f}")],
                                     name)
 
             table_body.append(line)
