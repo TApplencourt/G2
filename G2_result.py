@@ -334,8 +334,8 @@ if __name__ == '__main__':
                 e_ee[name] = emp_tmp
 
         e_diff = defaultdict(dict)
-        for run_id, e_d in e_th.items():
-            for name, energies in e_d.items():
+        for run_id, e_th_run_id in e_th.items():
+            for name, energies in e_th_run_id.items():
                 try:
                     e_diff[run_id][name] = energies - e_ee[name]
                 except KeyError:
@@ -406,7 +406,7 @@ if __name__ == '__main__':
     elif arguments["get_energy"]:
 
         def create_line(d, n):
-            return [d[n] if n in d else DEFAULT_CARACTER]
+            return d[n] if n in d else DEFAULT_CARACTER
 
         table_body = []
 
@@ -442,25 +442,22 @@ if __name__ == '__main__':
             line = list(info[1:5])
             line += [comments, name, e_th[run_id][name]]
 
-            if all([arguments["--ele"],
-                    name not in arguments["--ele"],
-                    not arguments["--all_children"]
-                    ]):
+            if not any([arguments["--all_children"],
+                        not arguments["--ele"],
+                        name in arguments["--ele"]
+                        ]):
                 continue
 
             if arguments["--zpe"]:
-                line += create_line(zpe_exp, name)
+                line += [create_line(zpe_exp, name)]
 
             if arguments["--estimated_exact"]:
-            #    line += create_line(e_ee, name)
-            #    line += create_line(e_diff[run_id], name)
-                 line += [create_line(i,name) for i in [e_ee,e_diff]]
-
+                line += [create_line(d, name) for d in [e_ee, e_diff[run_id]]]
 
             if arguments["--ae"]:
-                line += create_line(ae_th[run_id], name)
-                line += create_line(ae_exp, name)
-                line += create_line(ae_diff[run_id], name)
+                line += [create_line(d, name) for d in [ae_th[run_id],
+                                                        ae_exp,
+                                                        ae_diff[run_id]]]
 
             table_body.append(line)
 
