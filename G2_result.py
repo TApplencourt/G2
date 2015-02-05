@@ -24,6 +24,7 @@ Usage:
                           [--ae [--literature]]
                           [--without_pt2]
                           [--gnuplot]
+                          [--auto | --small | --big]
   G2_result.py --version
 
 Options:
@@ -52,15 +53,16 @@ Options for list_ele:
   --missing                 Show the diffence between "like_toulouse" list and "list_ele"
 
 Options specifics to get_energy:
-  --ae                  Show the atomization energy when avalaible
-                           (both theorical and experiment).
-                            ae_th = E_mol - \sum E_atom  + zpe
-  --estimated_exact     Show the estimated exact energy.
-                            E_est_exact = \sum E^{exact}_{atom} - zpe
-  --all_children        Show all the children of the element
-                            Example for AlCl will show Al and Cl.
-  --gnuplot             Print the result in a GNUPLOT readable format.
-  All the other         Filter the data or ordering it. See example.
+  --ae                        Show the atomization energy when avalaible
+                                 (both theorical and experiment).
+                                  ae_th = E_mol - \sum E_atom  + zpe
+  --estimated_exact           Show the estimated exact energy.
+                                  E_est_exact = \sum E^{exact}_{atom} - zpe
+  --all_children              Show all the children of the element
+                                  Example for AlCl will show Al and Cl.
+  --gnuplot                   Print the result in a GNUPLOT readable format.
+  --auto or --small or --big  Size of the display (by default is auto)
+  All the other               Filter the data or ordering it. See example.
 
 Example of use:
   ./G2_result.py list_run --method 'CCSD(T)'
@@ -96,6 +98,9 @@ if __name__ == '__main__':
     # For calculating the MAD we need the AE
     if arguments["list_run"]:
         arguments["--ae"] = True
+
+    if not any([arguments['--small'], arguments['--big']]):
+        arguments['--auto'] = True
 
     DEFAULT_CARACTER = ""
 
@@ -618,16 +623,45 @@ if __name__ == '__main__':
     # /--\ _> (_ | | | (_| |_) | (/_
     #
     if not arguments["--gnuplot"]:
-        from src.terminaltables import AsciiTable
+        # -#-#-#-#-#-#-#- #
+        # B i g  Ta b l e #
+        # -#-#-#-#-#-#-#- #
+
         table_body = [map(str, i) for i in table_body]
         table_data = [header_name] + [header_unit] + table_body
 
         rows, columns = os.popen('stty size', 'r').read().split()
-        if int(columns) < 200 and not arguments["list_run"]:
+
+        # -#-#-#-#-#- #
+        # F i l t e r #
+        # -#-#-#-#-#- #
+
+        from src.terminaltables import AsciiTable
+
+        print all([arguments['--auto'],
+                int(columns) < 200,
+                not arguments["list_run"]])
+
+        if all([arguments['--auto'],
+                int(columns) < 200,
+                not arguments["list_run"]]) or arguments['--small']:
+
             table_data = [[line[0]] + line[5:] for line in table_data]
 
+            table_roger = []
+            a = "Run_id Method Basis Geo Comments".split()
+
+            for run_id, l in run_info.iteritems():
+                line = [run_id] + l
+                table_roger.append(line)
+
+            t = [a] + table_roger
+            t = [map(str, i) for i in t]
+            t = AsciiTable(t)
+            print t.table()
+
         table = AsciiTable(table_data)
-        print table.table
+        print table.table(row_separator=2)
     #  __
     # /__ ._      ._  |  _ _|_
     # \_| | | |_| |_) | (_) |_
