@@ -76,7 +76,7 @@ from collections import defaultdict
 try:
     from src.docopt import docopt
     from src.SQL_util import cond_sql_or
-    from src.SQL_util import c
+    from src.SQL_util import c, conn
 except:
     print "File in misc is corupted. Git reset may cure the diseases"
     sys.exit(1)
@@ -105,13 +105,14 @@ if __name__ == '__main__':
 
     # Calcule one
 
-    # * e_th    Dict of energies theorical / calculated      (e_th[run_id][name])
-    # * zpe_exp Dict of zpe experimental                     (zpe_exp[name])
-    # * e_ee    Dict of energy estimated exact               (e_ee[name])
-    # * e_diff  Dict of e_th exact minus estimated exact one (e_diff[run_id][name])
-    # * ae_th   Dict of atomization energye theorcai         (ae_th[run_id][name])
-    # * ae_exp  Dict of atomization experimental             (ae_ext[name])
-    # * ae_diff Dict of ae_th energy minus expriement one    (ae_diff[run_id][name])
+    # * e_th     Dict of energies theorical / calculated   (e_th[run_id][name])
+    # * zpe_exp  Dict of zpe experimental                  (zpe_exp[name])
+    # * e_ee     Dict of energy estimated exact            (e_ee[name])
+    # * e_diff   Dict of e_th exact - estimated exact one  (e_diff[run_id][name])
+    # * ae_th    Dict of atomization energye theorcai      (ae_th[run_id][name])
+    # * ae_exp   Dict of atomization experimental          (ae_ext[name])
+    # * ae_diff  Dict of ae_th energy - expriement one     (ae_diff[run_id][name])
+    # * run_info Dict of the geo,basis,method,comments     (run_info[run_id])
 
     pouce = "{:>2.5f}"
     arpent = "{:>10.5f}"
@@ -229,7 +230,11 @@ if __name__ == '__main__':
     # S q l #
     # -#-#- #
 
-    c.execute("""SELECT formula,
+    import sqlite3
+    conn.row_factory = sqlite3.Row
+    c_name = conn.cursor()
+
+    cursor = c_name.execute("""SELECT formula,
                          run_id,
                     method_name method,
                      basis_name basis,
@@ -251,34 +256,33 @@ if __name__ == '__main__':
     # -#-#-#- #
 
     e_th = defaultdict(dict)
-    data_cur_energy = c.fetchall()
-    # Because formula is wrong for Anion and Cation
-    data_cur_energy[:] = [x for x in data_cur_energy
-                          if not ("+" in x[0] or "-" in x[0])]
+    run_info = defaultdict()
+    f_info = defaultdict()
 
     # -#-#-#-#-#- #
     # F i l l I n #
     # -#-#-#-#-#- *
 
-    for info in data_cur_energy:
-        run_id = info[1]
-        name = info[6]
-        s_energy = info[7]
-        c_energy = info[8]
-        c_pt2 = info[9]
-        q_energy = info[10]
-        q_err = info[11]
+    for r in cursor:
+        # Energy
+        if r['s_energy']:
+            value = float(r['s_energy'])
 
-        if s_energy:
-            e_th[run_id][name] = float(s_energy)
-
-        if c_energy:
-            e_th[run_id][name] = float(c_energy)
+        if r['c_energy']:
+            value = float(r['c_energy'])
             if not arguments["--without_pt2"]:
-                e_th[run_id][name] += float(c_pt2)
+                value += float(r['c_pt2'])
 
-        if q_energy:
-            e_th[run_id][name] = v_un(float(q_energy), float(q_err))
+        if r['q_energy']:
+            value = v_un(float(r['q_energy']),
+                         float(r['q_err']))
+
+        e_th[r['run_id']][r['ele']] = value
+        # Info
+        run_info[r['run_id']] = [r['method'], r['basis'],
+                                 r['geo'], r['comments']]
+
+        f_info[r['ele']] = r['formula']
 
     #  __
     #   / ._   _    ()     /\   _     _     ._
@@ -404,26 +408,22 @@ if __name__ == '__main__':
         # F i l l I n #
         # -#-#-#-#-#- *
 
-        for info in data_cur_energy:
-            run_id = info[1]
-            name = info[6]
-            formula_raw = info[0]
+        for run_id, e_th_rd in e_th.iteritems():
+            for name, energy in e_th_rd.iteritems():
+                try:
+                    ao_th_tmp = energy + zpe_exp[name]
+                    for name_atome, number in eval(f_info[name]):
+                        ao_th_tmp -= e_th_rd[name_atome] * number
+                except KeyError:
+                    pass
+                else:
+                    ae_th[run_id][name] = -ao_th_tmp
 
-            d_e_rid = e_th[run_id]
+                try:
+                    ae_diff[run_id][name] = ae_exp[name] - ae_th[run_id][name]
+                except KeyError:
+                    pass
 
-            try:
-                ao_th_tmp = d_e_rid[name] + zpe_exp[name]
-                for name_atome, number in eval(formula_raw):
-                    ao_th_tmp -= d_e_rid[name_atome] * number
-            except KeyError:
-                pass
-            else:
-                ae_th[run_id][name] = -ao_th_tmp
-
-            try:
-                ae_diff[run_id][name] = ae_exp[name] - ae_th[run_id][name]
-            except KeyError:
-                pass
     #  _____     _     _
     # |_   _|   | |   | |
     #   | | __ _| |__ | | ___
@@ -465,12 +465,11 @@ if __name__ == '__main__':
         # B o d y #
         # -#-#-#- #
 
-        # Group by Run_id and then put the mad if existing
-        from itertools import groupby
-        for key, group in groupby(data_cur_energy, lambda x: x[1:6]):
+        for run_id, l in run_info.iteritems():
+            mad = d_mad[run_id] if run_id in d_mad else DEFAULT_CARACTER
 
-            mad = d_mad[key[0]] if key[0] in d_mad else DEFAULT_CARACTER
-            table_body.append(key + (mad,))
+            line = [run_id] + l + [mad]
+            table_body.append(line)
 
     #  _
     # |_ ._   _  ._ _
@@ -517,13 +516,12 @@ if __name__ == '__main__':
         # B o d y #
         # -#-#-#- #
 
-        for info in data_cur_energy:
+        for run_id, e_th_rd in e_th.iteritems():
 
-            name = info[6]
-            run_id = info[1]
+            comments = run_info[run_id][3]
 
-            comments = info[5].replace("1M_Dets_NO_10k_Dets_TruePT2",
-                                       "1M_Dets_NO\n_10k_Dets_TruePT2")
+            comments = comments.replace("1M_Dets_NO_10k_Dets_TruePT2",
+                                        "1M_Dets_NO\n_10k_Dets_TruePT2")
 
             comments = comments.replace("1M_Dets_NO_1k_Dets_TruePT2",
                                         "1M_Dets_NO\n_1k_Dets_TruePT2")
@@ -532,33 +530,35 @@ if __name__ == '__main__':
                 "Davidson nonrelativistics atomics energies",
                 "Davidson nonrelativistics\natomics energies")
 
-            line = list(info[1:5])
-            line += [comments, name]
+            line_basis = [run_id] + run_info[run_id][:3] + [comments]
 
-            line += create_line([("e_th", e_th[run_id])],
-                                name)
+            for name in e_th_rd:
+                line = list(line_basis) + [name]
 
-            if not good_ele_to_print(name):
-                continue
-
-            if arguments["--zpe"]:
-                line += create_line([("zpe_exp", zpe_exp)],
+                line += create_line([("e_th", e_th[run_id])],
                                     name)
 
-            if arguments["--estimated_exact"]:
-                line += create_line([("e_ee", e_ee),
-                                     ("e_diff", e_diff[run_id])
-                                     ],
-                                    name)
+                if not good_ele_to_print(name):
+                    continue
 
-            if arguments["--ae"]:
-                line += create_line([("ae_th", ae_th[run_id]),
-                                     ("ae_exp", ae_exp),
-                                     ("ae_diff", ae_diff[run_id])
-                                     ],
-                                    name)
+                if arguments["--zpe"]:
+                    line += create_line([("zpe_exp", zpe_exp)],
+                                        name)
 
-            table_body.append(line)
+                if arguments["--estimated_exact"]:
+                    line += create_line([("e_ee", e_ee),
+                                         ("e_diff", e_diff[run_id])
+                                         ],
+                                        name)
+
+                if arguments["--ae"]:
+                    line += create_line([("ae_th", ae_th[run_id]),
+                                         ("ae_exp", ae_exp),
+                                         ("ae_diff", ae_diff[run_id])
+                                         ],
+                                        name)
+
+                table_body.append(line)
 
         # -#-#-#-#- #
         # O r d e r #
@@ -629,6 +629,12 @@ if __name__ == '__main__':
         from src.terminaltables import AsciiTable
         table_body = [map(str, i) for i in table_body]
         table_data = [header_name] + [header_unit] + table_body
+
+        import os
+        rows, columns = os.popen('stty size', 'r').read().split()
+        if int(columns) < 200:
+            table_data = [[line[0]] + line[5:] for line in table_data]
+
         table = AsciiTable(table_data)
         print table.table
     #  __
