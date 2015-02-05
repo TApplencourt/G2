@@ -53,6 +53,9 @@ def cond_sql_or(table_name, l_value):
 conn = sqlite3.connect(path)
 c = conn.cursor()
 
+conn.row_factory = sqlite3.Row
+c_row = conn.cursor()
+
 
 #  _____      _
 # |  __ \    | |
