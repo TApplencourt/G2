@@ -20,7 +20,7 @@ class v_un(namedtuple('v_un', 'e err')):
             return self.e
 
         if self.err >= 1.:
-            return "{}+/-{}".format(self.e, float(self.err))
+            return "{0}+/-{1}".format(self.e, float(self.err))
 
         else:
             m = re.search(self.p, str(err))
@@ -32,7 +32,7 @@ class v_un(namedtuple('v_un', 'e err')):
 
             format_string = "{:>%d.%df}" % (len_format + left, len_format)
             str_e = format_string.format(self.e)
-            return "{}({})".format(str_e, good_digit)
+            return "{0}({1})".format(str_e, good_digit)
 
     # Add Left right
     def __add__(self, x):
@@ -109,14 +109,14 @@ class v_un(namedtuple('v_un', 'e err')):
             format_e = format_e.rstrip()
 
         if self.err >= 1.:
-            return "{}+/-{}".format(format_e, format_err)
+            return "{0}+/-{1}".format(format_e, format_err)
         else:
             p2 = re.compile(ur'^0*\.0*(\d*)')
             m = re.search(p2, format_err.strip())
             good_digit = m.group(1)
 
             if good_digit:
-                return "{}({})".format(format_e, good_digit)
+                return "{0}({1})".format(format_e, good_digit)
             else:
                 return format_e
 
