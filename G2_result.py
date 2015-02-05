@@ -256,7 +256,7 @@ if __name__ == '__main__':
                            FROM output_tab
                      INNER JOIN id_tab
                              ON output_tab.name = id_tab.name
-                          WHERE {}""".format(cmd_where.replace("name", "ele")))
+                          WHERE {0}""".format(cmd_where.replace("name", "ele")))
 
     # -#-#-#- #
     # I n i t #
@@ -638,14 +638,11 @@ if __name__ == '__main__':
 
         from src.terminaltables import AsciiTable
 
-        print all([arguments['--auto'],
-                int(columns) < 200,
-                not arguments["list_run"]])
-
         if all([arguments['--auto'],
                 int(columns) < 200,
                 not arguments["list_run"]]) or arguments['--small']:
 
+            # Super moche à changer
             table_data = [[line[0]] + line[5:] for line in table_data]
 
             table_roger = []
