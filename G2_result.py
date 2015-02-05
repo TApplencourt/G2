@@ -345,8 +345,8 @@ if __name__ == '__main__':
         # Get Davidson est. atomics energies
         cmd_where = " AND ".join(cond_filter_ele + ['(run_id = "21")'])
 
-        c.execute("""SELECT name,
-                          energy
+        c.execute("""SELECT name as name_atome,
+                          energy as exact_energy
                             FROM simple_energy_tab
                     NATURAL JOIN id_tab
                            WHERE {cmd_where}""".format(cmd_where=cmd_where))
@@ -356,30 +356,26 @@ if __name__ == '__main__':
         # -#-#-#- #
 
         e_ee = defaultdict()
+        e_diff = defaultdict(dict)
 
         # -#-#-#-#-#- #
         # F i l l I n #
         # -#-#-#-#-#- *
 
-        # e_ee  => estimated exact energy
-        for name, energy in c.fetchall():
-            e_ee[name] = float(energy)
+        # Put exact energy for atom
+        for name_atome, exact_energy in c.fetchall():
+            e_ee[name_atome] = float(exact_energy)
 
         # Calc estimated exact molecules energies
-        for info in data_ae_zp:
-            name = info[0]
-            formula_raw = info[1]
+        for name in set(ae_exp).union(set(zpe_exp)):
 
-            try:
                 emp_tmp = -ae_exp[name] - zpe_exp[name]
-                for name_atome, number in eval(formula_raw):
+
+                for name_atome, number in eval(f_info[name]):
                     emp_tmp += number * e_ee[name_atome]
-            except KeyError:
-                pass
-            else:
+
                 e_ee[name] = emp_tmp
 
-        e_diff = defaultdict(dict)
         for run_id, e_th_rd in e_th.iteritems():
             for name, energies in e_th_rd.iteritems():
                 try:
