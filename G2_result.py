@@ -622,7 +622,7 @@ if __name__ == '__main__':
 
         import os
         rows, columns = os.popen('stty size', 'r').read().split()
-        if int(columns) < 200:
+        if int(columns) < 200 and not arguments["list_run"]:
             table_data = [[line[0]] + line[5:] for line in table_data]
 
         table = AsciiTable(table_data)
