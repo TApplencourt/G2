@@ -17,7 +17,7 @@ class v_un(namedtuple('v_un', 'e err')):
         err = '%f' % float(self.err)
 
         if not self.err:
-            return format_e
+            return self.e
 
         if self.err >= 1.:
             return "{}+/-{}".format(self.e, float(self.err))
