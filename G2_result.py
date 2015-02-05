@@ -81,12 +81,10 @@ if sys.version_info[:2] != (2, 7):
     sys.exit(1)
 
 from collections import defaultdict
-
-
 try:
     from src.docopt import docopt
     from src.SQL_util import cond_sql_or
-    from src.SQL_util import c, conn
+    from src.SQL_util import c, c_row
 except:
     print "File in misc is corupted. Git reset may cure the diseases"
     sys.exit(1)
@@ -242,10 +240,6 @@ if __name__ == '__main__':
     # -#-#- #
     # S q l #
     # -#-#- #
-
-    import sqlite3
-    conn.row_factory = sqlite3.Row
-    c_row = conn.cursor()
 
     cursor = c_row.execute("""SELECT formula,
                          run_id,
