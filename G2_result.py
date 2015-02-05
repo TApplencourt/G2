@@ -289,7 +289,8 @@ if __name__ == '__main__':
         run_info[r['run_id']] = [r['method'], r['basis'],
                                  r['geo'], r['comments']]
 
-        f_info[r['ele']] = r['formula']
+        if not r['ele'] in f_info:
+            f_info[r['ele']] = eval(r['formula'])
 
     #  __
     #   / ._   _    ()     /\   _     _     ._
@@ -378,7 +379,7 @@ if __name__ == '__main__':
 
             emp_tmp = -ae_exp[name] - zpe_exp[name]
 
-            for name_atome, number in eval(f_info[name]):
+            for name_atome, number in f_info[name]:
                 emp_tmp += number * e_ee[name_atome]
 
             e_ee[name] = emp_tmp
@@ -409,7 +410,7 @@ if __name__ == '__main__':
             for name, energy in e_th_rd.iteritems():
                 try:
                     ao_th_tmp = energy + zpe_exp[name]
-                    for name_atome, number in eval(f_info[name]):
+                    for name_atome, number in f_info[name]:
                         ao_th_tmp -= e_th_rd[name_atome] * number
                 except KeyError:
                     pass
