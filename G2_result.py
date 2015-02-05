@@ -74,6 +74,12 @@ version = "3.0.1"
 
 import os
 import sys
+if sys.version_info[:2] != (2, 7):
+    print "You need python 2.7."
+    print "You can change the format for 2.6"
+    print "And pass the 2to3 utility for python 3"
+    sys.exit(1)
+
 from collections import defaultdict
 
 

@@ -8,7 +8,7 @@ You can find in this repository all the G2 Test set molucule info like:
   * etc.
 
 ##Dependency
-* Python >2.6
+* Python >2.7
 
 
 ##Demonstration
