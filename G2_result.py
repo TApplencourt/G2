@@ -106,12 +106,22 @@ if __name__ == '__main__':
     # Calcule one
 
     # * e_th    Dict of energies theorical / calculated      (e_th[run_id][name])
+    # * zpe_exp Dict of zpe experimental                     (zpe_exp[name])
+    # * e_ee    Dict of energy estimated exact               (e_ee[name])
+    # * e_diff  Dict of e_th exact minus estimated exact one (e_diff[run_id][name])
     # * ae_th   Dict of atomization energye theorcai         (ae_th[run_id][name])
     # * ae_exp  Dict of atomization experimental             (ae_ext[name])
-    # * e_ee    Dict of energy estimated exact               (e_ee[name])
     # * ae_diff Dict of ae_th energy minus expriement one    (ae_diff[run_id][name])
-    # * e_diff  Dict of e_th exact minus estimated exact one (e_diff[run_id][name])
+    pouce = "{:>2.5f}"
+    arpent = "{:>10.5f}"
 
+    format_dict = {"e_th": arpent,
+                   "zpe_exp": pouce,
+                   "e_ee": arpent,
+                   "e_diff": pouce,
+                   "ae_th": pouce,
+                   "ae_exp": pouce,
+                   "ae_diff": pouce}
     # ______ _ _ _
     # |  ___(_) | |
     # | |_   _| | |_ ___ _ __
@@ -471,16 +481,16 @@ if __name__ == '__main__':
         # I n i t #
         # -#-#-#- #
 
-        def create_line(df, n):
+        def create_line(fd, n):
 
-            def dump(d, f, n):
+            def dump(f, d, n):
                 return f.format(d[n]) if n in d else DEFAULT_CARACTER
 
-            return [dump(d[0], d[1], n) for d in df]
+            return [dump(format_dict[d[0]], d[1], n) for d in fd]
 
-        def good_ele_to_print(name):
+        def good_ele_to_print(n):
             return any([arguments["--all_children"], not arguments["--ele"],
-                        name in arguments["--ele"]])
+                        n in arguments["--ele"]])
 
         table_body = []
 
@@ -524,25 +534,27 @@ if __name__ == '__main__':
             line = list(info[1:5])
             line += [comments, name]
 
-            line += create_line([(e_th[run_id], "{:>10.5f}")],
+            line += create_line([("e_th", e_th[run_id])],
                                 name)
 
-            if not good_ele_to_print:
+            if not good_ele_to_print(name):
                 continue
 
             if arguments["--zpe"]:
-                line += create_line([(zpe_exp, "{:>2.5f}")],
+                line += create_line([("zpe_exp", zpe_exp)],
                                     name)
 
             if arguments["--estimated_exact"]:
-                line += create_line([(e_ee, "{:>10.5f}"),
-                                     (e_diff[run_id], "{:>2.5f}")],
+                line += create_line([("e_ee", e_ee),
+                                     ("e_diff", e_diff[run_id])
+                                     ],
                                     name)
 
             if arguments["--ae"]:
-                line += create_line([(ae_th[run_id], "{:>2.5f}"),
-                                     (ae_exp, "{:>2.5f}"),
-                                     (ae_diff[run_id], "{:>8.5f}")],
+                line += create_line([("ae_th", ae_th[run_id]),
+                                     ("ae_exp", ae_exp),
+                                     ("ae_diff", ae_diff[run_id])
+                                     ],
                                     name)
 
             table_body.append(line)
