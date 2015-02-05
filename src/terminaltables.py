@@ -378,8 +378,7 @@ class AsciiTable(object):
 
         return new_table_data
 
-    @property
-    def table(self):
+    def table(self, row_separator=1):
         """Returns a large string of the entire table ready to be printed to the terminal."""
         padded_table_data = self.padded_table_data
         column_widths = [
@@ -435,7 +434,7 @@ class AsciiTable(object):
             if i == indexes[-1]:
                 continue
             if self.inner_row_border or (
-                    self.inner_heading_row_border and i <= 1):
+                    self.inner_heading_row_border and i < row_separator):
                 row = _convert_row(
                     [
                         self.CHAR_HORIZONTAL *
