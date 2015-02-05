@@ -68,10 +68,12 @@ Example of use:
   ./G2_result.py get_energy --basis "cc-pvdz" --ele AlCl --ele Li2 --ae --order_by ae_diff
 """
 
-version = "2.5.4"
+version = "3.0.1"
 
+import os
 import sys
 from collections import defaultdict
+
 
 try:
     from src.docopt import docopt
@@ -369,12 +371,12 @@ if __name__ == '__main__':
         # Calc estimated exact molecules energies
         for name in set(ae_exp).union(set(zpe_exp)):
 
-                emp_tmp = -ae_exp[name] - zpe_exp[name]
+            emp_tmp = -ae_exp[name] - zpe_exp[name]
 
-                for name_atome, number in eval(f_info[name]):
-                    emp_tmp += number * e_ee[name_atome]
+            for name_atome, number in eval(f_info[name]):
+                emp_tmp += number * e_ee[name_atome]
 
-                e_ee[name] = emp_tmp
+            e_ee[name] = emp_tmp
 
         for run_id, e_th_rd in e_th.iteritems():
             for name, energies in e_th_rd.iteritems():
@@ -620,7 +622,6 @@ if __name__ == '__main__':
         table_body = [map(str, i) for i in table_body]
         table_data = [header_name] + [header_unit] + table_body
 
-        import os
         rows, columns = os.popen('stty size', 'r').read().split()
         if int(columns) < 200 and not arguments["list_run"]:
             table_data = [[line[0]] + line[5:] for line in table_data]
