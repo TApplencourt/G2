@@ -232,9 +232,9 @@ if __name__ == '__main__':
 
     import sqlite3
     conn.row_factory = sqlite3.Row
-    c_name = conn.cursor()
+    c_row = conn.cursor()
 
-    cursor = c_name.execute("""SELECT formula,
+    cursor = c_row.execute("""SELECT formula,
                          run_id,
                     method_name method,
                      basis_name basis,
@@ -303,10 +303,7 @@ if __name__ == '__main__':
 
         cmd_where = " AND ".join(cond_filter)
 
-        ae_exp = defaultdict()
-        zpe_exp = defaultdict()
-
-        c.execute("""SELECT name,
+        cursor = c_row.execute("""SELECT name,
                          formula,
                              zpe,
                             kcal,
@@ -320,24 +317,20 @@ if __name__ == '__main__':
         # I n i t #
         # -#-#-#- #
 
-        data_ae_zp = c.fetchall()
+        ae_exp = defaultdict()
+        zpe_exp = defaultdict()
 
         # -#-#-#-#-#- #
         # F i l l I n #
         # -#-#-#-#-#- *
 
-        for info in data_ae_zp:
-            name = info[0]
-            zpe = info[2]
-            kcal = info[3]
-            kcal_err = info[4]
+        for r in cursor:
+            zpe = r['zpe'] * 4.55633e-06
+            energy = r['kcal'] * 0.00159362
+            energy_err = r['kcal_err'] * 0.00159362 if r['kcal_err'] else 0.
 
-            zpe = zpe * 4.55633e-06
-            energy = kcal * 0.00159362
-            energy_err = kcal_err * 0.00159362 if kcal_err else 0.
-
-            ae_exp[name] = v_un(energy, energy_err)
-            zpe_exp[name] = zpe
+            ae_exp[r['name']] = v_un(energy, energy_err)
+            zpe_exp[r['name']] = zpe
 
     #  _
     # |_  _ _|_      _      _.  _ _|_    _  ._   _  ._ _
@@ -361,6 +354,7 @@ if __name__ == '__main__':
         # -#-#-#- #
         # I n i t #
         # -#-#-#- #
+
         e_ee = defaultdict()
 
         # -#-#-#-#-#- #
