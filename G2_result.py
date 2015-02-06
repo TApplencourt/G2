@@ -81,6 +81,8 @@ if sys.version_info[:2] != (2, 7):
     sys.exit(1)
 
 from collections import defaultdict
+from collections import OrderedDict
+
 try:
     from src.docopt import docopt
     from src.SQL_util import cond_sql_or
@@ -262,7 +264,7 @@ if __name__ == '__main__':
     # I n i t #
     # -#-#-#- #
 
-    e_th = defaultdict(dict)
+    e_th_unorder = defaultdict(dict)
     run_info = defaultdict()
     f_info = defaultdict()
 
@@ -284,13 +286,26 @@ if __name__ == '__main__':
             value = v_un(float(r['q_energy']),
                          float(r['q_err']))
 
-        e_th[r['run_id']][r['ele']] = value
+        e_th_unorder[r['run_id']][r['ele']] = value
         # Info
         run_info[r['run_id']] = [r['method'], r['basis'],
                                  r['geo'], r['comments']]
 
         if not r['ele'] in f_info:
             f_info[r['ele']] = eval(r['formula'])
+
+    # -#-#-#-#- #
+    # O r d e r #
+    # -#-#-#-#- *
+
+    e_th = defaultdict(OrderedDict)
+    order = list_toulouse if arguments["--like_toulouse"] else l_ele
+    if order:
+        for run_id in e_th_unorder:
+            for i in order:
+                e_th[run_id][i] = e_th_unorder[run_id][i]
+    else:
+        e_th = e_th_unorder
 
     #  __
     #   / ._   _    ()     /\   _     _     ._
@@ -418,7 +433,7 @@ if __name__ == '__main__':
                     ae_th[run_id][name] = -ao_th_tmp
 
                 try:
-                    ae_diff[run_id][name] = ae_exp[name] - ae_th[run_id][name]
+                    ae_diff[run_id][name] = ae_th[run_id][name] - ae_exp[name]
                 except KeyError:
                     pass
 
@@ -516,19 +531,7 @@ if __name__ == '__main__':
 
         for run_id, e_th_rd in e_th.iteritems():
 
-            comments = run_info[run_id][3]
-
-            comments = comments.replace("1M_Dets_NO_10k_Dets_TruePT2",
-                                        "1M_Dets_NO\n_10k_Dets_TruePT2")
-
-            comments = comments.replace("1M_Dets_NO_1k_Dets_TruePT2",
-                                        "1M_Dets_NO\n_1k_Dets_TruePT2")
-
-            comments = comments.replace(
-                "Davidson nonrelativistics atomics energies",
-                "Davidson nonrelativistics\natomics energies")
-
-            line_basis = [run_id] + run_info[run_id][:3] + [comments]
+            line_basis = [run_id] + run_info[run_id][:4]
 
             for name in e_th_rd:
                 line = list(line_basis) + [name]
@@ -558,16 +561,6 @@ if __name__ == '__main__':
 
                 table_body.append(line)
 
-        # -#-#-#-#- #
-        # O r d e r #
-        # -#-#-#-#- #
-
-        # Order like_toulousse if needed.If not by l_ele.
-        # If l_ele is None don't order
-        order = list_toulouse if arguments["--like_toulouse"] else l_ele
-        if order:
-            table_body = [l for i in order for l in table_body if l[5] == i]
-
     #  _
     # / \ ._ _|  _  ._   |_
     # \_/ | (_| (/_ |    |_) \/
@@ -592,10 +585,10 @@ if __name__ == '__main__':
     # | |  | |  | | | | | |_
     # \_|  |_|  |_|_| |_|\__|
 
-    #  _                               _          
-    # |_ |  _  ._ _   _  ._ _|_ / _   |_)     ._  
-    # |_ | (/_ | | | (/_ | | |_  _>   | \ |_| | | 
-    #                                             
+    #  _                               _
+    # |_ |  _  ._ _   _  ._ _|_ / _   |_)     ._
+    # |_ | (/_ | | | (/_ | | |_  _>   | \ |_| | |
+    #
     # List all the element of a run_id
     if arguments["list_ele"]:
 
@@ -663,13 +656,43 @@ if __name__ == '__main__':
     # \_| | | |_| |_) | (_) |_
     #             |
     else:
-        JOIN_CARACTER = ", "
-        print "#" + ", ".join(header_name)
-        for i in table_body:
-            print ", ".join([l.replace(" ", "") for l in i])
+
+        def value(dict_):
+            if not dict_:
+                return DEFAULT_CARACTER, DEFAULT_CARACTER
+            try:
+                return str(dict_[name].e), str(dict_[name].err)
+            except AttributeError:
+                return str(dict_[name]), DEFAULT_CARACTER
+            except KeyError:
+                return DEFAULT_CARACTER, DEFAULT_CARACTER
+
+        for run_id, e_th_rd in e_th.iteritems():
+            for name in e_th_rd:
+
+                if not good_ele_to_print(name):
+                    continue
+
+                line = str(run_id),
+                line += str(name),
+                line += value(e_th[run_id])
+
+                if arguments["--zpe"]:
+                    line += value(zpe_exp)
+
+                if arguments["--estimated_exact"]:
+                    line += value(e_ee),
+                    line += value(e_diff[run_id])
+
+                if arguments["--ae"]:
+                    line += value(ae_th[run_id])
+                    line += value(ae_exp)
+                    line += value(ae_diff[run_id])
+
+                print " ".join(line)
 
         print "#GnuPlot cmd for energy : "
-        print "# $gnuplot -e",
+        print "#$gnuplot -e",
         print "\"set xtics rotate;",
-        print "plot 'dat' u 7:xtic(6) w lp title 'energy';",
-        print "pause -1 \""
+        print "plot 'dat' u 2:xtic(3) w lp title 'energy';",
+        print "pause -1\""
