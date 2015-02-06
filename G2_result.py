@@ -390,7 +390,7 @@ if __name__ == '__main__':
             e_ee[name_atome] = float(exact_energy)
 
         # Calc estimated exact molecules energies
-        for name in set(ae_exp).union(set(zpe_exp)):
+        for name in set(ae_exp).intersection(set(zpe_exp)).intersection(set(f_info)):
 
             emp_tmp = -ae_exp[name] - zpe_exp[name]
 
@@ -493,13 +493,8 @@ if __name__ == '__main__':
         # -#-#-#- #
         # I n i t #
         # -#-#-#- #
-
-        def create_line(fd, n):
-
-            def dump(f, d, n):
-                return f.format(d[n]) if n in d else DEFAULT_CARACTER
-
-            return [dump(format_dict[d[0]], d[1], n) for d in fd]
+        def create_line(dl):
+                return [ d[name] if name in d else DEFAULT_CARACTER for d in dl]
 
         def good_ele_to_print(n):
             return any([arguments["--all_children"], not arguments["--ele"],
@@ -511,15 +506,15 @@ if __name__ == '__main__':
         # H e a d e r #
         # -#-#-#-#-#- #
 
-        header_name = "run_id method basis geo comments ele e".split()
+        header_name = "run_id method basis geo comments ele e_th".split()
         header_unit = [DEFAULT_CARACTER] * 6 + ["Hartree"]
 
         if arguments["--zpe"]:
-            header_name += "zpe".split()
+            header_name += "zpe_exp".split()
             header_unit += "Hartree".split()
 
         if arguments["--estimated_exact"]:
-            header_name += "e_est_exact e_diff".split()
+            header_name += "e_ee e_diff".split()
             header_unit += "Hartree Hartree".split()
         if arguments["--ae"]:
             header_name += "ae_th ae_exp ae_diff".split()
@@ -536,28 +531,19 @@ if __name__ == '__main__':
             for name in e_th_rd:
                 line = list(line_basis) + [name]
 
-                line += create_line([("e_th", e_th[run_id])],
-                                    name)
+                line += create_line([e_th[run_id]])
 
                 if not good_ele_to_print(name):
                     continue
 
                 if arguments["--zpe"]:
-                    line += create_line([("zpe_exp", zpe_exp)],
-                                        name)
+                    line += create_line([zpe_exp])
 
                 if arguments["--estimated_exact"]:
-                    line += create_line([("e_ee", e_ee),
-                                         ("e_diff", e_diff[run_id])
-                                         ],
-                                        name)
+                    line += create_line([e_ee, e_diff[run_id]])
 
                 if arguments["--ae"]:
-                    line += create_line([("ae_th", ae_th[run_id]),
-                                         ("ae_exp", ae_exp),
-                                         ("ae_diff", ae_diff[run_id])
-                                         ],
-                                        name)
+                    line += create_line([ae_th[run_id],ae_exp,ae_diff[run_id]])
 
                 table_body.append(line)
 
@@ -613,6 +599,17 @@ if __name__ == '__main__':
     # /--\ _> (_ | | | (_| |_) | (/_
     #
     elif not arguments["--gnuplot"]:
+
+        # -#-#-#-#-#- #
+        # F o r m a t #
+        # -#-#-#-#-#- #
+
+        for line in table_body:
+            for i, name in enumerate(header_name):
+                if name in format_dict:
+                    line[i] = format_dict[name].format(
+                        line[i]) if line[i] else DEFAULT_CARACTER
+
         # -#-#-#-#-#-#-#- #
         # B i g  Ta b l e #
         # -#-#-#-#-#-#-#- #
@@ -635,7 +632,6 @@ if __name__ == '__main__':
             # Split into two table
             # table_run_id  (run _id -> method,basis, comment)
             # table_data_small (run_id -> energy, etc)
-
             table_run_id = ["Run_id Method Basis Geo Comments".split()]
 
             for run_id, l in run_info.iteritems():
@@ -657,42 +653,40 @@ if __name__ == '__main__':
     #             |
     else:
 
-        def value(dict_):
-            if not dict_:
+        def value(var):
+
+            DEFAULT_CARACTER = "-"
+            if not var:
                 return DEFAULT_CARACTER, DEFAULT_CARACTER
             try:
-                return str(dict_[name].e), str(dict_[name].err)
+                return str(var.e), str(var.err)
             except AttributeError:
-                return str(dict_[name]), DEFAULT_CARACTER
-            except KeyError:
-                return DEFAULT_CARACTER, DEFAULT_CARACTER
+                return str(var), "0."
+            except:
+                raise
 
-        for run_id, e_th_rd in e_th.iteritems():
-            for name in e_th_rd:
+        print "#" + header_name[0] + " " + " ".join(header_name[5:])
+        table_data_small = [[line[0]] + line[5:] for line in table_body]
 
-                if not good_ele_to_print(name):
-                    continue
+        for line in table_data_small:
+            l = tuple(map(str, line[:2]))
+            for i in line[2:]:
+                l += value(i)
 
-                line = str(run_id),
-                line += str(name),
-                line += value(e_th[run_id])
+            print " ".join(l)
 
-                if arguments["--zpe"]:
-                    line += value(zpe_exp)
-
-                if arguments["--estimated_exact"]:
-                    line += value(e_ee),
-                    line += value(e_diff[run_id])
-
-                if arguments["--ae"]:
-                    line += value(ae_th[run_id])
-                    line += value(ae_exp)
-                    line += value(ae_diff[run_id])
-
-                print " ".join(line)
-
-        print "#GnuPlot cmd for energy : "
+        print "#GnuPlot cmd"
+        print ""
+        print "for energy: "
         print "#$gnuplot -e",
-        print "\"set xtics rotate;",
-        print "plot 'dat' u 2:xtic(3) w lp title 'energy';",
+        print "\"set datafile missing '-';",
+        print "set xtics rotate;",
+        print "plot 'dat' u 3:xtic(2) w lp title 'energy';",
+        print "pause -1\""
+        print ""
+        print "for ae_diff: "
+        print "#$gnuplot -e",
+        print "\"set datafile missing '-';",
+        print "set xtics rotate;",
+        print "plot 'dat' u 9:xtic(2) w lp title 'ae_diff';",
         print "pause -1\""
