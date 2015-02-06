@@ -9,7 +9,7 @@ class v_un(namedtuple('v_un', 'e err')):
 
     p = re.compile(ur'^(0*)\.(0*(\d{1,2}))')
 
-    def __repr__(self):
+    def __str__(self):
         # Hypothese : Will display in flat form.
         #             not scientifique one
 
@@ -17,7 +17,7 @@ class v_un(namedtuple('v_un', 'e err')):
         err = '%f' % float(self.err)
 
         if not self.err:
-            return self.e
+            return '%f' % self.e
 
         if self.err >= 1.:
             return "{0}+/-{1}".format(self.e, float(self.err))

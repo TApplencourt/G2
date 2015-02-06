@@ -442,8 +442,8 @@ if __name__ == '__main__':
         # mad = mean( abs( x_i - mean(x) ) )
 
         d_mad = defaultdict()
-        for run_id in ae_diff:
-            l_energy = ae_diff[run_id].values()
+        for run_id, ae_diff_rd in ae_diff.iteritems():
+            l_energy = ae_diff_rd.values()
             mad = sum(map(abs, l_energy)) / len(l_energy) * 630
             d_mad[run_id] = "{:>6.2f}".format(mad)
 
