@@ -66,8 +66,8 @@ Options specifics to get_energy:
 
 Example of use:
   ./G2_result.py list_run --method 'CCSD(T)'
-  ./G2_result.py get_energy --run_id 11 --order_by e --without_pt2 --estimated_exact
-  ./G2_result.py get_energy --basis "cc-pvdz" --ele AlCl --ele Li2 --ae --order_by ae_diff
+  ./G2_result.py get_energy --run_id 11 --order_by e_th --without_pt2 --estimated_exact
+  ./G2_result.py get_energy --basis "cc-pVDZ" --ele AlCl --ele Li2 --ae --order_by ae_diff
 """
 
 version = "3.0.1"
