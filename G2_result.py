@@ -568,33 +568,6 @@ if __name__ == '__main__':
         if order:
             table_body = [l for i in order for l in table_body if l[5] == i]
 
-    #  _____ _                           _                      _
-    # |  ___| |                         | |                    ( )
-    # | |__ | | ___ _ __ ___   ___ _ __ | |_   _ __ _   _ _ __ |/ ___
-    # |  __|| |/ _ \ '_ ` _ \ / _ \ '_ \| __|  | '__| | | | '_ \  / __|
-    # | |___| |  __/ | | | | |  __/ | | | |_   | |  | |_| | | | | \__ \
-    # \____/|_|\___|_| |_| |_|\___|_| |_|\__|  |_|   \__,_|_| |_| |___/
-    #
-    # List all the element of a run_id
-    if arguments["list_ele"]:
-
-        run_id = arguments["--run_id"]
-
-        c.execute("""SELECT name
-                    FROM output_tab
-                    WHERE run_id = (?)""", run_id)
-
-        l_ele = [ele[0] for ele in c.fetchall()]
-
-        header_name = ["ele"]
-        header_unit = [""]
-
-        if arguments["--mising"]:
-            from src.misc_info import list_toulouse
-            table_body = [[ele] for ele in list_toulouse if ele not in l_ele]
-        else:
-            table_body = [[ele] for ele in l_ele]
-
     #  _
     # / \ ._ _|  _  ._   |_
     # \_/ | (_| (/_ |    |_) \/
@@ -619,47 +592,72 @@ if __name__ == '__main__':
     # | |  | |  | | | | | |_
     # \_|  |_|  |_|_| |_|\__|
 
+    #  _                               _          
+    # |_ |  _  ._ _   _  ._ _|_ / _   |_)     ._  
+    # |_ | (/_ | | | (/_ | | |_  _>   | \ |_| | | 
+    #                                             
+    # List all the element of a run_id
+    if arguments["list_ele"]:
+
+        run_id = arguments["--run_id"]
+
+        c.execute("""SELECT name
+                    FROM output_tab
+                    WHERE run_id = (?)""", run_id)
+
+        l_ele = [str(ele[0]) for ele in c.fetchall()]
+
+        if arguments["--mising"]:
+            from src.misc_info import list_toulouse
+            table_body = [ele for ele in list_toulouse if ele not in l_ele]
+        else:
+            table_body = [ele for ele in l_ele]
+
+        print " ".join(table_body)
+
     #               ___
     #  /\   _  _ o o |  _. |_  |  _
     # /--\ _> (_ | | | (_| |_) | (/_
     #
-    if not arguments["--gnuplot"]:
+    elif not arguments["--gnuplot"]:
         # -#-#-#-#-#-#-#- #
         # B i g  Ta b l e #
         # -#-#-#-#-#-#-#- #
+        from src.terminaltables import AsciiTable
 
         table_body = [map(str, i) for i in table_body]
         table_data = [header_name] + [header_unit] + table_body
 
-        rows, columns = os.popen('stty size', 'r').read().split()
+        table_big = AsciiTable(table_data)
 
         # -#-#-#-#-#- #
         # F i l t e r #
         # -#-#-#-#-#- #
 
-        from src.terminaltables import AsciiTable
-
+        # Table_big.ok Check if the table will fit in the terminal
         if all([arguments['--auto'],
-                int(columns) < 200,
+                not table_big.ok,
                 not arguments["list_run"]]) or arguments['--small']:
 
-            # Super moche à changer
-            table_data = [[line[0]] + line[5:] for line in table_data]
+            # Split into two table
+            # table_run_id  (run _id -> method,basis, comment)
+            # table_data_small (run_id -> energy, etc)
 
-            table_roger = []
-            a = "Run_id Method Basis Geo Comments".split()
+            table_run_id = ["Run_id Method Basis Geo Comments".split()]
 
             for run_id, l in run_info.iteritems():
                 line = [run_id] + l
-                table_roger.append(line)
+                table_run_id.append(line)
 
-            t = [a] + table_roger
-            t = [map(str, i) for i in t]
-            t = AsciiTable(t)
+            t = AsciiTable([map(str, i) for i in table_run_id])
             print t.table()
 
-        table = AsciiTable(table_data)
-        print table.table(row_separator=2)
+            table_data_small = [[line[0]] + line[5:] for line in table_data]
+            t = AsciiTable(table_data_small)
+            print t.table(row_separator=2)
+
+        else:
+            print table_big.table(row_separator=2)
     #  __
     # /__ ._      ._  |  _ _|_
     # \_| | | |_| |_) | (_) |_
