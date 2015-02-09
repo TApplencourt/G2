@@ -108,7 +108,7 @@ class v_un(namedtuple('v_un', 'e err')):
         elif "<" in format_spec:
             format_e = format_e.rstrip()
 
-        if self.err >= 1.:
+        if float(format_err) >= 1.:
             return "{0}+/-{1}".format(format_e, format_err)
         else:
             p2 = re.compile(ur'^0*\.0*(\d*)')
