@@ -21,7 +21,7 @@ Usage:
                           [--method=<method_name>...]
                           [--zpe]
                           [--estimated_exact [--literature | --recomm]]
-                          [--ae [--literature]]
+                          [--ae [--literature | --recomm]]
                           [--without_pt2]
                           [--gnuplot]
                           [--auto | --small | --big]
@@ -319,13 +319,13 @@ if __name__ == '__main__':
         # S q l #
         # -#-#- #
 
-        method_id = 10 if arguments["--literature"] else 1
-        cond_filter = cond_filter_ele + ['(basis_id=1)',
-                                         '(method_id=%d)' % (method_id)]
-
         if arguments["--recomm"]:
-            cond_filter = cond_filter_ele + ['basis_id=(1)']
+            cond = ['basis_id=(1)']
+        else:
+            method_id = 10 if arguments["--literature"] else 1
+            cond = ['(basis_id=1)', '(method_id=%d)' % (method_id)]
 
+        cond_filter = cond_filter_ele + cond
         cmd_where = " AND ".join(cond_filter)
 
         cursor = c_row.execute("""SELECT name,
