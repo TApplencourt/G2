@@ -10,7 +10,6 @@ Usage:
                         [--geo=<geometry_name>...]
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
-                        [--literature | --recomm]
                         [--without_pt2]
   G2_result.py list_ele --run_id=<id> [--mising]
   G2_result.py get_energy [--order_by=<column>]
@@ -20,11 +19,10 @@ Usage:
                           [--basis=<basis_name>...]
                           [--method=<method_name>...]
                           [--zpe]
-                          [--estimated_exact [--literature | --recomm]]
-                          [--ae [--literature | --recomm]]
+                          [--estimated_exact]
+                          [--ae]
                           [--without_pt2]
                           [--gnuplot]
-                          [--auto | --small | --big]
   G2_result.py --version
 
 Options:
@@ -43,10 +41,6 @@ Options for list_run and get_energy:
                                 For example `--geo MP2 --basis cc-pvDZ`
                                 show only the run who contain
                                 both this geo and this basis set.
-  --literature              If you want to use the literature ZPE/AE,
-                                and not the NIST one for the calcul of
-                                the MAD, estimated_exact and the theorical
-                                atomization energies.
   --without_pt2             Show all the data without adding the PT2 when avalaible.
 Options for list_ele:
   --run_id                  Show the list_ele for this run_id
@@ -61,7 +55,6 @@ Options specifics to get_energy:
   --all_children              Show all the children of the element
                                   Example for AlCl will show Al and Cl.
   --gnuplot                   Print the result in a GNUPLOT readable format.
-  --auto or --small or --big  Size of the display (by default is auto)
   All the other               Filter the data or ordering it. See example.
 
 Example of use:
@@ -72,7 +65,7 @@ Example of use:
 
 version = "3.0.1"
 
-import os
+
 import sys
 if sys.version_info[:2] != (2, 7):
     print "You need python 2.7."
@@ -91,6 +84,14 @@ except:
     print "File in misc is corupted. Git reset may cure the diseases"
     sys.exit(1)
 
+import os
+try:
+    import ConfigParser
+    Config = ConfigParser.ConfigParser()
+    Config.read(os.path.dirname(__file__) + "/config.cfg")
+
+except:
+    raise
 
 if __name__ == '__main__':
 
@@ -105,12 +106,11 @@ if __name__ == '__main__':
     if arguments["list_run"]:
         arguments["--ae"] = True
 
-    if not any([arguments['--small'], arguments['--big']]):
-        arguments['--auto'] = True
-
     DEFAULT_CARACTER = ""
 
-    # Usefull Variable:
+    # -#-#-#-#-#-#-#- #
+    # V a r i a b l e #
+    # -#-#-#-#-#-#-#- #
 
     # Get & print
 
@@ -127,16 +127,20 @@ if __name__ == '__main__':
     # * ae_diff  Dict of ae_th energy - expriement one     (ae_diff[run_id][name])
     # * run_info Dict of the geo,basis,method,comments     (run_info[run_id])
 
-    pouce = "{:>2.5f}"
-    arpent = "{:>10.5f}"
+    # Format dict
+    format_dict = defaultdict()
+    for name, value in Config.items("Format_dict"):
+        format_dict[name] = Config.get("Format_mesure", value)
 
-    format_dict = {"e_th": arpent,
-                   "zpe_exp": pouce,
-                   "e_ee": arpent,
-                   "e_diff": pouce,
-                   "ae_th": pouce,
-                   "ae_exp": pouce,
-                   "ae_diff": pouce}
+    # Dict for knowing the run_id reference for estimated exact energy
+    ee_e_name_id_dict = {"Rude": "Any",
+                         "Feller": 61,
+                         "O'Neill": 62}
+
+    # Dict for knowing what tab us for the ZPE / AE
+    ae_zpe_exp_dict = {"NIST": 1,
+                       "literature": 10}
+
     # ______ _ _ _
     # |  ___(_) | |
     # | |_   _| | |_ ___ _ __
@@ -318,11 +322,16 @@ if __name__ == '__main__':
         # -#-#- #
         # S q l #
         # -#-#- #
+        try:
+            zpe_ae_user = Config.get("ZPE_AE", "value")
+        except KeyError:
+            print "WARNING bad ZPE AE type"
+            raise
 
-        if arguments["--recomm"]:
+        if zpe_ae_user == "recomended":
             cond = ['basis_id=(1)']
         else:
-            method_id = 10 if arguments["--literature"] else 1
+            method_id = ae_zpe_exp_dict[zpe_ae_user]
             cond = ['(basis_id=1)', '(method_id=%d)' % (method_id)]
 
         cond_filter = cond_filter_ele + cond
@@ -369,7 +378,18 @@ if __name__ == '__main__':
         # -#-#- #
 
         # Get Davidson est. atomics energies
-        cmd_where = " AND ".join(cond_filter_ele + ['(run_id = "21")'])
+
+        try:
+            run_id_mol = ee_e_name_id_dict[Config.get("estimated_exact",
+                                                      "method")]
+        except KeyError:
+            print "WARNING bad method in cfg"
+            print "Will use by default Feller"
+            run_id_mol = ee_e_name_id_dict["Feller"]
+
+        cmd_where = " AND ".join(cond_filter_ele +
+                                 ['(run_id = 21) OR (run_id = "%s")' %
+                                  run_id_mol])
 
         c.execute("""SELECT name as name_atome,
                           energy as exact_energy
@@ -389,12 +409,17 @@ if __name__ == '__main__':
         # -#-#-#-#-#- *
 
         # Put exact energy for atom
-        for name_atome, exact_energy in c.fetchall():
-            e_ee[name_atome] = float(exact_energy)
+        for name, exact_energy in c.fetchall():
+            e_ee[name] = float(exact_energy)
 
-        # Calc estimated exact molecules energies
-        for name in set(ae_exp).intersection(set(zpe_exp)).intersection(set(f_info)):
+        # We have the energy but not the estimated_exact
+        need_to_do = set(f_info).difference(e_ee)
+        # We can calculette rudly this one
+        # with e_ee = ae + zpe + sum e_atom
+        can_do = set(ae_exp).intersection(zpe_exp).intersection(f_info)
 
+        for name in need_to_do.intersection(can_do):
+            print name
             emp_tmp = -ae_exp[name] - zpe_exp[name]
 
             for name_atome, number in f_info[name]:
@@ -497,7 +522,7 @@ if __name__ == '__main__':
         # I n i t #
         # -#-#-#- #
         def create_line(dl):
-                return [ d[name] if name in d else DEFAULT_CARACTER for d in dl]
+            return [d[name] if name in d else DEFAULT_CARACTER for d in dl]
 
         def good_ele_to_print(n):
             return any([arguments["--all_children"], not arguments["--ele"],
@@ -546,7 +571,9 @@ if __name__ == '__main__':
                     line += create_line([e_ee, e_diff[run_id]])
 
                 if arguments["--ae"]:
-                    line += create_line([ae_th[run_id],ae_exp,ae_diff[run_id]])
+                    line += create_line([ae_th[run_id],
+                                         ae_exp,
+                                         ae_diff[run_id]])
 
                 table_body.append(line)
 
@@ -628,9 +655,10 @@ if __name__ == '__main__':
         # -#-#-#-#-#- #
 
         # Table_big.ok Check if the table will fit in the terminal
-        if all([arguments['--auto'],
+        mode = Config.get("Size", "mode")
+        if all([mode == "Auto",
                 not table_big.ok,
-                not arguments["list_run"]]) or arguments['--small']:
+                not arguments["list_run"]]) or mode == "Small":
 
             # Split into two table
             # table_run_id  (run _id -> method,basis, comment)
