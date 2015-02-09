@@ -236,7 +236,7 @@ def add_energy_cispi(url, run_id, name,
     # Now get the data
     s = s.splitlines()
 
-    ndet = pt2 = time = None
+    e = ndet = pt2 = time = None
 
     for i in s:
         if "N_det " in i:
