@@ -3,6 +3,7 @@
 
 from collections import namedtuple
 import re
+from math import sqrt, pow
 
 
 class v_un(namedtuple('v_un', 'e err')):
@@ -37,7 +38,7 @@ class v_un(namedtuple('v_un', 'e err')):
     # Add Left right
     def __add__(self, x):
         try:
-            return v_un(self.e + x.e, self.err + x.err)
+            return v_un(self.e + x.e, sqrt(pow(self.err, 2) + pow(x.err, 2)))
         except AttributeError:
             return v_un(self.e + x, self.err)
 
@@ -59,20 +60,14 @@ class v_un(namedtuple('v_un', 'e err')):
 
     # Multiplication
     def __mul__(self, x):
-        try:
-            return v_un(self.e * x.e, self.err * x.err)
-        except AttributeError:
-            return v_un(self.e * x, self.err * x)
+        return v_un(self.e * x, self.err * x)
 
     def __rmul__(self, x):
         return self.__mul__(x)
 
     # Division
     def __div__(self, x):
-        try:
-            return v_un(self.e / x, self.err / x)
-        except AttributeError:
-            raise AttributeError
+        return v_un(self.e / x, self.err / x)
 
     # -v_un
     def __neg__(self):
