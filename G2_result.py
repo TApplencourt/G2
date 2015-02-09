@@ -10,7 +10,7 @@ Usage:
                         [--geo=<geometry_name>...]
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
-                        [--exp_recomm]
+                        [--literature | --recomm]
                         [--without_pt2]
   G2_result.py list_ele --run_id=<id> [--mising]
   G2_result.py get_energy [--order_by=<column>]
@@ -20,8 +20,8 @@ Usage:
                           [--basis=<basis_name>...]
                           [--method=<method_name>...]
                           [--zpe]
-                          [--estimated_exact [--exp_recomm]]
-                          [--ae [--exp_recomm]]
+                          [--estimated_exact [--literature | --recomm]]
+                          [--ae [--literature]]
                           [--without_pt2]
                           [--gnuplot]
                           [--auto | --small | --big]
@@ -43,7 +43,7 @@ Options for list_run and get_energy:
                                 For example `--geo MP2 --basis cc-pvDZ`
                                 show only the run who contain
                                 both this geo and this basis set.
-  --exp_recomm              If you want to use the exp_recomm ZPE/AE,
+  --literature              If you want to use the literature ZPE/AE,
                                 and not the NIST one for the calcul of
                                 the MAD, estimated_exact and the theorical
                                 atomization energies.
@@ -319,10 +319,12 @@ if __name__ == '__main__':
         # S q l #
         # -#-#- #
 
-        method_id = 10 if arguments["--exp_recomm"] else 1
-
+        method_id = 10 if arguments["--literature"] else 1
         cond_filter = cond_filter_ele + ['(basis_id=1)',
                                          '(method_id=%d)' % (method_id)]
+
+        if arguments["--recomm"]:
+            cond_filter = cond_filter_ele + ['basis_id=(1)']
 
         cmd_where = " AND ".join(cond_filter)
 
@@ -330,11 +332,12 @@ if __name__ == '__main__':
                          formula,
                              zpe,
                             kcal,
-                        kcal_err
+                   min(kcal_err) as kcal_err
                             FROM id_tab
                     NATURAL JOIN zpe_tab
                     NATURAL JOIN atomization_tab
-                           WHERE {cmd_where}""".format(cmd_where=cmd_where))
+                           WHERE {cmd_where}
+                           GROUP BY name""".format(cmd_where=cmd_where))
 
         # -#-#-#- #
         # I n i t #
