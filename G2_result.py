@@ -11,7 +11,7 @@ Usage:
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
                         [--without_pt2]
-  G2_result.py list_ele --run_id=<id> [--mising]
+  G2_result.py list_ele --run_id=<id> [--missing]
   G2_result.py get_energy [--order_by=<column>]
                           [--run_id=<id>...]
                           [--ele=<element_name>...  [--all_children] | --like_toulouse]
@@ -655,7 +655,7 @@ if __name__ == '__main__':
 
         l_ele = [str(ele[0]) for ele in c.fetchall()]
 
-        if arguments["--mising"]:
+        if arguments["--missing"]:
             from src.misc_info import list_toulouse
             table_body = [ele for ele in list_toulouse if ele not in l_ele]
         else:
