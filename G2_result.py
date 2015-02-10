@@ -461,13 +461,16 @@ if __name__ == '__main__':
         # F i l l I n #
         # -#-#-#-#-#- *
 
-        for name in e_nr:
-            ae_nr_tmp = -e_nr[name]
+        for name in f_info:
+            try :
+                ae_nr_tmp = -e_nr[name]
+                for name_atome, number in f_info[name]:
+                    ae_nr_tmp += e_nr[name_atome] * number
 
-            for name_atome, number in f_info[name]:
-                ae_nr_tmp += e_nr[name_atome] * number
+                ae_nr[name] = ae_nr_tmp
+            except KeyError:
+                pass
 
-            ae_nr[name] = ae_nr_tmp
 
     #
     #   /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    _|_ |_
@@ -582,7 +585,7 @@ if __name__ == '__main__':
             header_name += "e_nr e_diff".split()
             header_unit += "Hartree Hartree".split()
         if arguments["--ae"]:
-            header_name += "ae_cal ae_exp ae_diff".split()
+            header_name += "ae_cal ae_nr ae_diff".split()
             header_unit += "Hartree Hartree Hartree".split()
 
         # -#-#-#- #
@@ -609,7 +612,7 @@ if __name__ == '__main__':
 
                 if arguments["--ae"]:
                     line += create_line([ae_cal[run_id],
-                                         ae_exp,
+                                         ae_nr,
                                          ae_diff[run_id]])
 
                 table_body.append(line)
