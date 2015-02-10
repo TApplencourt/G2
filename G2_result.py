@@ -462,7 +462,7 @@ if __name__ == '__main__':
         # -#-#-#-#-#- *
 
         for name in f_info:
-            try :
+            try:
                 ae_nr_tmp = -e_nr[name]
                 for name_atome, number in f_info[name]:
                     ae_nr_tmp += e_nr[name_atome] * number
@@ -470,7 +470,6 @@ if __name__ == '__main__':
                 ae_nr[name] = ae_nr_tmp
             except KeyError:
                 pass
-
 
     #
     #   /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    _|_ |_
