@@ -49,7 +49,7 @@ Options for list_ele:
 Options specifics to get_energy:
   --ae                        Show the atomization energy when avalaible
                                  (both theorical and experiment).
-                                  ae_th = E_mol - \sum E_atom  + zpe
+                                  ae_cal = E_mol - \sum E_atom  + zpe
   --estimated_exact           Show the estimated exact energy.
                                   E_est_exact = \sum E^{exact}_{atom} - zpe
   --all_children              Show all the children of the element
@@ -59,7 +59,7 @@ Options specifics to get_energy:
 
 Example of use:
   ./G2_result.py list_run --method 'CCSD(T)'
-  ./G2_result.py get_energy --run_id 11 --order_by e_th --without_pt2 --estimated_exact
+  ./G2_result.py get_energy --run_id 11 --order_by e_cal --without_pt2 --estimated_exact
   ./G2_result.py get_energy --basis "cc-pVDZ" --ele AlCl --ele Li2 --ae --order_by ae_diff
 """
 
@@ -118,13 +118,14 @@ if __name__ == '__main__':
 
     # Calcule one
 
-    # * e_th     Dict of energies theorical / calculated   (e_th[run_id][name])
+    # * e_cal     Dict of energies theorical / calculated   (e_cal[run_id][name])
     # * zpe_exp  Dict of zpe experimental                  (zpe_exp[name])
-    # * e_ee     Dict of energy estimated exact            (e_ee[name])
-    # * e_diff   Dict of e_th exact - estimated exact one  (e_diff[run_id][name])
-    # * ae_th    Dict of atomization energye theorcai      (ae_th[run_id][name])
+    # * e_nr     Dict of energy estimated exact            (e_nr[name])
+    # * e_diff   Dict of e_cal exact - estimated exact one  (e_diff[run_id][name])
+    # * ae_cal    Dict of atomization energye theorical      (ae_cal[run_id][name])
+    # * ae_nr    Dict of non relativist atomization energy (ae_nr[name])
     # * ae_exp   Dict of atomization experimental          (ae_ext[name])
-    # * ae_diff  Dict of ae_th energy - expriement one     (ae_diff[run_id][name])
+    # * ae_diff  Dict of ae_cal energy - no relativiste     (ae_diff[run_id][name])
     # * run_info Dict of the geo,basis,method,comments     (run_info[run_id])
 
     # Format dict
@@ -199,7 +200,7 @@ if __name__ == '__main__':
 
     # We need to find the run_id who containt ALL the ele is needed
     if l_ele:
-        cond_filter_ele = ["".join(["name in ('", "','".join(l_ele), "')"])]
+        cond_filter_ele = cond_sql_or("name", l_ele)
     else:
         cond_filter_ele = []
 
@@ -268,7 +269,7 @@ if __name__ == '__main__':
     # I n i t #
     # -#-#-#- #
 
-    e_th_unorder = defaultdict(dict)
+    e_cal_unorder = defaultdict(dict)
     run_info = defaultdict()
     f_info = defaultdict()
 
@@ -290,7 +291,7 @@ if __name__ == '__main__':
             value = v_un(float(r['q_energy']),
                          float(r['q_err']))
 
-        e_th_unorder[r['run_id']][r['ele']] = value
+        e_cal_unorder[r['run_id']][r['ele']] = value
         # Info
         run_info[r['run_id']] = [r['method'], r['basis'],
                                  r['geo'], r['comments']]
@@ -302,19 +303,20 @@ if __name__ == '__main__':
     # O r d e r #
     # -#-#-#-#- *
 
-    e_th = defaultdict(OrderedDict)
+    e_cal = defaultdict(OrderedDict)
     order = list_toulouse if arguments["--like_toulouse"] else l_ele
     if order:
-        for run_id in e_th_unorder:
+        for run_id in e_cal_unorder:
             for i in order:
-                e_th[run_id][i] = e_th_unorder[run_id][i]
+                e_cal[run_id][i] = e_cal_unorder[run_id][i]
     else:
-        e_th = e_th_unorder
+        e_cal = e_cal_unorder
 
     #  __
     #   / ._   _    ()     /\   _     _     ._
     #  /_ |_) (/_   (_X   /--\ (/_   (/_ >< |_)
     #     |                                 |
+    # Not realy usefull anymore
     if any(arguments[k] for k in ["--zpe",
                                   "--ae",
                                   "--estimated_exact"]):
@@ -371,7 +373,8 @@ if __name__ == '__main__':
     # |_  _ _|_      _      _.  _ _|_    _  ._   _  ._ _
     # |_ _>  |_ o   (/_ >< (_| (_  |_   (/_ | | (/_ | (_| \/
     #                                                  _| /
-    if arguments["--estimated_exact"]:
+    if any(arguments[k] for k in ["--ae",
+                                  "--estimated_exact"]):
 
         # -#-#- #
         # S q l #
@@ -388,7 +391,7 @@ if __name__ == '__main__':
             run_id_mol = ee_e_name_id_dict["Feller"]
 
         cmd_where = " AND ".join(cond_filter_ele +
-                                 ['(run_id = 21) OR (run_id = "%s")' %
+                                 ['((run_id = 21) OR (run_id = "%s"))' %
                                   run_id_mol])
 
         c.execute("""SELECT name as name_atome,
@@ -401,8 +404,7 @@ if __name__ == '__main__':
         # I n i t #
         # -#-#-#- #
 
-        e_ee = defaultdict()
-        e_diff = defaultdict(dict)
+        e_nr = defaultdict()
 
         # -#-#-#-#-#- #
         # F i l l I n #
@@ -410,58 +412,93 @@ if __name__ == '__main__':
 
         # Put exact energy for atom
         for name, exact_energy in c.fetchall():
-            e_ee[name] = float(exact_energy)
+            e_nr[name] = float(exact_energy)
 
         # We have the energy but not the estimated_exact
-        need_to_do = set(f_info).difference(e_ee)
+        need_to_do = set(f_info).difference(e_nr)
         # We can calculette rudly this one
-        # with e_ee = ae + zpe + sum e_atom
+        # with e_nr = ae + zpe + sum e_atom
         can_do = set(ae_exp).intersection(zpe_exp).intersection(f_info)
 
         for name in need_to_do.intersection(can_do):
-            print name
             emp_tmp = -ae_exp[name] - zpe_exp[name]
 
             for name_atome, number in f_info[name]:
-                emp_tmp += number * e_ee[name_atome]
+                emp_tmp += number * e_nr[name_atome]
 
-            e_ee[name] = emp_tmp
+            e_nr[name] = emp_tmp
 
-        for run_id, e_th_rd in e_th.iteritems():
-            for name, energies in e_th_rd.iteritems():
+        # -#-#-#- #
+        # I n i t #
+        # -#-#-#- #
+
+        e_diff = defaultdict(dict)
+
+        # -#-#-#-#-#- #
+        # F i l l I n #
+        # -#-#-#-#-#- *
+
+        for run_id, e_cal_rd in e_cal.iteritems():
+            for name, energies in e_cal_rd.iteritems():
                 try:
-                    e_diff[run_id][name] = energies - e_ee[name]
+                    e_diff[run_id][name] = energies - e_nr[name]
                 except KeyError:
                     pass
 
-    #   /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    _|_ |_
-    #  /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |    |_ | |
+    #                                                  _
+    #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    |\ | |_)
+    # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |   | \| | \
+    #
     if arguments["--ae"]:
 
         # -#-#-#- #
         # I n i t #
         # -#-#-#- #
 
-        ae_th = defaultdict(dict)
+        ae_nr = defaultdict()
+
+        # -#-#-#-#-#- #
+        # F i l l I n #
+        # -#-#-#-#-#- *
+
+        for name in e_nr:
+            ae_nr_tmp = -e_nr[name]
+
+            for name_atome, number in f_info[name]:
+                ae_nr_tmp += e_nr[name_atome] * number
+
+            ae_nr[name] = ae_nr_tmp
+
+    #
+    #   /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    _|_ |_
+    #  /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |    |_ | |
+
+    if arguments["--ae"]:
+
+        # -#-#-#- #
+        # I n i t #
+        # -#-#-#- #
+
+        ae_cal = defaultdict(dict)
         ae_diff = defaultdict(dict)
 
         # -#-#-#-#-#- #
         # F i l l I n #
         # -#-#-#-#-#- *
 
-        for run_id, e_th_rd in e_th.iteritems():
-            for name, energy in e_th_rd.iteritems():
+        for run_id, e_cal_rd in e_cal.iteritems():
+            for name, energy in e_cal_rd.iteritems():
                 try:
-                    ao_th_tmp = energy + zpe_exp[name]
+                    ao_th_tmp = -energy
                     for name_atome, number in f_info[name]:
-                        ao_th_tmp -= e_th_rd[name_atome] * number
+                        ao_th_tmp += e_cal_rd[name_atome] * number
                 except KeyError:
                     pass
                 else:
-                    ae_th[run_id][name] = -ao_th_tmp
+                    ae_cal[run_id][name] = ao_th_tmp
 
                 try:
-                    ae_diff[run_id][name] = ae_th[run_id][name] - ae_exp[name]
+                    ae_diff[run_id][name] = ae_cal[run_id][name] - ae_nr[name]
                 except KeyError:
                     pass
 
@@ -534,7 +571,7 @@ if __name__ == '__main__':
         # H e a d e r #
         # -#-#-#-#-#- #
 
-        header_name = "run_id method basis geo comments ele e_th".split()
+        header_name = "run_id method basis geo comments ele e_cal".split()
         header_unit = [DEFAULT_CARACTER] * 6 + ["Hartree"]
 
         if arguments["--zpe"]:
@@ -542,24 +579,24 @@ if __name__ == '__main__':
             header_unit += "Hartree".split()
 
         if arguments["--estimated_exact"]:
-            header_name += "e_ee e_diff".split()
+            header_name += "e_nr e_diff".split()
             header_unit += "Hartree Hartree".split()
         if arguments["--ae"]:
-            header_name += "ae_th ae_exp ae_diff".split()
+            header_name += "ae_cal ae_exp ae_diff".split()
             header_unit += "Hartree Hartree Hartree".split()
 
         # -#-#-#- #
         # B o d y #
         # -#-#-#- #
 
-        for run_id, e_th_rd in e_th.iteritems():
+        for run_id, e_cal_rd in e_cal.iteritems():
 
             line_basis = [run_id] + run_info[run_id][:4]
 
-            for name in e_th_rd:
+            for name in e_cal_rd:
                 line = list(line_basis) + [name]
 
-                line += create_line([e_th[run_id]])
+                line += create_line([e_cal[run_id]])
 
                 if not good_ele_to_print(name):
                     continue
@@ -568,10 +605,10 @@ if __name__ == '__main__':
                     line += create_line([zpe_exp])
 
                 if arguments["--estimated_exact"]:
-                    line += create_line([e_ee, e_diff[run_id]])
+                    line += create_line([e_nr, e_diff[run_id]])
 
                 if arguments["--ae"]:
-                    line += create_line([ae_th[run_id],
+                    line += create_line([ae_cal[run_id],
                                          ae_exp,
                                          ae_diff[run_id]])
 
