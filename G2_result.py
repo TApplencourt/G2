@@ -600,22 +600,15 @@ if __name__ == '__main__':
         # -#-#-#-#-#- #
 
         header_name = "run_id method basis geo comments ele e_cal".split()
-        STR_TO_DICT["e_cal"] = e_cal[run_id]
 
         if arguments["--zpe"]:
             header_name += "zpe_exp".split()
-            STR_TO_DICT["zpe_exp"] = zpe_exp
 
         if arguments["--estimated_exact"]:
             header_name += "e_nr e_diff".split()
-            STR_TO_DICT["e_nr"] = e_nr
-            STR_TO_DICT["e_diff"] = e_diff[run_id]
 
         if arguments["--ae"]:
             header_name += "ae_cal ae_nr ae_diff".split()
-            STR_TO_DICT["ae_cal"] = ae_cal[run_id]
-            STR_TO_DICT["ae_nr"] = ae_nr
-            STR_TO_DICT["ae_diff"] = ae_diff[run_id]
 
         header_unit = [
             unit_dict[n] if n in unit_dict else DEFAULT_CARACTER for n in header_name]
@@ -631,18 +624,26 @@ if __name__ == '__main__':
             for ELE in e_cal_rd:
                 line = list(line_basis) + [ELE]
 
+                STR_TO_DICT["e_cal"] = e_cal[run_id]
                 line += get_values_convert("e_cal".split())
 
                 if not good_ele_to_print(ELE):
                     continue
 
                 if arguments["--zpe"]:
+
+                    STR_TO_DICT["zpe_exp"] = zpe_exp
                     line += get_values_convert("zpe_exp".split())
 
                 if arguments["--estimated_exact"]:
+                    STR_TO_DICT["e_nr"] = e_nr
+                    STR_TO_DICT["e_diff"] = e_diff[run_id]
                     line += get_values_convert("e_nr e_diff".split())
 
                 if arguments["--ae"]:
+                    STR_TO_DICT["ae_cal"] = ae_cal[run_id]
+                    STR_TO_DICT["ae_nr"] = ae_nr
+                    STR_TO_DICT["ae_diff"] = ae_diff[run_id]
                     line += get_values_convert("ae_cal ae_nr ae_diff".split())
 
                 table_body.append(line)
