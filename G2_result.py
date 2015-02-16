@@ -133,6 +133,11 @@ if __name__ == '__main__':
     for name, value in Config.items("Format_dict"):
         format_dict[name] = Config.get("Format_mesure", value)
 
+    # Unit_dict
+    unit_dict = defaultdict()
+    for name, value in Config.items("Unit_dict"):
+        unit_dict[name] = value
+
     # Dict for knowing the run_id reference for estimated exact energy
     ee_e_name_id_dict = {"Rude": "Any",
                          "Feller": 61,
@@ -560,8 +565,29 @@ if __name__ == '__main__':
         # -#-#-#- #
         # I n i t #
         # -#-#-#- #
-        def create_line(dl):
-            return [d[name] if name in d else DEFAULT_CARACTER for d in dl]
+
+        # STR_TO_DICT is a dict binding the name with a dict
+        # STR_TO_DICT[ae_diff] = ae_diff[run_id] for example
+        # Warning run_id need to be declared
+        # Use with precausion
+        STR_TO_DICT = defaultdict(dict)
+
+        # nl is a list of the dictionary name to use (aka key of STR_TO_DICT)
+        # ELE is the element name
+        def get_value(nl):
+            return [STR_TO_DICT[str_][ELE] if ELE in STR_TO_DICT[str_]
+                    else DEFAULT_CARACTER for str_ in nl]
+
+        def change_unit(nl):
+            for str_ in nl:
+                if unit_dict[str_] == "Hartree":
+                    pass
+                elif unit_dict[str_] == "kcal/mol":
+                    STR_TO_DICT[str_][ELE] *= 630.
+
+        def get_values_convert(nl):
+            change_unit(nl)
+            return get_value(nl)
 
         def good_ele_to_print(n):
             return any([arguments["--all_children"], not arguments["--ele"],
@@ -574,18 +600,25 @@ if __name__ == '__main__':
         # -#-#-#-#-#- #
 
         header_name = "run_id method basis geo comments ele e_cal".split()
-        header_unit = [DEFAULT_CARACTER] * 6 + ["Hartree"]
+        STR_TO_DICT["e_cal"] = e_cal[run_id]
 
         if arguments["--zpe"]:
             header_name += "zpe_exp".split()
-            header_unit += "Hartree".split()
+            STR_TO_DICT["zpe_exp"] = zpe_exp
 
         if arguments["--estimated_exact"]:
             header_name += "e_nr e_diff".split()
-            header_unit += "Hartree Hartree".split()
+            STR_TO_DICT["e_nr"] = e_nr
+            STR_TO_DICT["e_diff"] = e_diff[run_id]
+
         if arguments["--ae"]:
             header_name += "ae_cal ae_nr ae_diff".split()
-            header_unit += "Hartree Hartree Hartree".split()
+            STR_TO_DICT["ae_cal"] = ae_cal[run_id]
+            STR_TO_DICT["ae_nr"] = ae_nr
+            STR_TO_DICT["ae_diff"] = ae_diff[run_id]
+
+        header_unit = [
+            unit_dict[n] if n in unit_dict else DEFAULT_CARACTER for n in header_name]
 
         # -#-#-#- #
         # B o d y #
@@ -595,24 +628,22 @@ if __name__ == '__main__':
 
             line_basis = [run_id] + run_info[run_id][:4]
 
-            for name in e_cal_rd:
-                line = list(line_basis) + [name]
+            for ELE in e_cal_rd:
+                line = list(line_basis) + [ELE]
 
-                line += create_line([e_cal[run_id]])
+                line += get_values_convert("e_cal".split())
 
-                if not good_ele_to_print(name):
+                if not good_ele_to_print(ELE):
                     continue
 
                 if arguments["--zpe"]:
-                    line += create_line([zpe_exp])
+                    line += get_values_convert("zpe_exp".split())
 
                 if arguments["--estimated_exact"]:
-                    line += create_line([e_nr, e_diff[run_id]])
+                    line += get_values_convert("e_nr e_diff".split())
 
                 if arguments["--ae"]:
-                    line += create_line([ae_cal[run_id],
-                                         ae_nr,
-                                         ae_diff[run_id]])
+                    line += get_values_convert("ae_cal ae_nr ae_diff".split())
 
                 table_body.append(line)
 
