@@ -143,7 +143,9 @@ if __name__ == '__main__':
     # Dict for knowing the run_id reference for estimated exact energy
     e_nr_name_id_dict = {"Rude": "Any",
                          "Feller": 61,
-                         "O'Neill": 62}
+                         "O'Neill": 62,
+                         "Davidson": 21,
+                         "Chakravorty": 67}
 
     # Dict for knowing what tab us for the ZPE / AE
     ae_zpe_exp_dict = {"NIST": 1,
@@ -400,7 +402,7 @@ if __name__ == '__main__':
             run_id_mol = e_nr_name_id_dict["Feller"]
 
         cmd_where = " AND ".join(cond_filter_ele +
-                                 ['((run_id = 21) OR (run_id = "%s"))' %
+                                 ['((run_id = 67) OR (run_id = "%s"))' %
                                   run_id_mol])
 
         c.execute("""SELECT name as name_atome,
