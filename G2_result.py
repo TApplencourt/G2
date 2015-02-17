@@ -396,15 +396,17 @@ if __name__ == '__main__':
         try:
             run_id_mol = e_nr_name_id_dict[Config.get("estimated_exact",
                                                       "method")]
+            run_id_atom = e_nr_name_id_dict[Config.get("estimated_exact",
+                                                       "atomic")]
         except KeyError:
             print "WARNING bad method in cfg"
-            print "Will use by default Feller"
+            print "Will use by default Feller and Chakravorty"
             run_id_mol = e_nr_name_id_dict["Feller"]
+            run_id_atom = e_nr_name_id_dict["Chakravorty"]
 
-        cmd_where = " AND ".join(cond_filter_ele +
-                                 ['((run_id = 67) OR (run_id = "%s"))' %
-                                  run_id_mol])
+        cmd_id = cond_sql_or("run_id", [run_id_atom, run_id_mol])
 
+        cmd_where = " AND ".join(cond_filter_ele + cmd_id)
         c.execute("""SELECT name as name_atome,
                           energy as exact_energy
                             FROM simple_energy_tab
