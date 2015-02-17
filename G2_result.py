@@ -75,6 +75,7 @@ if sys.version_info[:2] != (2, 7):
 
 from collections import defaultdict
 from collections import OrderedDict
+from collections import namedtuple
 
 try:
     from src.docopt import docopt
@@ -114,15 +115,16 @@ if __name__ == '__main__':
 
     # Get & print
 
-    # * l_ele           List element for geting the value
+    # * l_ele    List element for geting the value
+    # * f_info   namedTuple for the num of atoms and the formula (f_info[name])
 
     # Calcule one
 
-    # * e_cal     Dict of energies theorical / calculated   (e_cal[run_id][name])
+    # * e_cal    Dict of energies theorical / calculated   (e_cal[run_id][name])
     # * zpe_exp  Dict of zpe experimental                  (zpe_exp[name])
     # * e_nr     Dict of energy estimated exact            (e_nr[name])
     # * e_diff   Dict of e_cal exact - estimated exact one  (e_diff[run_id][name])
-    # * ae_cal    Dict of atomization energye theorical      (ae_cal[run_id][name])
+    # * ae_cal   Dict of atomization energye theorical      (ae_cal[run_id][name])
     # * ae_nr    Dict of non relativist atomization energy (ae_nr[name])
     # * ae_exp   Dict of atomization experimental          (ae_ext[name])
     # * ae_diff  Dict of ae_cal energy - no relativiste     (ae_diff[run_id][name])
@@ -139,7 +141,7 @@ if __name__ == '__main__':
         unit_dict[name] = value
 
     # Dict for knowing the run_id reference for estimated exact energy
-    ee_e_name_id_dict = {"Rude": "Any",
+    e_nr_name_id_dict = {"Rude": "Any",
                          "Feller": 61,
                          "O'Neill": 62}
 
@@ -254,6 +256,7 @@ if __name__ == '__main__':
     # -#-#- #
 
     cursor = c_row.execute("""SELECT formula,
+                      num_atoms,
                          run_id,
                     method_name method,
                      basis_name basis,
@@ -282,6 +285,7 @@ if __name__ == '__main__':
     # F i l l I n #
     # -#-#-#-#-#- *
 
+    Num_formula = namedtuple('num_formula', ['num_atoms', 'formula'])
     for r in cursor:
         # Energy
         if r['s_energy']:
@@ -302,7 +306,7 @@ if __name__ == '__main__':
                                  r['geo'], r['comments']]
 
         if not r['ele'] in f_info:
-            f_info[r['ele']] = eval(r['formula'])
+            f_info[r['ele']] = Num_formula(r['num_atoms'], eval(r['formula']))
 
     # -#-#-#-#- #
     # O r d e r #
@@ -388,12 +392,12 @@ if __name__ == '__main__':
         # Get Davidson est. atomics energies
 
         try:
-            run_id_mol = ee_e_name_id_dict[Config.get("estimated_exact",
+            run_id_mol = e_nr_name_id_dict[Config.get("estimated_exact",
                                                       "method")]
         except KeyError:
             print "WARNING bad method in cfg"
             print "Will use by default Feller"
-            run_id_mol = ee_e_name_id_dict["Feller"]
+            run_id_mol = e_nr_name_id_dict["Feller"]
 
         cmd_where = " AND ".join(cond_filter_ele +
                                  ['((run_id = 21) OR (run_id = "%s"))' %
@@ -428,7 +432,7 @@ if __name__ == '__main__':
         for name in need_to_do.intersection(can_do):
             emp_tmp = -ae_exp[name] - zpe_exp[name]
 
-            for name_atome, number in f_info[name]:
+            for name_atome, number in f_info[name].formula:
                 emp_tmp += number * e_nr[name_atome]
 
             e_nr[name] = emp_tmp
@@ -469,7 +473,7 @@ if __name__ == '__main__':
         for name in f_info:
             try:
                 ae_nr_tmp = -e_nr[name]
-                for name_atome, number in f_info[name]:
+                for name_atome, number in f_info[name].formula:
                     ae_nr_tmp += e_nr[name_atome] * number
 
                 ae_nr[name] = ae_nr_tmp
@@ -497,7 +501,7 @@ if __name__ == '__main__':
             for name, energy in e_cal_rd.iteritems():
                 try:
                     ao_th_tmp = -energy
-                    for name_atome, number in f_info[name]:
+                    for name_atome, number in f_info[name].formula:
                         ao_th_tmp += e_cal_rd[name_atome] * number
                 except KeyError:
                     pass
@@ -530,9 +534,17 @@ if __name__ == '__main__':
 
         d_mad = defaultdict()
         for run_id, ae_diff_rd in ae_diff.iteritems():
-            l_energy = ae_diff_rd.values()
-            mad = sum(map(abs, l_energy)) / len(l_energy) * 630
-            d_mad[run_id] = "{:>6.2f}".format(mad)
+            #            l_energy = ae_diff_rd.values()
+
+            l_energy = [val for name, val in ae_diff_rd.iteritems()
+                        if f_info[name].num_atoms > 1]
+
+            try:
+                mad = 630 * sum(map(abs, l_energy)) / len(l_energy)
+            except ZeroDivisionError:
+                mad = DEFAULT_CARACTER
+            else:
+                d_mad[run_id] = "{:>6.2f}".format(mad)
 
         # -#-#-#- #
         # I n i t #
