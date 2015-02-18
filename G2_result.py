@@ -584,28 +584,27 @@ if __name__ == '__main__':
 
         # STR_TO_DICT is a dict binding the name with a dict
         # STR_TO_DICT[ae_diff] = ae_diff[run_id] for example
-        # Warning run_id need to be declared
         # Use with precausion
         STR_TO_DICT = defaultdict(dict)
 
         # nl is a list of the dictionary name to use (aka key of STR_TO_DICT)
         # ELE is the element name
-        def get_value(nl):
+        def _get_value(nl):
             return [STR_TO_DICT[str_][ELE] if ELE in STR_TO_DICT[str_]
                     else DEFAULT_CARACTER for str_ in nl]
 
-        def change_unit(nl):
+        def _change_unit(nl):
             for str_ in nl:
                 if unit_dict[str_] == "Hartree":
                     pass
                 elif unit_dict[str_] == "kcal/mol":
                     STR_TO_DICT[str_][ELE] *= 630.
 
-        def get_values_convert(nl):
-            change_unit(nl)
-            return get_value(nl)
+        def _get_values_convert(nl):
+            _change_unit(nl)
+            return _get_value(nl)
 
-        def good_ele_to_print(n):
+        def _good_ele_to_print(n):
             return any([arguments["--all_children"], not arguments["--ele"],
                         n in arguments["--ele"]])
 
@@ -641,26 +640,26 @@ if __name__ == '__main__':
                 line = list(line_basis) + [ELE]
 
                 STR_TO_DICT["e_cal"] = e_cal[run_id]
-                line += get_values_convert("e_cal".split())
+                line += _get_values_convert("e_cal".split())
 
-                if not good_ele_to_print(ELE):
+                if not _good_ele_to_print(ELE):
                     continue
 
                 if arguments["--zpe"]:
 
                     STR_TO_DICT["zpe_exp"] = zpe_exp
-                    line += get_values_convert("zpe_exp".split())
+                    line += _get_values_convert("zpe_exp".split())
 
                 if arguments["--estimated_exact"]:
                     STR_TO_DICT["e_nr"] = e_nr
                     STR_TO_DICT["e_diff"] = e_diff[run_id]
-                    line += get_values_convert("e_nr e_diff".split())
+                    line += _get_values_convert("e_nr e_diff".split())
 
                 if arguments["--ae"]:
                     STR_TO_DICT["ae_cal"] = ae_cal[run_id]
                     STR_TO_DICT["ae_nr"] = ae_nr
                     STR_TO_DICT["ae_diff"] = ae_diff[run_id]
-                    line += get_values_convert("ae_cal ae_nr ae_diff".split())
+                    line += _get_values_convert("ae_cal ae_nr ae_diff".split())
 
                 table_body.append(line)
 
@@ -724,8 +723,10 @@ if __name__ == '__main__':
         for line in table_body:
             for i, name in enumerate(header_name):
                 if name in format_dict:
-                    line[i] = format_dict[name].format(
-                        line[i]) if line[i] else DEFAULT_CARACTER
+                    if line[i]:
+                        line[i] = format_dict[name].format(line[i])
+                    else:
+                        line[i] = DEFAULT_CARACTER
 
         # -#-#-#-#-#-#-#- #
         # B i g  Ta b l e #
@@ -771,7 +772,7 @@ if __name__ == '__main__':
     #             |
     else:
 
-        def value(var):
+        def _value(var):
 
             DEFAULT_CARACTER = "-"
             if not var:
@@ -789,7 +790,7 @@ if __name__ == '__main__':
         for line in table_data_small:
             l = tuple(map(str, line[:2]))
             for i in line[2:]:
-                l += value(i)
+                l += _value(i)
 
             print " ".join(l)
 
