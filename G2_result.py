@@ -590,20 +590,18 @@ if __name__ == '__main__':
 
         # nl is a list of the dictionary name to use (aka key of STR_TO_DICT)
         # ELE is the element name
-        def _get_value(nl):
-            return [STR_TO_DICT[str_][ELE] if ELE in STR_TO_DICT[str_]
-                    else DEFAULT_CARACTER for str_ in nl]
-
-        def _change_unit(nl):
-            for str_ in nl:
-                if unit_dict[str_] == "Hartree":
-                    pass
-                elif unit_dict[str_] == "kcal/mol":
-                    STR_TO_DICT[str_][ELE] *= 627.51
-
         def _get_values_convert(nl):
-            _change_unit(nl)
-            return _get_value(nl)
+            d = []
+            for str_ in nl:
+                if ELE in STR_TO_DICT[str_]:
+                    if unit_dict[str_] == "Hartree":
+                        v = STR_TO_DICT[str_][ELE]
+                    elif unit_dict[str_] == "kcal/mol":
+                        v = STR_TO_DICT[str_][ELE] * 627.51
+                else:
+                    v = DEFAULT_CARACTER
+                d.append(v)
+            return d
 
         def _good_ele_to_print(n):
             return any([arguments["--all_children"], not arguments["--ele"],
