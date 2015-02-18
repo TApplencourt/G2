@@ -546,9 +546,9 @@ if __name__ == '__main__':
             try:
                 mad = 630 * sum(map(abs, l_energy)) / len(l_energy)
             except ZeroDivisionError:
-                mad = DEFAULT_CARACTER
+                pass
             else:
-                d_mad[run_id] = "{:>6.2f}".format(mad)
+                d_mad[run_id] = mad
 
         # -#-#-#- #
         # I n i t #
@@ -724,6 +724,7 @@ if __name__ == '__main__':
             for i, name in enumerate(header_name):
                 if name in format_dict:
                     if line[i]:
+                        print format_dict[name], line[i]
                         line[i] = format_dict[name].format(line[i])
                     else:
                         line[i] = DEFAULT_CARACTER
