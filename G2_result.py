@@ -120,14 +120,14 @@ if __name__ == '__main__':
 
     # Calcule one
 
-    # * e_cal    Dict of energies theorical / calculated   (e_cal[run_id][name])
+    # * e_cal    Ordered dict of energies theorical / calculated   (e_cal[run_id][name])
     # * zpe_exp  Dict of zpe experimental                  (zpe_exp[name])
     # * e_nr     Dict of energy estimated exact            (e_nr[name])
     # * e_diff   Dict of e_cal exact - estimated exact one  (e_diff[run_id][name])
     # * ae_cal   Dict of atomization energye theorical      (ae_cal[run_id][name])
     # * ae_nr    Dict of non relativist atomization energy (ae_nr[name])
     # * ae_exp   Dict of atomization experimental          (ae_ext[name])
-    # * ae_diff  Dict of ae_cal energy - no relativiste     (ae_diff[run_id][name])
+    # * ae_diff  Ordered Dict of ae_cal energy - no relativiste     (ae_diff[run_id][name])
     # * run_info Dict of the geo,basis,method,comments     (run_info[run_id])
 
     # Format dict
@@ -494,8 +494,8 @@ if __name__ == '__main__':
         # I n i t #
         # -#-#-#- #
 
-        ae_cal = defaultdict(dict)
-        ae_diff = defaultdict(dict)
+        ae_cal = defaultdict(OrderedDict)
+        ae_diff = defaultdict(OrderedDict)
 
         # -#-#-#-#-#- #
         # F i l l I n #
@@ -724,7 +724,6 @@ if __name__ == '__main__':
             for i, name in enumerate(header_name):
                 if name in format_dict:
                     if line[i]:
-                        print format_dict[name], line[i]
                         line[i] = format_dict[name].format(line[i])
                     else:
                         line[i] = DEFAULT_CARACTER
@@ -810,3 +809,33 @@ if __name__ == '__main__':
         print "set xtics rotate;",
         print "plot 'dat' u 9:xtic(2) w lp title 'ae_diff';",
         print "pause -1\""
+
+        import plotly.plotly as py
+        from plotly.graph_objs import *
+
+        def get_scatter(name, x, y, ye=None):
+            return Scatter(x=x,
+                           y=y,
+                           name=name,
+           #                error_y=ErrorY(type='data',
+           #                               array=ye,
+           #                               visible=True)
+                           )
+
+        data = []
+        for run_id, ae_diff_rd in ae_diff.iteritems():
+            name = "run_id : %s" % run_id
+            x = [k for k in ae_diff_rd]
+            y = [v for v in ae_diff_rd.values()]
+            #ye = [v.err for v in e_cal_rd.values()]
+            ye = None
+            data.append(get_scatter(name, x, y, ye))
+
+        data = Data(data)
+
+        layout = Layout(title='Fig 1: Run 60 Energie')
+
+        fig = Figure(data=data, layout=layout)
+
+        plot_url = py.plot(fig, filename='some-figure')
+        py.image.save_as(fig, filename='some-fig.svg')
