@@ -811,6 +811,10 @@ if __name__ == '__main__':
         print "plot 'dat' u 9:xtic(2) w lp title 'ae_diff';",
         print "pause -1\""
 
+    #  _
+    # |_) |  _ _|_   |
+    # |   | (_) |_ o | \/
+    #                  /
     elif arguments["--plotly"]:
 
         import plotly.plotly as py
@@ -851,7 +855,7 @@ if __name__ == '__main__':
 
         data = Data(data)
 
-        layout = Layout(title='Fig 1: %s'%arguments["--plotly"])
+        layout = Layout(title='Fig 1: %s' % arguments["--plotly"])
 
         fig = Figure(data=data, layout=layout)
 
