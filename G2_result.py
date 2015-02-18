@@ -23,6 +23,7 @@ Usage:
                           [--ae]
                           [--without_pt2]
                           [--gnuplot]
+                          [--plotly]
   G2_result.py --version
 
 Options:
@@ -714,7 +715,7 @@ if __name__ == '__main__':
     #  /\   _  _ o o |  _. |_  |  _
     # /--\ _> (_ | | | (_| |_) | (/_
     #
-    elif not arguments["--gnuplot"]:
+    elif not (arguments["--gnuplot"] or arguments["--plotly"]):
 
         # -#-#-#-#-#- #
         # F o r m a t #
@@ -770,7 +771,7 @@ if __name__ == '__main__':
     # /__ ._      ._  |  _ _|_
     # \_| | | |_| |_) | (_) |_
     #             |
-    else:
+    elif arguments["--gnuplot"]:
 
         def _value(var):
 
@@ -810,25 +811,39 @@ if __name__ == '__main__':
         print "plot 'dat' u 9:xtic(2) w lp title 'ae_diff';",
         print "pause -1\""
 
+    elif arguments["--plotly"]:
+
         import plotly.plotly as py
-        from plotly.graph_objs import *
+        from plotly.graph_objs import Layout, Figure
+        from plotly.graph_objs import Scatter, Data, ErrorY
 
         def get_scatter(name, x, y, ye=None):
-            return Scatter(x=x,
-                           y=y,
-                           name=name,
-           #                error_y=ErrorY(type='data',
-           #                               array=ye,
-           #                               visible=True)
-                           )
+
+            if ye:
+                return Scatter(x=x,
+                               y=y,
+                               name=name,
+                               error_y=ErrorY(type='data',
+                                              array=ye,
+                                              visible=True)
+                               )
+            else:
+                return Scatter(x=x,
+                               y=y,
+                               name=name)
 
         data = []
         for run_id, ae_diff_rd in ae_diff.iteritems():
             name = "run_id : %s" % run_id
             x = [k for k in ae_diff_rd]
-            y = [v for v in ae_diff_rd.values()]
-            #ye = [v.err for v in e_cal_rd.values()]
-            ye = None
+
+            try:
+                y = [v.e for v in ae_diff_rd.values()]
+                ye = [v.err for v in e_cal_rd.values()]
+            except AttributeError:
+                y = [v for v in ae_diff_rd.values()]
+                ye = None
+
             data.append(get_scatter(name, x, y, ye))
 
         data = Data(data)
