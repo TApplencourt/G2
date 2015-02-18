@@ -23,7 +23,7 @@ Usage:
                           [--ae]
                           [--without_pt2]
                           [--gnuplot]
-                          [--plotly]
+                          [--plotly=<column>]
   G2_result.py --version
 
 Options:
@@ -833,22 +833,25 @@ if __name__ == '__main__':
                                name=name)
 
         data = []
-        for run_id, ae_diff_rd in ae_diff.iteritems():
+
+        dict_ = eval(arguments["--plotly"])
+
+        for run_id, dict_rd in dict_.iteritems():
             name = "run_id : %s" % run_id
-            x = [k for k in ae_diff_rd]
+            x = [k for k in dict_rd]
 
             try:
-                y = [v.e for v in ae_diff_rd.values()]
+                y = [v.e for v in dict_rd.values()]
                 ye = [v.err for v in e_cal_rd.values()]
             except AttributeError:
-                y = [v for v in ae_diff_rd.values()]
+                y = [v for v in dict_rd.values()]
                 ye = None
 
             data.append(get_scatter(name, x, y, ye))
 
         data = Data(data)
 
-        layout = Layout(title='Fig 1: Run 60 Energie')
+        layout = Layout(title='Fig 1: %s'%arguments["--plotly"])
 
         fig = Figure(data=data, layout=layout)
 
