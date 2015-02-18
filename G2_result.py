@@ -545,7 +545,7 @@ if __name__ == '__main__':
                         if f_info[name].num_atoms > 1]
 
             try:
-                mad = 630 * sum(map(abs, l_energy)) / len(l_energy)
+                mad = 627.51 * sum(map(abs, l_energy)) / len(l_energy)
             except ZeroDivisionError:
                 pass
             else:
@@ -599,7 +599,7 @@ if __name__ == '__main__':
                 if unit_dict[str_] == "Hartree":
                     pass
                 elif unit_dict[str_] == "kcal/mol":
-                    STR_TO_DICT[str_][ELE] *= 630.
+                    STR_TO_DICT[str_][ELE] *= 627.51
 
         def _get_values_convert(nl):
             _change_unit(nl)
