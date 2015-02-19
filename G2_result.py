@@ -11,7 +11,6 @@ Usage:
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
                         [--without_pt2]
-  G2_result.py list_ele --run_id=<id> [--missing]
   G2_result.py get_energy [--order_by=<column>]
                           [--run_id=<id>...]
                           [--ele=<element_name>... | --like_toulouse] [--all_children]
@@ -24,6 +23,12 @@ Usage:
                           [--without_pt2]
                           [--gnuplot]
                           [--plotly=<column>]
+  G2_result.py list_ele [--run_id=<id>...]
+                        [--ele=<element_name>... ]
+                        [--geo=<geometry_name>...]
+                        [--basis=<basis_name>...]
+                        [--method=<method_name>...]
+                        [--missing]
   G2_result.py --version
 
 Options:
@@ -231,7 +236,7 @@ if __name__ == '__main__':
         cmd_where_tmp = " AND ".join(cond_filter + cond_filter_ele)
 
         # Select all the run_id where all the condition is good
-        if l_ele_to_get:
+        if l_ele_to_get and not arguments["--missing"]:
             cmd_having = "count(name) = {0}".format(len(l_ele_to_get))
         else:
             cmd_having = "(1)"
@@ -693,6 +698,7 @@ if __name__ == '__main__':
         for run_id in run_info:
 
             if arguments["--missing"]:
+
                 line = [e for e in l_ele_to_get if e not in e_cal[run_id]]
             else:
                 line = [e for e in e_cal[run_id]]
