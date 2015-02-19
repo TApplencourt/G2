@@ -591,9 +591,11 @@ if __name__ == '__main__':
             for str_ in nl:
                 if ELE in STR_TO_DICT[str_]:
                     if unit_dict[str_] == "Hartree":
-                        v = STR_TO_DICT[str_][ELE]
+                        pass
                     elif unit_dict[str_] == "kcal/mol":
-                        v = STR_TO_DICT[str_][ELE] * 627.509
+                        STR_TO_DICT[str_][ELE] *=  627.509
+
+                    v = STR_TO_DICT[str_][ELE]
                 else:
                     v = DEFAULT_CARACTER
                 d.append(v)
@@ -833,8 +835,8 @@ if __name__ == '__main__':
             x = [name for name in l_ele_to_print if name in dict_rd]
 
             try:
-                y = [dict_rd[name].e for k in x]
-                ye = [dict_rd[name].err for k in x]
+                y = [dict_rd[name].e for name in x]
+                ye = [dict_rd[name].err for name in x]
             except AttributeError:
                 y = [dict_rd[name] for name in x]
                 ye = None
