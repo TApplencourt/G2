@@ -168,21 +168,24 @@ if __name__ == '__main__':
     # By defalt, if l_ele is empty get all
 
     if arguments["--ele"]:
-        l_ele = set(arguments["--ele"])
+        l_ele = arguments["--ele"]
     elif arguments["--like_toulouse"]:
         from src.misc_info import list_toulouse
-        l_ele = set(list_toulouse)
+        l_ele = list_toulouse
     else:
-        l_ele = set()
+        l_ele = list()
+
+    l_ele_to_get = l_ele
+    l_ele_to_print = l_ele
 
     # Add all the children of a element to l_ele if need.
     # For example for the calculate the AE of AlCl we need Al and Cl
-    if l_ele and any(arguments[k] for k in ["--all_children",
-                                            "--ae",
-                                            "--estimated_exact"]):
+    if l_ele_to_get and any(arguments[k] for k in ["--all_children",
+                                                   "--ae",
+                                                   "--estimated_exact"]):
 
         # Find all this children of the element; this is the new conditions
-        cond = " ".join(cond_sql_or("name", l_ele))
+        cond = " ".join(cond_sql_or("name", l_ele_to_get))
 
         c.execute("""SELECT name, formula
                            FROM id_tab
@@ -190,7 +193,11 @@ if __name__ == '__main__':
 
         for name, formula_raw in c.fetchall():
             for atom, number in eval(formula_raw):
-                l_ele.add(atom)
+                if atom not in l_ele_to_get:
+                    l_ele_to_get.append(atom)
+
+        if arguments["--all_children"]:
+            l_ele_to_print = l_ele_to_get
 
     #  _
     # |_ o | _|_  _  ._    _ _|_ ._ o ._   _
@@ -316,7 +323,8 @@ if __name__ == '__main__':
     # -#-#-#-#- *
 
     e_cal = defaultdict(OrderedDict)
-    order = list_toulouse if arguments["--like_toulouse"] else l_ele
+#    order = list_toulouse if arguments["--like_toulouse"] else l_ele
+    order = l_ele
     if order:
         for run_id in e_cal_unorder:
             for i in order:
@@ -636,13 +644,14 @@ if __name__ == '__main__':
             line_basis = [run_id] + run_info[run_id][:4]
 
             for ELE in e_cal_rd:
+
+                if not _good_ele_to_print(ELE):
+                    continue
+
                 line = list(line_basis) + [ELE]
 
                 STR_TO_DICT["e_cal"] = e_cal[run_id]
                 line += _get_values_convert("e_cal".split())
-
-                if not _good_ele_to_print(ELE):
-                    continue
 
                 if arguments["--zpe"]:
 
