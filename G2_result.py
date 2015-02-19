@@ -107,6 +107,8 @@ if __name__ == '__main__':
     if arguments["list_run"]:
         arguments["--ae"] = True
 
+    if arguments["--missing"]:
+        arguments["--like_toulouse"] = True
     DEFAULT_CARACTER = ""
 
     # -#-#-#-#-#-#-#- #
@@ -593,7 +595,7 @@ if __name__ == '__main__':
                     if unit_dict[str_] == "Hartree":
                         pass
                     elif unit_dict[str_] == "kcal/mol":
-                        STR_TO_DICT[str_][ELE] *=  627.509
+                        STR_TO_DICT[str_][ELE] *= 627.509
 
                     v = STR_TO_DICT[str_][ELE]
                 else:
@@ -620,6 +622,9 @@ if __name__ == '__main__':
 
         header_unit = [
             unit_dict[n] if n in unit_dict else DEFAULT_CARACTER for n in header_name]
+
+        if not l_ele_to_print:
+            l_ele_to_print = [k for k in f_info]
 
         # -#-#-#- #
         # B o d y #
@@ -685,21 +690,13 @@ if __name__ == '__main__':
     # List all the element of a run_id
     if arguments["list_ele"]:
 
-        run_id = arguments["--run_id"]
+        for run_id in run_info:
 
-        c.execute("""SELECT name
-                    FROM output_tab
-                    WHERE run_id = (?)""", run_id)
-
-        l_ele = [str(ele[0]) for ele in c.fetchall()]
-
-        if arguments["--missing"]:
-            from src.misc_info import list_toulouse
-            table_body = [ele for ele in list_toulouse if ele not in l_ele]
-        else:
-            table_body = [ele for ele in l_ele]
-
-        print " ".join(table_body)
+            if arguments["--missing"]:
+                line = [e for e in l_ele_to_get if e not in e_cal[run_id]]
+            else:
+                line = [e for e in e_cal[run_id]]
+            print run_id, " ".join(line)
 
     #               ___
     #  /\   _  _ o o |  _. |_  |  _
@@ -846,7 +843,7 @@ if __name__ == '__main__':
 
         data = Data(data)
 
-        yaxis_title = "%s (%s)"%(dict_name, unit_dict[dict_name])
+        yaxis_title = "%s (%s)" % (dict_name, unit_dict[dict_name])
 
         layout = Layout(title='Fig 1: G2 %s' % dict_name,
                         xaxis=XAxis(autotick=False,
