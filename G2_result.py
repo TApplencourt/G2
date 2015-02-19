@@ -809,7 +809,7 @@ if __name__ == '__main__':
 
         import plotly.plotly as py
         from plotly.graph_objs import Layout, Figure
-        from plotly.graph_objs import Scatter, Data, ErrorY
+        from plotly.graph_objs import Scatter, Data, ErrorY, XAxis
 
         def get_scatter(name, x, y, ye=None):
 
@@ -845,7 +845,10 @@ if __name__ == '__main__':
 
         data = Data(data)
 
-        layout = Layout(title='Fig 1: %s' % arguments["--plotly"])
+        layout = Layout(title='Fig 1: %s' % arguments["--plotly"],
+                        xaxis=XAxis(autotick=False,
+                                    ticks='outside')
+                        )
 
         fig = Figure(data=data, layout=layout)
 
