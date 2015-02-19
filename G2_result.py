@@ -216,8 +216,8 @@ if __name__ == '__main__':
         cond_filter += cond_sql_or(k, arguments[v])
 
     # We need to find the run_id who containt ALL the ele is needed
-    if l_ele:
-        cond_filter_ele = cond_sql_or("name", l_ele)
+    if l_ele_to_get:
+        cond_filter_ele = cond_sql_or("name", l_ele_to_get)
     else:
         cond_filter_ele = []
 
@@ -230,7 +230,10 @@ if __name__ == '__main__':
         cmd_where_tmp = " AND ".join(cond_filter + cond_filter_ele)
 
         # Select all the run_id where all the condition is good
-        cmd_having = "count(name) = {0}".format(len(l_ele)) if l_ele else "(1)"
+        if l_ele_to_get:
+            cmd_having = "count(name) = {0}".format(len(l_ele_to_get))
+        else:
+            cmd_having = "(1)"
 
         c.execute("""SELECT run_id
                     FROM (SELECT run_id,
