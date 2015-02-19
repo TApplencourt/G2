@@ -809,7 +809,7 @@ if __name__ == '__main__':
 
         import plotly.plotly as py
         from plotly.graph_objs import Layout, Figure
-        from plotly.graph_objs import Scatter, Data, ErrorY, XAxis
+        from plotly.graph_objs import Scatter, Data, ErrorY, XAxis, YAxis
 
         def get_scatter(name, x, y, ye=None):
 
@@ -828,7 +828,8 @@ if __name__ == '__main__':
 
         data = []
 
-        dict_ = eval(arguments["--plotly"])
+        dict_name = arguments["--plotly"]
+        dict_ = eval(dict_name)
 
         for run_id, dict_rd in dict_.iteritems():
             legend = "run_id : %s" % run_id
@@ -845,12 +846,14 @@ if __name__ == '__main__':
 
         data = Data(data)
 
-        layout = Layout(title='Fig 1: %s' % arguments["--plotly"],
+        yaxis_title = "%s (%s)"%(dict_name, unit_dict[dict_name])
+
+        layout = Layout(title='Fig 1: G2 %s' % dict_name,
                         xaxis=XAxis(autotick=False,
-                                    ticks='outside')
-                        )
+                                    ticks='outside'),
+                        yaxis=YAxis(title=yaxis_title))
 
         fig = Figure(data=data, layout=layout)
 
-        plot_url = py.plot(fig, filename='some-figure')
-        py.image.save_as(fig, filename='some-fig.svg')
+        plot_url = py.plot(fig, filename='G2')
+        py.image.save_as(fig, filename='G2.svg')
