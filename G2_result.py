@@ -844,7 +844,7 @@ if __name__ == '__main__':
 
         for run_id, dict_rd in dict_.iteritems():
             legend = "run_id : %s <br> %s" % (run_id,
-                                              " ".join(run_info[run_id]))
+                                              ", ".join(run_info[run_id]))
             x = [name for name in l_ele_to_print(run_id) if name in dict_rd]
 
             try:
