@@ -200,7 +200,7 @@ if __name__ == '__main__':
         for name, formula_raw in c.fetchall():
             for atom, number in eval(formula_raw):
                 if atom not in l_ele_to_get:
-                    l_ele_to_get.append(atom)
+                    l_ele_to_get.insert(0, atom)
 
         if arguments["--all_children"]:
             l_ele_to_print_tmp = l_ele_to_get
@@ -819,8 +819,8 @@ if __name__ == '__main__':
     elif arguments["--plotly"]:
 
         import plotly.plotly as py
-        from plotly.graph_objs import Layout, Figure
-        from plotly.graph_objs import Scatter, Data, ErrorY, XAxis, YAxis
+        from plotly.graph_objs import Layout, ErrorY, XAxis, YAxis, Legend
+        from plotly.graph_objs import Figure, Scatter, Data
 
         def get_scatter(name, x, y, ye=None):
 
@@ -843,7 +843,8 @@ if __name__ == '__main__':
         dict_ = eval(dict_name)
 
         for run_id, dict_rd in dict_.iteritems():
-            legend = "run_id : %s" % run_id
+            legend = "run_id : %s <br> %s" % (run_id,
+                                              " ".join(run_info[run_id]))
             x = [name for name in l_ele_to_print(run_id) if name in dict_rd]
 
             try:
@@ -862,7 +863,10 @@ if __name__ == '__main__':
         layout = Layout(title='Fig 1: G2 %s' % dict_name,
                         xaxis=XAxis(autotick=False,
                                     ticks='outside'),
-                        yaxis=YAxis(title=yaxis_title))
+                        yaxis=YAxis(title=yaxis_title),
+                        legend=Legend(x=0,
+                                      y=-0.4)
+                        )
 
         fig = Figure(data=data, layout=layout)
 
