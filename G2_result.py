@@ -75,7 +75,6 @@ if sys.version_info[:2] != (2, 7):
     sys.exit(1)
 
 from collections import defaultdict
-from collections import OrderedDict
 from collections import namedtuple
 
 try:
@@ -121,14 +120,14 @@ if __name__ == '__main__':
 
     # Calcule one
 
-    # * e_cal    Ordered dict of energies theorical / calculated   (e_cal[run_id][name])
+    # * e_cal    Dict of energies theorical / calculated   (e_cal[run_id][name])
     # * zpe_exp  Dict of zpe experimental                  (zpe_exp[name])
     # * e_nr     Dict of energy estimated exact            (e_nr[name])
     # * e_diff   Dict of e_cal exact - estimated exact one  (e_diff[run_id][name])
     # * ae_cal   Dict of atomization energye theorical      (ae_cal[run_id][name])
     # * ae_nr    Dict of non relativist atomization energy (ae_nr[name])
     # * ae_exp   Dict of atomization experimental          (ae_ext[name])
-    # * ae_diff  Ordered Dict of ae_cal energy - no relativiste     (ae_diff[run_id][name])
+    # * ae_diff  Dict of ae_cal energy - no relativiste     (ae_diff[run_id][name])
     # * run_info Dict of the geo,basis,method,comments     (run_info[run_id])
 
     # Format dict
@@ -492,8 +491,8 @@ if __name__ == '__main__':
         # I n i t #
         # -#-#-#- #
 
-        ae_cal = defaultdict(OrderedDict)
-        ae_diff = defaultdict(OrderedDict)
+        ae_cal = defaultdict(dict)
+        ae_diff = defaultdict(dict)
 
         # -#-#-#-#-#- #
         # F i l l I n #
@@ -600,10 +599,6 @@ if __name__ == '__main__':
                 d.append(v)
             return d
 
-#        def _good_ele_to_print(n):
-#            return any([arguments["--all_children"], not arguments["--ele"],
-#                        n in arguments["--ele"]])
-
         table_body = []
 
         # -#-#-#-#-#- #
@@ -633,9 +628,6 @@ if __name__ == '__main__':
             line_basis = [run_id] + run_info[run_id][:4]
 
             for ELE in l_ele_to_print:
-
-                #                if not _good_ele_to_print(ELE):
-                #                    continue
 
                 line = list(line_basis) + [ELE]
 
@@ -835,24 +827,6 @@ if __name__ == '__main__':
         data = []
 
         dict_ = eval(arguments["--plotly"])
-
-#        for run_id in run_info:
-#            x = list()
-#            y = list()
-#            ye = list()
-#
-#            for ele in l_ele_to_print:
-#                v = dict_[run_id][ele]
-#                try:
-#                    y.append(v.e)
-#                    ye.append(v.err)
-#                except AttributeError:
-#                    y.append(v)
-#                    ye = None
-#                finally:
-#                    x.append(ele)
-#
-#            print x,y,ye
 
         for run_id, dict_rd in dict_.iteritems():
             legend = "run_id : %s" % run_id
