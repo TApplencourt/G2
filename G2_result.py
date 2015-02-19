@@ -14,7 +14,7 @@ Usage:
   G2_result.py list_ele --run_id=<id> [--missing]
   G2_result.py get_energy [--order_by=<column>]
                           [--run_id=<id>...]
-                          [--ele=<element_name>...  [--all_children] | --like_toulouse]
+                          [--ele=<element_name>... | --like_toulouse] [--all_children]
                           [--geo=<geometry_name>...]
                           [--basis=<basis_name>...]
                           [--method=<method_name>...]
@@ -175,8 +175,8 @@ if __name__ == '__main__':
     else:
         l_ele = list()
 
-    l_ele_to_get = l_ele
-    l_ele_to_print = l_ele
+    l_ele_to_get = list(l_ele)
+    l_ele_to_print = list(l_ele)
 
     # Add all the children of a element to l_ele if need.
     # For example for the calculate the AE of AlCl we need Al and Cl
@@ -290,7 +290,7 @@ if __name__ == '__main__':
     # I n i t #
     # -#-#-#- #
 
-    e_cal_unorder = defaultdict(dict)
+    e_cal = defaultdict(dict)
     run_info = defaultdict()
     f_info = defaultdict()
 
@@ -313,27 +313,13 @@ if __name__ == '__main__':
             value = v_un(float(r['q_energy']),
                          float(r['q_err']))
 
-        e_cal_unorder[r['run_id']][r['ele']] = value
+        e_cal[r['run_id']][r['ele']] = value
         # Info
         run_info[r['run_id']] = [r['method'], r['basis'],
                                  r['geo'], r['comments']]
 
         if not r['ele'] in f_info:
             f_info[r['ele']] = Num_formula(r['num_atoms'], eval(r['formula']))
-
-    # -#-#-#-#- #
-    # O r d e r #
-    # -#-#-#-#- *
-
-    e_cal = defaultdict(OrderedDict)
-#    order = list_toulouse if arguments["--like_toulouse"] else l_ele
-    order = l_ele
-    if order:
-        for run_id in e_cal_unorder:
-            for i in order:
-                e_cal[run_id][i] = e_cal_unorder[run_id][i]
-    else:
-        e_cal = e_cal_unorder
 
     #  __
     #   / ._   _    ()     /\   _     _     ._
@@ -614,9 +600,9 @@ if __name__ == '__main__':
                 d.append(v)
             return d
 
-        def _good_ele_to_print(n):
-            return any([arguments["--all_children"], not arguments["--ele"],
-                        n in arguments["--ele"]])
+#        def _good_ele_to_print(n):
+#            return any([arguments["--all_children"], not arguments["--ele"],
+#                        n in arguments["--ele"]])
 
         table_body = []
 
@@ -642,14 +628,14 @@ if __name__ == '__main__':
         # B o d y #
         # -#-#-#- #
 
-        for run_id, e_cal_rd in e_cal.iteritems():
+        for run_id in run_info:
 
             line_basis = [run_id] + run_info[run_id][:4]
 
-            for ELE in e_cal_rd:
+            for ELE in l_ele_to_print:
 
-                if not _good_ele_to_print(ELE):
-                    continue
+                #                if not _good_ele_to_print(ELE):
+                #                    continue
 
                 line = list(line_basis) + [ELE]
 
@@ -850,18 +836,36 @@ if __name__ == '__main__':
 
         dict_ = eval(arguments["--plotly"])
 
+#        for run_id in run_info:
+#            x = list()
+#            y = list()
+#            ye = list()
+#
+#            for ele in l_ele_to_print:
+#                v = dict_[run_id][ele]
+#                try:
+#                    y.append(v.e)
+#                    ye.append(v.err)
+#                except AttributeError:
+#                    y.append(v)
+#                    ye = None
+#                finally:
+#                    x.append(ele)
+#
+#            print x,y,ye
+
         for run_id, dict_rd in dict_.iteritems():
-            name = "run_id : %s" % run_id
-            x = [k for k in dict_rd]
+            legend = "run_id : %s" % run_id
+            x = [name for name in l_ele_to_print if name in dict_rd]
 
             try:
-                y = [v.e for v in dict_rd.values()]
-                ye = [v.err for v in e_cal_rd.values()]
+                y = [dict_rd[name].e for k in x]
+                ye = [dict_rd[name].err for k in x]
             except AttributeError:
-                y = [v for v in dict_rd.values()]
+                y = [dict_rd[name] for name in x]
                 ye = None
 
-            data.append(get_scatter(name, x, y, ye))
+            data.append(get_scatter(legend, x, y, ye))
 
         data = Data(data)
 
