@@ -182,7 +182,7 @@ if __name__ == '__main__':
         l_ele = list()
 
     l_ele_to_get = list(l_ele)
-    l_ele_to_print = list(l_ele)
+    l_ele_to_print_tmp = list(l_ele)
 
     # Add all the children of a element to l_ele if need.
     # For example for the calculate the AE of AlCl we need Al and Cl
@@ -203,15 +203,15 @@ if __name__ == '__main__':
                     l_ele_to_get.append(atom)
 
         if arguments["--all_children"]:
-            l_ele_to_print = l_ele_to_get
+            l_ele_to_print_tmp = l_ele_to_get
 
     # The Iterable for l_ele_to_print
     # WARNING RUN_ID is a global function, so do e_cal
-    def iter_l_ele_to_print():
+    def l_ele_to_print(run_id):
         if l_ele_to_print:
-            return [name for name in l_ele_to_print]
+            return [name for name in l_ele_to_print_tmp]
         else:
-            return [name for name in e_cal[RUN_ID]]
+            return [name for name in e_cal[run_id]]
 
     #  _
     # |_ o | _|_  _  ._    _ _|_ ._ o ._   _
@@ -640,15 +640,15 @@ if __name__ == '__main__':
         # B o d y #
         # -#-#-#- #
 
-        for RUN_ID in run_info:
+        for run_id in run_info:
 
-            line_basis = [RUN_ID] + run_info[RUN_ID][:4]
+            line_basis = [run_id] + run_info[run_id][:4]
 
-            for ELE in iter_l_ele_to_print():
+            for ELE in l_ele_to_print(run_id):
 
                 line = list(line_basis) + [ELE]
 
-                STR_TO_DICT["e_cal"] = e_cal[RUN_ID]
+                STR_TO_DICT["e_cal"] = e_cal[run_id]
                 line += _get_values_convert("e_cal".split())
 
                 if arguments["--zpe"]:
@@ -658,13 +658,13 @@ if __name__ == '__main__':
 
                 if arguments["--estimated_exact"]:
                     STR_TO_DICT["e_nr"] = e_nr
-                    STR_TO_DICT["e_diff"] = e_diff[RUN_ID]
+                    STR_TO_DICT["e_diff"] = e_diff[run_id]
                     line += _get_values_convert("e_nr e_diff".split())
 
                 if arguments["--ae"]:
-                    STR_TO_DICT["ae_cal"] = ae_cal[RUN_ID]
+                    STR_TO_DICT["ae_cal"] = ae_cal[run_id]
                     STR_TO_DICT["ae_nr"] = ae_nr
-                    STR_TO_DICT["ae_diff"] = ae_diff[RUN_ID]
+                    STR_TO_DICT["ae_diff"] = ae_diff[run_id]
                     line += _get_values_convert("ae_cal ae_nr ae_diff".split())
 
                 table_body.append(line)
@@ -842,9 +842,9 @@ if __name__ == '__main__':
         dict_name = arguments["--plotly"]
         dict_ = eval(dict_name)
 
-        for RUN_ID, dict_rd in dict_.iteritems():
-            legend = "run_id : %s" % RUN_ID
-            x = [name for name in iter_l_ele_to_print() if name in dict_rd]
+        for run_id, dict_rd in dict_.iteritems():
+            legend = "run_id : %s" % run_id
+            x = [name for name in l_ele_to_print(run_id) if name in dict_rd]
 
             try:
                 y = [dict_rd[name].e for name in x]
