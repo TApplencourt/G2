@@ -698,12 +698,15 @@ if __name__ == '__main__':
         for run_id in run_info:
 
             if arguments["--missing"]:
-
                 line = [e for e in l_ele_to_get if e not in e_cal[run_id]]
             else:
                 line = [e for e in e_cal[run_id]]
-            print run_id, " ".join(line)
 
+            if line:
+                print run_id
+                print " ".join(run_info[run_id])
+                print " ".join(line)
+                print "====="
     #               ___
     #  /\   _  _ o o |  _. |_  |  _
     # /--\ _> (_ | | | (_| |_) | (/_
