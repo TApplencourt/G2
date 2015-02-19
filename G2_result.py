@@ -67,7 +67,7 @@ Example of use:
   ./G2_result.py list_run --method 'CCSD(T)'
   ./G2_result.py get_energy --run_id 11 --order_by e_cal --without_pt2 --estimated_exact
   ./G2_result.py get_energy --basis "cc-pVDZ" --ele AlCl --ele Li2 --ae --order_by ae_diff
-  ./G2_result.py get_energy --run_id 8 --run_id 52 --estimated_exact --plotly e_diff --like_toulouse --all_children
+  ./G2_result.py get_energy --run_id 6 --run_id 52 --estimated_exact --plotly e_diff --like_toulouse --all_children
 """
 
 version = "3.0.1"
@@ -207,9 +207,9 @@ if __name__ == '__main__':
             l_ele_to_print_tmp = l_ele_to_get
 
     # The Iterable for l_ele_to_print
-    # WARNING RUN_ID is a global function, so do e_cal
+    # WARNING e_cal is a global var
     def l_ele_to_print(run_id):
-        if l_ele_to_print:
+        if l_ele_to_print_tmp:
             return [name for name in l_ele_to_print_tmp]
         else:
             return [name for name in e_cal[run_id]]
@@ -267,7 +267,6 @@ if __name__ == '__main__':
         cond_filter = ["run_id in (" + ",".join(map(str, l_run_id)) + ")"]
 
         cmd_where = " AND ".join(cond_filter + cond_filter_ele)
-
     #  _____
     # |  ___|
     # | |__ _ __   ___ _ __ __ _ _   _
