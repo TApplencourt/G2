@@ -67,6 +67,7 @@ Example of use:
   ./G2_result.py list_run --method 'CCSD(T)'
   ./G2_result.py get_energy --run_id 11 --order_by e_cal --without_pt2 --estimated_exact
   ./G2_result.py get_energy --basis "cc-pVDZ" --ele AlCl --ele Li2 --ae --order_by ae_diff
+  ./G2_result.py get_energy --run_id 8 --run_id 52 --estimated_exact --plotly e_diff --like_toulouse --all_children
 """
 
 version = "3.0.1"
