@@ -604,6 +604,11 @@ if __name__ == '__main__':
     #               _| /
     elif arguments["get_energy"]:
 
+
+        # -#-#-#- #
+        # I n i t #
+        # -#-#-#- #
+
         def convert(str_, dict_):
             for ele in dict_:
                 if unit_dict[str_] == "Hartree":
@@ -631,26 +636,8 @@ if __name__ == '__main__':
             if not first:
                 first = False
 
-        # -#-#-#- #
-        # I n i t #
-        # -#-#-#- #
-
-        # STR_TO_DICT is a dict binding the name with a dict
-        # STR_TO_DICT[ae_diff] = ae_diff[run_id] for example
-        # Use with precausion
-        STR_TO_DICT = defaultdict(dict)
-
-        # nl is a list of the dictionary name to use (aka key of STR_TO_DICT)
-        # ELE is the element name
-        def _get_values_convert(nl):
-            d = list()
-            for str_ in nl:
-                if ELE in STR_TO_DICT[str_]:
-                    v = STR_TO_DICT[str_][ELE]
-                else:
-                    v = DEFAULT_CHARACTER
-                d.append(v)
-            return d
+        def _get_values(ele, l_d):
+            return [d[ele] if ele in d else DEFAULT_CHARACTER for d in l_d]
 
         table_body = []
 
@@ -669,8 +656,8 @@ if __name__ == '__main__':
         if arguments["--ae"]:
             header_name += "ae_cal ae_nr ae_diff".split()
 
-        header_unit = [
-            unit_dict[n] if n in unit_dict else DEFAULT_CHARACTER for n in header_name]
+        header_unit = [unit_dict[n] if n in unit_dict else DEFAULT_CHARACTER
+                       for n in header_name]
 
         # -#-#-#- #
         # B o d y #
@@ -683,26 +670,18 @@ if __name__ == '__main__':
             for ELE in l_ele_to_print(run_id):
 
                 line = list(line_basis) + [ELE]
-
-                STR_TO_DICT["e_cal"] = e_cal[run_id]
-                line += _get_values_convert("e_cal".split())
+                line += _get_values(ELE, [e_cal[run_id]])
 
                 if arguments["--zpe"]:
-
-                    STR_TO_DICT["zpe_exp"] = zpe_exp
-                    line += _get_values_convert("zpe_exp".split())
+                    line += _get_values(ELE, [zpe_exp])
 
                 if arguments["--estimated_exact"]:
-                    STR_TO_DICT["e_nr"] = e_nr
-                    STR_TO_DICT["e_diff"] = e_diff[run_id]
-                    line += _get_values_convert("e_nr e_diff".split())
+                    line += _get_values(ELE, [e_nr, e_diff[run_id]])
 
                 if arguments["--ae"]:
-                    STR_TO_DICT["ae_cal"] = ae_cal[run_id]
-                    STR_TO_DICT["ae_nr"] = ae_nr
-                    STR_TO_DICT["ae_diff"] = ae_diff[run_id]
-                    line += _get_values_convert("ae_cal ae_nr ae_diff".split())
-
+                    line += _get_values(ELE, [ae_cal[run_id],
+                                              ae_nr,
+                                              ae_diff[run_id]])
                 table_body.append(line)
 
     #  _
