@@ -703,14 +703,14 @@ if __name__ == '__main__':
                                 key=lambda x: x[index],
                                 reverse=True)
 
-    tmp = []
+    if arguments["get_energy"]:
+        tmp = []
+        for line in table_body:
+            ele = line[5]
+            if ele not in tmp:
+                tmp.append(ele)
 
-    for line in table_body:
-        ele = line[5]
-        if ele not in tmp:
-            tmp.append(ele)
-
-    l_ele_order = tmp
+        l_ele_order = tmp
 
     # ______     _       _
     # | ___ \   (_)     | |
