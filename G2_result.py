@@ -123,9 +123,9 @@ if __name__ == '__main__':
         arguments["--like_toulouse"] = True
     DEFAULT_CHARACTER = ""
 
-    # -#-#-#-#-#-#-#- #
-    # V a r i a b l e #
-    # -#-#-#-#-#-#-#- #
+    # -#-#-#-#-#-#-#-#- #
+    # V a r i a b l e s #
+    # -#-#-#-#-#-#-#-#- #
 
     # Get & print
 
@@ -223,9 +223,9 @@ if __name__ == '__main__':
         if not l_ele:
             return [name for name in e_cal[run_id]]
         elif arguments["--all_children"]:
-            return [name for name in l_ele_to_get]
+            return l_ele_to_get
         else:
-            return [name for name in l_ele]
+            return l_ele
 
     #  _
     # |_ o | _|_  _  ._    _ _|_ ._ o ._   _
@@ -510,7 +510,6 @@ if __name__ == '__main__':
                 ae_nr[name] = ae_nr_tmp
             except KeyError:
                 pass
-
     #
     #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._     _  _. |
     # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |   (_ (_| |
@@ -605,6 +604,33 @@ if __name__ == '__main__':
     #               _| /
     elif arguments["get_energy"]:
 
+        def convert(str_, dict_):
+            for ele in dict_:
+                if unit_dict[str_] == "Hartree":
+                    pass
+                elif unit_dict[str_] == "kcal/mol":
+                    dict_[ele] *= 627.509
+
+        # convert
+        first = True
+        for run_id in run_info:
+            convert("e_cal", e_cal[run_id])
+
+            if arguments["--zpe"] and first:
+                convert("zpe_exp", zpe_exp)
+
+            if arguments["--estimated_exact"]:
+                convert("e_nr", e_nr)
+                convert("e_diff", e_diff[run_id])
+
+            if arguments["--ae"]:
+                convert("ae_cal", ae_cal[run_id])
+                convert("ae_diff", ae_diff[run_id])
+                if first:
+                    convert("ae_nr", ae_nr)
+            if not first:
+                first = False
+
         # -#-#-#- #
         # I n i t #
         # -#-#-#- #
@@ -617,14 +643,9 @@ if __name__ == '__main__':
         # nl is a list of the dictionary name to use (aka key of STR_TO_DICT)
         # ELE is the element name
         def _get_values_convert(nl):
-            d = []
+            d = list()
             for str_ in nl:
                 if ELE in STR_TO_DICT[str_]:
-                    if unit_dict[str_] == "Hartree":
-                        pass
-                    elif unit_dict[str_] == "kcal/mol":
-                        STR_TO_DICT[str_][ELE] *= 627.509
-
                     v = STR_TO_DICT[str_][ELE]
                 else:
                     v = DEFAULT_CHARACTER
@@ -865,8 +886,8 @@ if __name__ == '__main__':
         for run_id, dict_rd in dict_.iteritems():
             legend = "run_id : %s <br> %s" % (run_id,
                                               ", ".join(run_info[run_id]))
-            x = [name for name in l_ele_to_print(run_id) if name in dict_rd]
 
+            x = [name for name in l_ele_to_print(run_id) if name in dict_rd]
             try:
                 y = [dict_rd[name].e for name in x]
                 ye = [dict_rd[name].err for name in x]
