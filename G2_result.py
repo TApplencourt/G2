@@ -71,14 +71,19 @@ Example of use:
   ./G2_result.py get_energy --run_id 6 --run_id 52 --estimated_exact --plotly e_diff --like_toulouse --all_children
 """
 
-version = "3.0.1"
+version = "3.8.1"
 
+# -#-#-#-#-#-#-#-#- #
+# D i s c l a m e r #
+# -#-#-#-#-#-#-#-#- #
+# Proof of concept : Procedural code with minimal function call can be clean
 
 import sys
 if sys.version_info[:2] != (2, 7):
     print "You need python 2.7."
-    print "You can change the format for 2.6"
+    print "You can change the format (in src/objet.py) for 2.6"
     print "And pass the 2to3 utility for python 3"
+    print "Send me a pull request after friend!"
     sys.exit(1)
 
 from collections import defaultdict
@@ -116,7 +121,7 @@ if __name__ == '__main__':
 
     if arguments["--missing"]:
         arguments["--like_toulouse"] = True
-    DEFAULT_CARACTER = ""
+    DEFAULT_CHARACTER = ""
 
     # -#-#-#-#-#-#-#- #
     # V a r i a b l e #
@@ -129,15 +134,16 @@ if __name__ == '__main__':
 
     # Calcule one
 
-    # * e_cal    Dict of energies theorical / calculated   (e_cal[run_id][name])
-    # * zpe_exp  Dict of zpe experimental                  (zpe_exp[name])
-    # * e_nr     Dict of energy estimated exact            (e_nr[name])
+    # * e_cal    Dict of energies theorical / calculated    (e_cal[run_id][name])
+    # * zpe_exp  Dict of zpe experimental                   (zpe_exp[name])
+    # * e_nr     Dict of estimated exact\\                  (e_nr[name])
+    #                    no relativist energy
     # * e_diff   Dict of e_cal exact - estimated exact one  (e_diff[run_id][name])
-    # * ae_cal   Dict of atomization energye theorical      (ae_cal[run_id][name])
-    # * ae_nr    Dict of non relativist atomization energy (ae_nr[name])
-    # * ae_exp   Dict of atomization experimental          (ae_ext[name])
-    # * ae_diff  Dict of ae_cal energy - no relativiste     (ae_diff[run_id][name])
-    # * run_info Dict of the geo,basis,method,comments     (run_info[run_id])
+    # * ae_cal   Dict of atomization energies calculated    (ae_cal[run_id][name])
+    # * ae_nr    Dict of no relativist atomization energies (ae_nr[name])
+    # * ae_exp   Dict of atomization experimental energis   (ae_ext[name])
+    # * ae_diff  Dict of ae_cal energy - no relativist      (ae_diff[run_id][name])
+    # * run_info Dict of the geo,basis,method,comments      (run_info[run_id])
 
     # Format dict
     format_dict = defaultdict()
@@ -573,14 +579,14 @@ if __name__ == '__main__':
         # -#-#-#-#-#- #
 
         header_name = "Run_id Method Basis Geo Comments mad".split()
-        header_unit = [DEFAULT_CARACTER] * 5 + ["kcal/mol"]
+        header_unit = [DEFAULT_CHARACTER] * 5 + ["kcal/mol"]
 
         # -#-#-#- #
         # B o d y #
         # -#-#-#- #
 
         for run_id, l in run_info.iteritems():
-            mad = d_mad[run_id] if run_id in d_mad else DEFAULT_CARACTER
+            mad = d_mad[run_id] if run_id in d_mad else DEFAULT_CHARACTER
 
             line = [run_id] + l + [mad]
             table_body.append(line)
@@ -613,7 +619,7 @@ if __name__ == '__main__':
 
                     v = STR_TO_DICT[str_][ELE]
                 else:
-                    v = DEFAULT_CARACTER
+                    v = DEFAULT_CHARACTER
                 d.append(v)
             return d
 
@@ -635,7 +641,7 @@ if __name__ == '__main__':
             header_name += "ae_cal ae_nr ae_diff".split()
 
         header_unit = [
-            unit_dict[n] if n in unit_dict else DEFAULT_CARACTER for n in header_name]
+            unit_dict[n] if n in unit_dict else DEFAULT_CHARACTER for n in header_name]
 
         # -#-#-#- #
         # B o d y #
@@ -729,7 +735,7 @@ if __name__ == '__main__':
                     if line[i]:
                         line[i] = format_dict[name].format(line[i])
                     else:
-                        line[i] = DEFAULT_CARACTER
+                        line[i] = DEFAULT_CHARACTER
 
         # -#-#-#-#-#-#-#- #
         # B i g  Ta b l e #
@@ -777,9 +783,9 @@ if __name__ == '__main__':
 
         def _value(var):
 
-            DEFAULT_CARACTER = "-"
+            default_character = "-"
             if not var:
-                return DEFAULT_CARACTER, DEFAULT_CARACTER
+                return default_character, default_character
             try:
                 return str(var.e), str(var.err)
             except AttributeError:
@@ -819,9 +825,14 @@ if __name__ == '__main__':
     #                  /
     elif arguments["--plotly"]:
 
-        import plotly.plotly as py
-        from plotly.graph_objs import Layout, ErrorY, XAxis, YAxis, Legend
-        from plotly.graph_objs import Figure, Scatter, Data
+        try:
+            import plotly.plotly as py
+            from plotly.graph_objs import Layout, ErrorY, XAxis, YAxis, Legend
+            from plotly.graph_objs import Figure, Scatter, Data
+        except:
+            print "you need plotly to be installed and configure"
+            print "https://plot.ly/python/getting-started/"
+            sys.exit(1)
 
         def get_scatter(name, x, y, ye=None):
 
