@@ -604,7 +604,6 @@ if __name__ == '__main__':
     #               _| /
     elif arguments["get_energy"]:
 
-
         # -#-#-#- #
         # I n i t #
         # -#-#-#- #
@@ -870,7 +869,7 @@ if __name__ == '__main__':
 
             l_val = [_get_values(name, [dict_rd])[0] for name in x]
             try:
-                y  = [val.e for val in l_val]
+                y = [val.e for val in l_val]
                 ye = [val.err for val in l_val]
             except AttributeError:
                 y = l_val
