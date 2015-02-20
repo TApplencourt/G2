@@ -6,7 +6,8 @@
 Usage:
   G2_result.py (-h | --help)
   G2_result.py list_run [--order_by=<column>...]
-                        [--ele=<element_name>... | --like_toulouse]
+                        [--run_id=<id>...]
+                        [--ele=<element_name>... | --like_toulouse] [--all_children]
                         [--geo=<geometry_name>...]
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
