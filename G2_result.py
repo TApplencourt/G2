@@ -188,17 +188,18 @@ if __name__ == '__main__':
     else:
         l_ele = list()
 
+    # -#-#-#-#-#-#-#-#-#-#-# #
+    # G e t  c h i l d r e n #
+    # -#-#-#-#-#-#-#-#-#-#-# #
+
     l_ele_to_get = list(l_ele)
 
-    # Add all the children of a element to l_ele if need.
+    # Add all the children of a element to l_ele_to_get if need.
     # For example for the calculate the AE of AlCl we need Al and Cl
     if l_ele_to_get and any(arguments[k] for k in ["--all_children",
                                                    "--ae",
                                                    "--estimated_exact"]):
 
-        # -#-#-#-#-#-#-#- #
-        # G e t  d a t a  #
-        # -#-#-#-#-#-#-#- #
         # Find all this children of the element; this is the new conditions
         cond = " ".join(cond_sql_or("name", l_ele_to_get))
 
@@ -211,8 +212,13 @@ if __name__ == '__main__':
                 if atom not in l_ele_to_get:
                     l_ele_to_get.insert(0, atom)
 
+    # -#-#-#-#-#-#-#-#-#-#-#- #
+    # e l e   t o   p r i n t #
+    # -#-#-#-#-#-#-#-#-#-#-#- #
+
     # The Iterable for l_ele_to_print
     # WARNING e_cal,l_ele and l_ele_to_get is a global var
+
     def l_ele_to_print(run_id):
         if not l_ele:
             return [name for name in e_cal[run_id]]
@@ -270,7 +276,7 @@ if __name__ == '__main__':
 
         l_run_id = [i[0] for i in c.fetchall()]
 
-        # Now only the run_id count. It containt all information
+        # Now only the run_id count. It containt all the information
         cond_filter = ["run_id in (" + ",".join(map(str, l_run_id)) + ")"]
 
         cmd_where = " AND ".join(cond_filter + cond_filter_ele)
@@ -346,7 +352,8 @@ if __name__ == '__main__':
     #   / ._   _    ()     /\   _     _     ._
     #  /_ |_) (/_   (_X   /--\ (/_   (/_ >< |_)
     #     |                                 |
-    # Not realy usefull anymore
+    # Not realy usefull anymore can we use e_nr for calcul the ae
+    # But is e_nr is not avalaible use zpe and ae_exp
     if any(arguments[k] for k in ["--zpe",
                                   "--ae",
                                   "--estimated_exact"]):
@@ -442,11 +449,12 @@ if __name__ == '__main__':
         # F i l l I n #
         # -#-#-#-#-#- *
 
-        # Put exact energy for atom
+        # Put exact energy non relativist for atom and molecule
         for name, exact_energy in c.fetchall():
             e_nr[name] = float(exact_energy)
 
-        # We have the energy but not the estimated_exact
+        # Now treat the rest
+        # We have the energy but not the estimated_exact nr
         need_to_do = set(f_info).difference(e_nr)
         # We can calculette rudly this one
         # with e_nr = ae + zpe + sum e_atom
@@ -463,7 +471,7 @@ if __name__ == '__main__':
         # -#-#-#- #
         # I n i t #
         # -#-#-#- #
-
+        # Now ce can calcule the e_diff (e_cal - e_nr)
         e_diff = defaultdict(dict)
 
         # -#-#-#-#-#- #
@@ -504,8 +512,8 @@ if __name__ == '__main__':
                 pass
 
     #
-    #   /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    _|_ |_
-    #  /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |    |_ | |
+    #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._     _  _. |
+    # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |   (_ (_| |
     #
     if arguments["--ae"]:
 
@@ -523,13 +531,13 @@ if __name__ == '__main__':
         for run_id, e_cal_rd in e_cal.iteritems():
             for name, energy in e_cal_rd.iteritems():
                 try:
-                    ao_th_tmp = -energy
+                    ae_cal_tmp = -energy
                     for name_atome, number in f_info[name].formula:
-                        ao_th_tmp += e_cal_rd[name_atome] * number
+                        ae_cal_tmp += e_cal_rd[name_atome] * number
                 except KeyError:
                     pass
                 else:
-                    ae_cal[run_id][name] = ao_th_tmp
+                    ae_cal[run_id][name] = ae_cal_tmp
 
                 try:
                     ae_diff[run_id][name] = ae_cal[run_id][name] - ae_nr[name]
@@ -557,7 +565,6 @@ if __name__ == '__main__':
 
         d_mad = defaultdict()
         for run_id, ae_diff_rd in ae_diff.iteritems():
-            #            l_energy = ae_diff_rd.values()
 
             l_energy = [val for name, val in ae_diff_rd.iteritems()
                         if f_info[name].num_atoms > 1]
@@ -572,6 +579,7 @@ if __name__ == '__main__':
         # -#-#-#- #
         # I n i t #
         # -#-#-#- #
+
         table_body = []
 
         # -#-#-#-#-#- #
@@ -769,7 +777,7 @@ if __name__ == '__main__':
             t = AsciiTable([map(str, i) for i in table_run_id])
             print t.table()
 
-            table_data_small = [[line[0]] + line[5:] for line in table_data]
+            table_data_small = [[l[0]] + l[5:] for l in table_data]
             t = AsciiTable(table_data_small)
             print t.table(row_separator=2)
 
