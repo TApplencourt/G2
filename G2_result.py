@@ -180,7 +180,6 @@ if __name__ == '__main__':
 
     # Set the list of element to get and to print
     # By defalt, if l_ele is empty get all
-
     if arguments["--ele"]:
         l_ele = arguments["--ele"]
     elif arguments["--like_toulouse"]:
@@ -190,7 +189,6 @@ if __name__ == '__main__':
         l_ele = list()
 
     l_ele_to_get = list(l_ele)
-    l_ele_to_print_tmp = list(l_ele)
 
     # Add all the children of a element to l_ele if need.
     # For example for the calculate the AE of AlCl we need Al and Cl
@@ -198,6 +196,9 @@ if __name__ == '__main__':
                                                    "--ae",
                                                    "--estimated_exact"]):
 
+        # -#-#-#-#-#-#-#- #
+        # G e t  d a t a  #
+        # -#-#-#-#-#-#-#- #
         # Find all this children of the element; this is the new conditions
         cond = " ".join(cond_sql_or("name", l_ele_to_get))
 
@@ -210,16 +211,15 @@ if __name__ == '__main__':
                 if atom not in l_ele_to_get:
                     l_ele_to_get.insert(0, atom)
 
-        if arguments["--all_children"]:
-            l_ele_to_print_tmp = l_ele_to_get
-
     # The Iterable for l_ele_to_print
-    # WARNING e_cal is a global var
+    # WARNING e_cal,l_ele and l_ele_to_get is a global var
     def l_ele_to_print(run_id):
-        if l_ele_to_print_tmp:
-            return [name for name in l_ele_to_print_tmp]
-        else:
+        if not l_ele:
             return [name for name in e_cal[run_id]]
+        elif arguments["--all_children"]:
+            return [name for name in l_ele_to_get]
+        else:
+            return [name for name in l_ele]
 
     #  _
     # |_ o | _|_  _  ._    _ _|_ ._ o ._   _
