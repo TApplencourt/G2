@@ -23,7 +23,7 @@ Usage:
                           [--ae]
                           [--without_pt2]
                           [--gnuplot]
-                          [--plotly=<column>]
+                          [--plotly=<column>...]
   G2_result.py list_ele [--run_id=<id>...]
                         [--ele=<element_name>... ]
                         [--geo=<geometry_name>...]
@@ -193,6 +193,7 @@ if __name__ == '__main__':
     # -#-#-#-#-#-#-#-#-#-#-# #
 
     l_ele_to_get = list(l_ele)
+    l_ele_order = list()
 
     # Add all the children of a element to l_ele_to_get if need.
     # For example for the calculate the AE of AlCl we need Al and Cl
@@ -222,6 +223,8 @@ if __name__ == '__main__':
     def l_ele_to_print(run_id):
         if not l_ele:
             return [name for name in e_cal[run_id]]
+        elif l_ele_order:
+            return l_ele_order
         elif arguments["--all_children"]:
             return l_ele_to_get
         else:
@@ -666,19 +669,19 @@ if __name__ == '__main__':
 
             line_basis = [run_id] + run_info[run_id][:4]
 
-            for ELE in l_ele_to_print(run_id):
+            for ele in l_ele_to_print(run_id):
 
-                line = list(line_basis) + [ELE]
-                line += _get_values(ELE, [e_cal[run_id]])
+                line = list(line_basis) + [ele]
+                line += _get_values(ele, [e_cal[run_id]])
 
                 if arguments["--zpe"]:
-                    line += _get_values(ELE, [zpe_exp])
+                    line += _get_values(ele, [zpe_exp])
 
                 if arguments["--estimated_exact"]:
-                    line += _get_values(ELE, [e_nr, e_diff[run_id]])
+                    line += _get_values(ele, [e_nr, e_diff[run_id]])
 
                 if arguments["--ae"]:
-                    line += _get_values(ELE, [ae_cal[run_id],
+                    line += _get_values(ele, [ae_cal[run_id],
                                               ae_nr,
                                               ae_diff[run_id]])
                 table_body.append(line)
@@ -699,6 +702,15 @@ if __name__ == '__main__':
             table_body = sorted(table_body,
                                 key=lambda x: x[index],
                                 reverse=True)
+
+    tmp = []
+
+    for line in table_body:
+        ele = line[5]
+        if ele not in tmp:
+            tmp.append(ele)
+
+    l_ele_order = tmp
 
     # ______     _       _
     # | ___ \   (_)     | |
@@ -846,6 +858,7 @@ if __name__ == '__main__':
             if ye:
                 return Scatter(x=x,
                                y=y,
+                               mode='markers',
                                name=name,
                                error_y=ErrorY(type='data',
                                               array=ye,
@@ -854,28 +867,31 @@ if __name__ == '__main__':
             else:
                 return Scatter(x=x,
                                y=y,
+                               mode='markers',
                                name=name)
 
         data = []
+        for dict_name in arguments["--plotly"]:
+            dict_ = eval(dict_name)
 
-        dict_name = arguments["--plotly"]
-        dict_ = eval(dict_name)
+            for run_id, dict_rd in dict_.iteritems():
 
-        for run_id, dict_rd in dict_.iteritems():
-            legend = "run_id : %s <br> %s" % (run_id,
-                                              ", ".join(run_info[run_id]))
+                x = [n for n in l_ele_to_print(run_id) if n in dict_rd]
 
-            x = [name for name in l_ele_to_print(run_id) if name in dict_rd]
+                l_val = [_get_values(name, [dict_rd])[0] for name in x]
+                try:
+                    y = [val.e for val in l_val]
+                    ye = [val.err for val in l_val]
+                except AttributeError:
+                    y = l_val
+                    ye = None
 
-            l_val = [_get_values(name, [dict_rd])[0] for name in x]
-            try:
-                y = [val.e for val in l_val]
-                ye = [val.err for val in l_val]
-            except AttributeError:
-                y = l_val
-                ye = None
+                str_ = "run_id : %s (%s) <br> %s"
+                legend = str_ % (run_id,
+                                 dict_name,
+                                 ", ".join(run_info[run_id]))
 
-            data.append(get_scatter(legend, x, y, ye))
+                data.append(get_scatter(legend, x, y, ye))
 
         data = Data(data)
 
