@@ -867,11 +867,13 @@ if __name__ == '__main__':
                                               ", ".join(run_info[run_id]))
 
             x = [name for name in l_ele_to_print(run_id) if name in dict_rd]
+
+            l_val = [_get_values(name, [dict_rd])[0] for name in x]
             try:
-                y = [dict_rd[name].e for name in x]
-                ye = [dict_rd[name].err for name in x]
+                y  = [val.e for val in l_val]
+                ye = [val.err for val in l_val]
             except AttributeError:
-                y = [dict_rd[name] for name in x]
+                y = l_val
                 ye = None
 
             data.append(get_scatter(legend, x, y, ye))
