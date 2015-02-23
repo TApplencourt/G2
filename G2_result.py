@@ -7,14 +7,14 @@ Usage:
   G2_result.py (-h | --help)
   G2_result.py list_run [--order_by=<column>...]
                         [--run_id=<id>...]
-                        [--ele=<element_name>... | --like_toulouse] [--all_children]
+                        [--ele=<element_name>... | --like_toulouse | --like=<run_id>] [--all_children]
                         [--geo=<geometry_name>...]
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
                         [--without_pt2]
   G2_result.py get_energy [--order_by=<column>]
                           [--run_id=<id>...]
-                          [--ele=<element_name>... | --like_toulouse] [--all_children]
+                          [--ele=<element_name>... | --like_toulouse | --like=<run_id>] [--all_children]
                           [--geo=<geometry_name>...]
                           [--basis=<basis_name>...]
                           [--method=<method_name>...]
@@ -129,7 +129,8 @@ if __name__ == '__main__':
 
     # Get & print
 
-    # * l_ele    List element for geting the value
+    # * l_ele       List element for geting the value
+    # * l_ele_oder  List element for geting the value ordered by sort
     # * f_info   namedTuple for the num of atoms and the formula (f_info[name])
 
     # Calcule one
@@ -180,11 +181,25 @@ if __name__ == '__main__':
 
     # Set the list of element to get and to print
     # By defalt, if l_ele is empty get all
+
+    not_child = False
     if arguments["--ele"]:
         l_ele = arguments["--ele"]
     elif arguments["--like_toulouse"]:
         from src.misc_info import list_toulouse
         l_ele = list_toulouse
+
+        # So we need all_children
+        arguments["--all_children"] = True
+
+    elif arguments["--like"]:
+        c.execute("""SELECT name FROM output_tab
+                      WHERE run_id = {0}""".format(arguments["--like"]))
+
+        l_ele = [i[0] for i in c.fetchall()]
+
+        # So we dont need all_children
+        arguments["--all_children"] = False
     else:
         l_ele = list()
 
@@ -195,11 +210,16 @@ if __name__ == '__main__':
     l_ele_to_get = list(l_ele)
     l_ele_order = list()
 
+    if not arguments["--all_children"]:
+        get_children = False
+    elif l_ele_to_get and any(arguments[k] for k in ["--all_children",
+                                                     "--ae",
+                                                     "--estimated_exact"]):
+        get_children = True
+
     # Add all the children of a element to l_ele_to_get if need.
     # For example for the calculate the AE of AlCl we need Al and Cl
-    if l_ele_to_get and any(arguments[k] for k in ["--all_children",
-                                                   "--ae",
-                                                   "--estimated_exact"]):
+    if get_children:
 
         # Find all this children of the element; this is the new conditions
         cond = " ".join(cond_sql_or("name", l_ele_to_get))
@@ -902,7 +922,7 @@ if __name__ == '__main__':
                                     ticks='outside'),
                         yaxis=YAxis(title=yaxis_title),
                         legend=Legend(x=0,
-                                      y=-0.4)
+                                      y=-1.)
                         )
 
         fig = Figure(data=data, layout=layout)
