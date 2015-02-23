@@ -93,4 +93,4 @@ list_applencourt = ["SO2",
                     "Cl2",
                     "SiO",
                     "ClF",
-                    "N2H4", ]
+                    "N2H4"]
