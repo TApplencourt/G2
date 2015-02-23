@@ -5,6 +5,8 @@ from collections import namedtuple
 import re
 from math import sqrt, pow
 
+# Need to add variance to the tuple
+# Check with R
 
 class v_un(namedtuple('v_un', 'e err')):
 
@@ -48,13 +50,13 @@ class v_un(namedtuple('v_un', 'e err')):
     # Minis Left right
     def __sub__(self, x):
         try:
-            return v_un(self.e - x.e, self.err + x.err)
+            return v_un(self.e - x.e, sqrt(pow(self.err,2) + pow(x.err,2)))
         except AttributeError:
             return v_un(self.e - x, self.err)
 
     def __rsub__(self, x):
         try:
-            return v_un(-self.e + x.e, self.err + x.err)
+            return v_un(-self.e + x.e, sqrt(pow(self.err,2) + pow(x.err,2)))
         except AttributeError:
             return v_un(-self.e + x, self.err)
 
@@ -67,7 +69,7 @@ class v_un(namedtuple('v_un', 'e err')):
 
     # Division
     def __div__(self, x):
-        return v_un(self.e / x, self.err / x)
+        return v_un(self.e / x, self.err / sqrt(x))
 
     # -v_un
     def __neg__(self):
