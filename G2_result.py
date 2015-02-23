@@ -182,7 +182,7 @@ if __name__ == '__main__':
     # Set the list of element to get and to print
     # By defalt, if l_ele is empty get all
 
-    not_child = False
+    get_children = None
     if arguments["--ele"]:
         l_ele = arguments["--ele"]
     elif arguments["--like_toulouse"]:
@@ -190,7 +190,7 @@ if __name__ == '__main__':
         l_ele = list_toulouse
 
         # So we need all_children
-        arguments["--all_children"] = True
+        get_children = True
 
     elif arguments["--like"]:
         c.execute("""SELECT name FROM output_tab
@@ -199,7 +199,7 @@ if __name__ == '__main__':
         l_ele = [i[0] for i in c.fetchall()]
 
         # So we dont need all_children
-        arguments["--all_children"] = False
+        get_children = False
     else:
         l_ele = list()
 
@@ -210,8 +210,8 @@ if __name__ == '__main__':
     l_ele_to_get = list(l_ele)
     l_ele_order = list()
 
-    if not arguments["--all_children"]:
-        get_children = False
+    if not get_children:
+        pass
     elif l_ele_to_get and any(arguments[k] for k in ["--all_children",
                                                      "--ae",
                                                      "--estimated_exact"]):
@@ -878,7 +878,7 @@ if __name__ == '__main__':
             if ye:
                 return Scatter(x=x,
                                y=y,
-                               mode='markers',
+                               #mode='markers',
                                name=name,
                                error_y=ErrorY(type='data',
                                               array=ye,
