@@ -83,3 +83,14 @@ list_toulouse = ["LiH",
                  "H3CSH",
                  "HOCl",
                  "SO2"]
+
+list_applencourt = ["SO2",
+                    "H2O2",
+                    "HCl",
+                    "CS",
+                    "F2",
+                    "P2",
+                    "Cl2",
+                    "SiO",
+                    "ClF",
+                    "N2H4", ]
