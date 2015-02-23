@@ -182,6 +182,10 @@ if __name__ == '__main__':
     # Set the list of element to get and to print
     # By defalt, if l_ele is empty get all
 
+    # -#-#-#-#-#-#-# #
+    # L i s t  e l e #
+    # -#-#-#-#-#-#-# #
+
     get_children = None
     if arguments["--ele"]:
         l_ele = arguments["--ele"]
@@ -191,7 +195,6 @@ if __name__ == '__main__':
 
         # So we need all_children
         get_children = True
-
     elif arguments["--like"]:
         c.execute("""SELECT name FROM output_tab
                       WHERE run_id = {0}""".format(arguments["--like"]))
@@ -210,8 +213,8 @@ if __name__ == '__main__':
     l_ele_to_get = list(l_ele)
     l_ele_order = list()
 
-    if not get_children:
-        pass
+    if arguments["--like"]:
+        get_children = False
     elif l_ele_to_get and any(arguments[k] for k in ["--all_children",
                                                      "--ae",
                                                      "--estimated_exact"]):
