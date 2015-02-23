@@ -7,20 +7,20 @@ Usage:
   G2_result.py (-h | --help)
   G2_result.py list_run [--order_by=<column>...]
                         [--run_id=<id>...]
-                        [--ele=<element_name>...
-                          | --like_toulouse
-                          | --like_applencourt
-                          | --like_run_id=<run_id>] [--all_children]
+                        [(--ele=<element_name>... |
+                          --like_toulouse |
+                          --like_applencourt |
+                          --like_run_id=<run_id>) [--all_children]]
                         [--geo=<geometry_name>...]
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
                         [--without_pt2]
   G2_result.py get_energy [--order_by=<column>]
                           [--run_id=<id>...]
-                          [--ele=<element_name>...
-                            | --like_toulouse
-                            | --like_applencourt
-                            | --like_run_id=<run_id>] [--all_children]
+                          [(--ele=<element_name>... |
+                            --like_toulouse |
+                            --like_applencourt |
+                            --like_run_id=<run_id>) [--all_children]]
                           [--geo=<geometry_name>...]
                           [--basis=<basis_name>...]
                           [--method=<method_name>...]
@@ -35,9 +35,10 @@ Usage:
                         [--geo=<geometry_name>...]
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
-                        [--missing (--like_toulouse
-                                   |--like_applencourt
-                                   |--like_run_id=<run_id> [--all_children])]
+                        [--missing (--ele=<element_name>... |
+                                    --like_toulouse |
+                                    --like_applencourt |
+                                    --like_run_id=<run_id>) [--all_children]]
   G2_result.py --version
 
 Options:
@@ -98,7 +99,7 @@ from collections import defaultdict
 from collections import namedtuple
 
 try:
-    from src.docopt import docopt
+    from src.docopt import docopt, DocoptExit
     from src.SQL_util import cond_sql_or
     from src.SQL_util import c, c_row
 except:
@@ -118,6 +119,14 @@ if __name__ == '__main__':
 
     arguments = docopt(__doc__, version='G2 Api ' + version)
 
+    # Docopt Fix
+    if arguments["--missing"] or arguments["--all_children"]:
+        if not any([arguments[k] for k in ["--like_toulouse",
+                                           "--like_applencourt",
+                                           "--like_run_id"]]):
+            raise DocoptExit
+            sys.exit(1)
+
     #  ___
     #   |  ._  o _|_
     #  _|_ | | |  |_
@@ -126,13 +135,6 @@ if __name__ == '__main__':
     # For calculating the MAD we need the AE
     if arguments["list_run"]:
         arguments["--ae"] = True
-
-    if arguments["--missing"]:
-        if not any([arguments[k] for k in ["--like_toulouse",
-                                           "--like_applencourt",
-                                           "--like_run_id"]]):
-            print "You need to tell a option"
-            sys.exit(1)
 
     DEFAULT_CHARACTER = ""
 
