@@ -7,14 +7,20 @@ Usage:
   G2_result.py (-h | --help)
   G2_result.py list_run [--order_by=<column>...]
                         [--run_id=<id>...]
-                        [--ele=<element_name>... | --like_toulouse | --like=<run_id>] [--all_children]
+                        [--ele=<element_name>...
+                          | --like_toulouse
+                          | --like_applencourt
+                          | --like_run_id=<run_id>] [--all_children]
                         [--geo=<geometry_name>...]
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
                         [--without_pt2]
   G2_result.py get_energy [--order_by=<column>]
                           [--run_id=<id>...]
-                          [--ele=<element_name>... | --like_toulouse | --like=<run_id>] [--all_children]
+                          [--ele=<element_name>...
+                            | --like_toulouse
+                            | --like_applencourt
+                            | --like_run_id=<run_id>] [--all_children]
                           [--geo=<geometry_name>...]
                           [--basis=<basis_name>...]
                           [--method=<method_name>...]
@@ -29,7 +35,9 @@ Usage:
                         [--geo=<geometry_name>...]
                         [--basis=<basis_name>...]
                         [--method=<method_name>...]
-                        [--missing]
+                        [--missing (--like_toulouse
+                                   |--like_applencourt
+                                   |--like_run_id=<run_id> [--all_children])]
   G2_result.py --version
 
 Options:
@@ -120,7 +128,12 @@ if __name__ == '__main__':
         arguments["--ae"] = True
 
     if arguments["--missing"]:
-        arguments["--like_toulouse"] = True
+        if not any([arguments[k] for k in ["--like_toulouse",
+                                           "--like_applencourt",
+                                           "--like_run_id"]]):
+            print "You need to tell a option"
+            sys.exit(1)
+
     DEFAULT_CHARACTER = ""
 
     # -#-#-#-#-#-#-#-#- #
@@ -192,12 +205,16 @@ if __name__ == '__main__':
     elif arguments["--like_toulouse"]:
         from src.misc_info import list_toulouse
         l_ele = list_toulouse
-
         # So we need all_children
         get_children = True
-    elif arguments["--like"]:
+    elif arguments["--like_applencourt"]:
+        from src.misc_info import list_applencourt
+        l_ele = list_applencourt
+        # So we need all_children
+        get_children = True
+    elif arguments["--like_run_id"]:
         c.execute("""SELECT name FROM output_tab
-                      WHERE run_id = {0}""".format(arguments["--like"]))
+                      WHERE run_id = {0}""".format(arguments["--like_run_id"]))
 
         l_ele = [i[0] for i in c.fetchall()]
 
@@ -205,6 +222,7 @@ if __name__ == '__main__':
         get_children = False
     else:
         l_ele = list()
+        get_children = False
 
     # -#-#-#-#-#-#-#-#-#-#-# #
     # G e t  c h i l d r e n #
@@ -213,8 +231,8 @@ if __name__ == '__main__':
     l_ele_to_get = list(l_ele)
     l_ele_order = list()
 
-    if arguments["--like"]:
-        get_children = False
+    if get_children:
+        pass
     elif l_ele_to_get and any(arguments[k] for k in ["--all_children",
                                                      "--ae",
                                                      "--estimated_exact"]):
