@@ -650,7 +650,8 @@ if __name__ == '__main__':
                 convert("zpe_exp", zpe_exp)
 
             if arguments["--estimated_exact"]:
-                convert("e_nr", e_nr)
+                if first:
+                    convert("e_nr", e_nr)
                 convert("e_diff", e_diff[run_id])
 
             if arguments["--ae"]:
@@ -658,7 +659,7 @@ if __name__ == '__main__':
                 convert("ae_diff", ae_diff[run_id])
                 if first:
                     convert("ae_nr", ae_nr)
-            if not first:
+            if first:
                 first = False
 
         def _get_values(ele, l_d):
@@ -723,7 +724,7 @@ if __name__ == '__main__':
             sys.exit(1)
         else:
             table_body = sorted(table_body,
-                                key=lambda x: x[index],
+                                key=lambda x: abs(x[index]),
                                 reverse=True)
 
     if arguments["get_energy"]:
@@ -881,7 +882,7 @@ if __name__ == '__main__':
             if ye:
                 return Scatter(x=x,
                                y=y,
-                               #mode='markers',
+                               # mode='markers',
                                name=name,
                                error_y=ErrorY(type='data',
                                               array=ye,
