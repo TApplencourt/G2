@@ -69,7 +69,7 @@ class v_un(namedtuple('v_un', 'e err')):
 
     # Division
     def __div__(self, x):
-        return v_un(self.e / x, self.err / sqrt(x))
+        return v_un(self.e / x, self.err / sqrt(abs(x)))
 
     # -v_un
     def __neg__(self):
