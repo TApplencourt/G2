@@ -519,7 +519,7 @@ if __name__ == '__main__':
         # -#-#-#- #
         # Now ce can calcule the e_diff (e_cal - e_nr)
         e_diff = defaultdict(dict)
-
+        e_diff_rel = defaultdict(dict)
         # -#-#-#-#-#- #
         # F i l l I n #
         # -#-#-#-#-#- *
@@ -527,10 +527,15 @@ if __name__ == '__main__':
         for run_id, e_cal_rd in e_cal.iteritems():
             for name, energies in e_cal_rd.iteritems():
                 try:
-                    e_diff[run_id][name] = energies - e_nr[name]
+                    e_diff[run_id][name] = (energies - e_nr[name])
+                    e_diff_rel[run_id][name] = e_diff[
+                        run_id][name] / e_nr[name]
                 except KeyError:
                     pass
 
+        for run_id, e_diff_rd in e_diff.iteritems():
+            for name, energies in e_diff_rd.iteritems():
+                e_diff_rel[run_id][name] = energies / e_nr[name]
     #                                                  _
     #  /\ _|_  _  ._ _  o _   _. _|_ o  _  ._    |\ | |_)
     # /--\ |_ (_) | | | | /_ (_|  |_ | (_) | |   | \| | \
@@ -639,7 +644,7 @@ if __name__ == '__main__':
         # -#-#-#- #
 
         for run_id, l in run_info.iteritems():
-            mad = d_mad[run_id] if run_id in d_mad else DEFAULT_CHARACTER
+            mad = d_mad[run_id] if run_id in d_mad else 0.
 
             line = [run_id] + l + [mad]
             table_body.append(line)
