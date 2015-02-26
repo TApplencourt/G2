@@ -214,8 +214,53 @@ def add_or_get_run(method, basis, geo, comments):
         return get_run_id(method, basis, geo, comments)
 
 
-def add_energy_cispi(url, run_id, name,
-                     true_pt2=False, debug=False):
+def add_simple_energy(run_id, id_, e, overwrite=False, commit=False):
+
+    if overwrite:
+        cmd = """INSERT OR overwrite INTO simple_energy_tab(run_id,id,energy)
+                  VALUES (?,?,?)"""
+    else:
+        cmd = """INSERT INTO simple_energy_tab(run_id,id,energy)
+                  VALUES (?,?,?)"""
+
+    c.execute(cmd, [run_id, id_, e])
+
+    if commit:
+        conn.commit()
+
+
+def add_cipsi_energy(run_id, id_, e, pt2, overwrite=False, commit=False):
+
+    if overwrite:
+        cmd = """INSERT OR overwrite INTO cipsi_energy_tab(run_id,id,energy,pt2)
+                  VALUES (?,?,?,?)"""
+    else:
+        cmd = """INSERT INTO cipsi_energy_tab(run_id,id,energy,pt2)
+                  VALUES (?,?,?,?)"""
+
+    c.execute(cmd, [run_id, id_, e, pt2])
+
+    if commit:
+        conn.commit()
+
+
+def add_qmc_energy(run_id, id_, e, err, overwrite=False, commit=False):
+
+    if overwrite:
+        cmd = """INSERT OR REPLACE INTO qmc_energy_tab(run_id,id,energy,err)
+                  VALUES (?,?,?,?)"""
+    else:
+        cmd = """INSERT INTO qmc_energy_tab(run_id,id,energy,err)
+                  VALUES (?,?,?,?)"""
+
+    c.execute(cmd, [run_id, id_, e, err])
+
+    if commit:
+        conn.commit()
+
+
+def add_energy_cispi_output(url, run_id, name,
+                            true_pt2=False, debug=False):
     # Add a cipsi energy containt in a log file to the run_id
 
     # Try if the file is existing
@@ -273,7 +318,7 @@ def add_energies_cispi(run_list, geo_list, basis_list, path, tail,
                        true_pt2=False, compatibility=False, debug=False):
     # Add a list of cipsi log to the run_id (check for all name)
 
-    from misc_info import new_name_to_old
+    from .misc_info import new_name_to_old
 
     index = 0
     for geo in geo_list:
@@ -292,7 +337,7 @@ def add_energies_cispi(run_list, geo_list, basis_list, path, tail,
 
                 run_id = run_list[index]
                 try:
-                    add_energy_cispi(url, run_id, name, true_pt2, debug)
+                    add_energy_cispi_output(url, run_id, name, true_pt2, debug)
                 except:
                     pass
 
