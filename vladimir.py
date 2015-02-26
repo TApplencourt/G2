@@ -5,15 +5,16 @@
 You can create ort modify a run_id and PutIn new data in it
 
 Usage:
-  vladimir.py --path=<path>
-            (--method=<method_name> --basis=<basis_name>
-             --geo=<geometry_name> --comment=<comment>|
-             --run_id=<id>)
-            (--simple | --cipsi [--epp] | --qmc)
-            [--overwrite]
+  vladimir.py (-h | --help)
+  vladimir.py put_in --path=<path>
+              (--method=<method_name> --basis=<basis_name>
+               --geo=<geometry_name> --comment=<comment>|
+               --run_id=<id>)
+              (--simple | --cipsi [--epp] | --qmc)
+              [--overwrite]
 """
 
-version = "0.0.1"
+version = "0.0.2"
 
 import sys
 
