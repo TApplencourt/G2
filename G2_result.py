@@ -11,9 +11,9 @@ Usage:
                           --like_toulouse |
                           --like_applencourt |
                           --like_run_id=<run_id>) [--all_children]]
-                        [--geo=<geometry_name>...]
-                        [--basis=<basis_name>...]
                         [--method=<method_name>...]
+                        [--basis=<basis_name>...]
+                        [--geo=<geometry_name>...]
                         [--without_pt2]
   G2_result.py get_energy [--order_by=<column>]
                           [--run_id=<id>...]
@@ -21,9 +21,9 @@ Usage:
                             --like_toulouse |
                             --like_applencourt |
                             --like_run_id=<run_id>) [--all_children]]
-                          [--geo=<geometry_name>...]
-                          [--basis=<basis_name>...]
                           [--method=<method_name>...]
+                          [--basis=<basis_name>...]
+                          [--geo=<geometry_name>...]
                           [--zpe]
                           [--estimated_exact]
                           [--ae]

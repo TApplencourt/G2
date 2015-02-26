@@ -1,4 +1,3 @@
-
 old_name_to_new = {"OH2": "H2O",
                    "FH": "HF",
                    "SH2": "H2S",
