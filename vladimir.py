@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 
 """Welcome! добро пожаловать! Vladimir say Hi.
-You can create ort modify a run_id and PutIn new data in it
+You can create or modify a run_id and put_in new data in it.
 
 Usage:
   vladimir.py (-h | --help)
   vladimir.py put_in --path=<path>
-              (--method=<method_name> --basis=<basis_name>
-               --geo=<geometry_name> --comment=<comment>|
-               --run_id=<id>)
-              (--simple | --cipsi [--epp] | --qmc)
-              [--overwrite]
+                     (--method=<method_name> --basis=<basis_name>
+                      --geo=<geometry_name> --comment=<comment>|
+                      --run_id=<id>)
+                     (--simple | --cipsi [--epp] | --qmc)
+                     [--overwrite]
 """
 
 version = "0.0.2"
