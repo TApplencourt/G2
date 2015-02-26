@@ -1,0 +1,12 @@
+# Compiled source #
+################### 
+*.pyc
+
+# Logs and databases #
+###################### 
+*.db
+*.log
+
+# Image #
+###################### 
+*.svg

@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     for line in data:
 
-        list_ = line.split()
+        list_ = line.split("#")[0].split()
 
         name = list_[0]
         name = old_name_to_new[name] if name in old_name_to_new else name

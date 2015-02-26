@@ -17,6 +17,17 @@ except:
 # | |  | | \__ \ (__
 # \_|  |_/_|___/\___|
 #
+
+def checkSQlite(dump_name, db_name):
+    dump_time = os.path.getmtime(dump_name)
+
+    if not os.path.isfile(db_name) or dump_time > os.path.getmtime(db_name):
+        os.system("sqlite3 {0} < {1}".format(db_name, dump_name))
+
+    if not isSQLite3(db_name):
+        raise sqlite3.Error
+
+
 def isSQLite3(filename):
     from os.path import isfile, getsize
 
@@ -33,10 +44,20 @@ def isSQLite3(filename):
     else:
         return False
 
-path = os.path.dirname(__file__) + "/../db/g2.db"
-if not isSQLite3(path):
-    print "'%s' is not a SQLite3 database file" % path
-    print sys.exit(1)
+dump_name = os.path.dirname(__file__) + "/../db/g2.dump"
+db_name = os.path.dirname(__file__) + "/../db/g2.db"
+
+try:
+    checkSQlite(dump_name, db_name)
+except sqlite3.Error as e:
+    print "'%s' is not a SQLite3 database file" % db_name
+    sys.exit(1)
+
+conn = sqlite3.connect(db_name)
+c = conn.cursor()
+
+conn.row_factory = sqlite3.Row
+c_row = conn.cursor()
 
 
 def cond_sql_or(table_name, l_value):
@@ -48,13 +69,6 @@ def cond_sql_or(table_name, l_value):
         l.append("(%s)" % dmy)
 
     return l
-
-
-conn = sqlite3.connect(path)
-c = conn.cursor()
-
-conn.row_factory = sqlite3.Row
-c_row = conn.cursor()
 
 
 #  _____      _
