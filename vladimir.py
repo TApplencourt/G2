@@ -34,7 +34,7 @@ if __name__ == '__main__':
     arguments = docopt(__doc__, version='G2 Api ' + version)
 
     if arguments["--run_id"]:
-        run_id = arguments["run_id"]
+        run_id = arguments["--run_id"]
     else:
         l = [arguments[i] for i in ["--method",
                                     "--basis",
