@@ -39,6 +39,16 @@ Usage:
                                     --like_toulouse |
                                     --like_applencourt |
                                     --like_run_id=<run_id>) [--all_children]]
+  G2_result.py get_target_pt2 --run_id=<id>
+                              (--like_toulouse |
+                              --like_applencourt |
+                              --ele=<element_name>...)
+  G2_result.py get_target_pt2_max --hf_id=<id>
+                                  --fci_id=<id>
+                                 (--like_toulouse |
+                                  --like_applencourt |
+                                  --ele=<element_name>...)
+                                 [--quality_factor=<qf>]
   G2_result.py --version
 
 Options:
@@ -196,6 +206,16 @@ if __name__ == '__main__':
     if arguments["list_run"]:
         arguments["--ae"] = True
 
+    if arguments["get_target_pt2_max"]:
+        if arguments["--quality_factor"]:
+            if not 0. < float(arguments["--quality_factor"]) < 1.:
+                print "0. < quality factor < 1. "
+                sys.exit(1)
+            else:
+                quality_factor = float(arguments["--quality_factor"])
+        else:
+            quality_factor = 0.
+
     DEFAULT_CHARACTER = ""
 
     # -#-#-#-#-#-#-#-#- #
@@ -261,6 +281,9 @@ if __name__ == '__main__':
     # L i s t  e l e #
     # -#-#-#-#-#-#-# #
 
+    if arguments["get_target_pt2_max"]:
+        arguments["--run_id"] = [arguments["--hf_id"], arguments["--fci_id"]]
+
     get_children = None
     if arguments["--ele"]:
         l_ele = arguments["--ele"]
@@ -297,7 +320,9 @@ if __name__ == '__main__':
         pass
     elif l_ele_to_get and any(arguments[k] for k in ["--all_children",
                                                      "--ae",
-                                                     "--estimated_exact"]):
+                                                     "--estimated_exact",
+                                                     "get_target_pt2",
+                                                     "get_target_pt2_max"]):
         get_children = True
 
     # Add all the children of a element to l_ele_to_get if need.
@@ -438,9 +463,12 @@ if __name__ == '__main__':
             value = float(r['s_energy'])
 
         if r['c_energy']:
-            value = float(r['c_energy'])
-            if not arguments["--without_pt2"]:
-                value += float(r['c_pt2'])
+            if not arguments["get_target_pt2"]:
+                value = float(r['c_energy'])
+                if not arguments["--without_pt2"]:
+                    value += float(r['c_pt2'])
+            else:
+                value = float(r['c_pt2'])
 
         if r['q_energy']:
             value = v_un(float(r['q_energy']),
@@ -846,6 +874,32 @@ if __name__ == '__main__':
                 print " ".join(run_info[run_id])
                 print " ".join(line)
                 print "====="
+
+    elif arguments["get_target_pt2"]:
+
+        for run_id, e_cal_rd in e_cal.iteritems():
+            for name in l_ele_to_print(run_id):
+                target_pt2 = 0.
+                for name_atome, number in f_info[name].formula:
+                    target_pt2 += number * e_cal_rd[name_atome]
+                print name, target_pt2
+
+    elif arguments["get_target_pt2_max"]:
+        hf_id = int(arguments["--hf_id"])
+        fci_id = int(arguments["--fci_id"])
+
+        target_pt2_atome = dict()
+
+        for ele in l_ele_to_get:
+            target_pt2_atome[ele] = 0.
+            for name_atome, number in f_info[ele].formula:
+                if number == 1:
+                    target_pt2_atome[ele] += e_cal[fci_id][ele] - e_cal[hf_id][ele]
+
+            for name_atome, number in f_info[ele].formula:
+                if number > 1:
+                    target_pt2_atome[ele] += target_pt2_atome[name_atome] * number
+            print ele, target_pt2_atome[ele] * (1. - quality_factor)
     #               ___
     #  /\   _  _ o o |  _. |_  |  _
     # /--\ _> (_ | | | (_| |_) | (/_
