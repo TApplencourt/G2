@@ -52,8 +52,7 @@ def dump_to_SQlite(dump_name, db_name):
 
 
 def SQlite_to_dump(dump_name, db_name):
-    os.system("sqlite3 {0} .dump > {1}".formula(db_name, dump_name))
-
+    os.system("sqlite3 {0} .dump > {1}".format(db_name, dump_name))
 
 #
 # |\ |  _          _ |  _.  _  _
@@ -69,9 +68,9 @@ def update_and_connect(self):
         return self.connect(DB_NAME)
 
 
-def commit_and_dump(self):
+def commit_and_dump(conn):
     try:
-        self.commit()
+        conn.commit()
     except sqlite3.Error:
         raise
     else:
@@ -79,8 +78,11 @@ def commit_and_dump(self):
         os.system("touch {0}".format(DB_NAME))
 
 import types
+
 sqlite3.update_and_connect = types.MethodType(update_and_connect, sqlite3)
-sqlite3.commit_and_dump = types.MethodType(commit_and_dump, sqlite3)
+# Cause of C implementation of the class Connection MonkeyPatching is not alloing...
+# sqlite3.Connection.commit_and_dump = types.MethodType(commit_and_dump, sqlite3.Connection)
+
 
 DUMP_NAME = os.path.dirname(__file__) + "/../db/g2.dump"
 DB_NAME = os.path.dirname(__file__) + "/../db/g2.db"
@@ -258,7 +260,7 @@ def add_new_run(method, basis, geo, comments):
     c.execute("""INSERT INTO run_tab(method_id,basis_id,geo_id,comments)
         VALUES (?,?,?,?)""", [method_id, basis_id, geo_id, comments])
 
-    conn.commit_and_dump()
+    commit_and_dump(conn)
 
 
 def add_or_get_run(method, basis, geo, comments):
@@ -283,7 +285,7 @@ def add_simple_energy(run_id, id_, e, overwrite=False, commit=False):
     c.execute(cmd, [run_id, id_, e])
 
     if commit:
-        conn.commit_and_dump()
+        commit_and_dump(conn)
 
 
 def add_cipsi_energy(run_id, id_, e, pt2, overwrite=False, commit=False):
@@ -298,7 +300,7 @@ def add_cipsi_energy(run_id, id_, e, pt2, overwrite=False, commit=False):
     c.execute(cmd, [run_id, id_, e, pt2])
 
     if commit:
-        conn.commit_and_dump()
+        commit_and_dump(conn)
 
 
 def add_qmc_energy(run_id, id_, e, err, overwrite=False, commit=False):
@@ -313,7 +315,7 @@ def add_qmc_energy(run_id, id_, e, err, overwrite=False, commit=False):
     c.execute(cmd, [run_id, id_, e, err])
 
     if commit:
-        conn.commit_and_dump()
+        commit_and_dump(conn)
 
 
 def add_energy_cispi_output(url, run_id, name,
@@ -365,7 +367,7 @@ def add_energy_cispi_output(url, run_id, name,
                         cipsi_energy_tab(run_id,id,ndet,energy,pt2,time)
                         VALUES (?,?,?,?,?,?)''', [run_id, id_, ndet, e, pt2, time])
 
-            conn.commit_and_dump()
+            commit_and_dump(conn)
         except:
             print "Cannot add to the db"
             raise Exception
@@ -452,22 +454,3 @@ def get_g09(geo, ele, only_neutral=True):
         g09_file_format.append(line)
     g09_file_format.append("\n\n\n")
     return "\n".join(map(str, g09_file_format))
-
-
-# ___  ___      _
-# |  \/  |     (_)
-# | .  . | __ _ _ _ __
-# | |\/| |/ _` | | '_ \
-# | |  | | (_| | | | | |
-# \_|  |_/\__,_|_|_| |_|
-#
-if __name__ == "__main__":
-
-    #    add_new_run("CIPSI", "cc-pvtz", "Experiment", "1M_Dets_NO_1k_Dets_TruePT2")
-    #    add_new_run("CIPSI", "cc-pvtz", "MP2", "1M_Dets_NO_1k_Dets_TruePT2")
-
-    add_energies_cispi([24, 25], ["Experiment", "MP2"], ["cc-pvtz"],
-                       "/tmp/TZ10k/", ".HF_10k.log",
-                       true_pt2=True, compatibility=True, debug=True)
-
-    pass

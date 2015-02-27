@@ -25,6 +25,7 @@ try:
     from src.SQL_util import commit_and_dump
     from src.misc_info import old_name_to_new
 except:
+    raise
     print "File in misc is corupted. Git reset may cure the diseases"
     sys.exit(1)
 
@@ -74,4 +75,4 @@ if __name__ == '__main__':
             add_qmc_energy(run_id, id_, e, err,
                            overwrite=arguments["--overwrite"])
 
-    conn.commit_and_dump()
+    commit_and_dump(conn)
