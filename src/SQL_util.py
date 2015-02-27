@@ -41,7 +41,7 @@ def isSQLite3(filename):
         return False
 
 
-def dump_to_SQlite(dump_name, db_name):
+def dump_to_sqlite(dump_name, db_name):
     dump_time = os.path.getmtime(dump_name)
 
     if not os.path.isfile(db_name) or dump_time > os.path.getmtime(db_name):
@@ -51,8 +51,9 @@ def dump_to_SQlite(dump_name, db_name):
         raise sqlite3.Error
 
 
-def SQlite_to_dump(dump_name, db_name):
+def sqlite_to_dump(dump_name, db_name):
     os.system("sqlite3 {0} .dump > {1}".format(db_name, dump_name))
+
 
 #
 # |\ |  _          _ |  _.  _  _
@@ -61,7 +62,7 @@ def SQlite_to_dump(dump_name, db_name):
 # This ensure the coherencie of the db and the db_dump
 def update_and_connect(self):
     try:
-        dump_to_SQlite(DUMP_NAME, DB_NAME)
+        dump_to_sqlite(DUMP_NAME, DB_NAME)
     except:
         raise
     else:
@@ -74,7 +75,7 @@ def commit_and_dump(conn):
     except sqlite3.Error:
         raise
     else:
-        SQlite_to_dump(DUMP_NAME, DB_NAME)
+        sqlite_to_dump(DUMP_NAME, DB_NAME)
         os.system("touch {0}".format(DB_NAME))
 
 import types
