@@ -87,7 +87,22 @@ version = "3.8.1"
 # -#-#-#-#-#-#-#-#- #
 # Proof of concept : Procedural code with minimal function call can be clean
 
+#
+#  _____                           _         _____              __ _
+# |_   _|                         | |    _  /  __ \            / _(_)
+#   | | _ __ ___  _ __   ___  _ __| |_  (_) | /  \/ ___  _ __ | |_ _  __ _
+#   | || '_ ` _ \| '_ \ / _ \| '__| __|     | |    / _ \| '_ \|  _| |/ _` |
+#  _| || | | | | | |_) | (_) | |  | |_   _  | \__/\ (_) | | | | | | | (_| |
+#  \___/_| |_| |_| .__/ \___/|_|   \__| ( )  \____/\___/|_| |_|_| |_|\__, |
+#                | |                    |/                            __/ |
+#                |_|                                                 |___/
+
 import sys
+
+#
+# \  / _  ._ _ o  _  ._
+#  \/ (/_ | _> | (_) | |
+#
 if sys.version_info[:2] != (2, 7):
     print "You need python 2.7."
     print "You can change the format (in src/objet.py) for 2.6"
@@ -95,27 +110,71 @@ if sys.version_info[:2] != (2, 7):
     print "Send me a pull request after friend!"
     sys.exit(1)
 
+#  _
+# /   _  | |  _   _ _|_ o  _  ._
+# \_ (_) | | (/_ (_  |_ | (_) | |
+#
 from collections import defaultdict
 from collections import namedtuple
 
+#
+# |  o |_  ._ _. ._
+# |_ | |_) | (_| | \/
+#                  /
 try:
     from src.docopt import docopt, DocoptExit
     from src.SQL_util import cond_sql_or
     from src.SQL_util import c, c_row
 except:
-    raise
     print "File in misc is corupted. Git reset may cure the diseases"
     sys.exit(1)
 
+#  _          _
+# /   _  ._ _|_ o  _
+# \_ (_) | | |  | (_|
+#                  _|
 import os
 try:
     import ConfigParser
+    head = os.path.dirname(__file__)
+
+    default_name = head + "/src/config.cfg.default"
+    usr_name = head + "/config.cfg"
+
+    def overwrite():
+        r = raw_input("New default config file. Overwrite youre ? [Y/N]")
+
+        if r.lowercase() == "y":
+            os.system("cp {0} {1}".format(default_name, usr_name))
+        elif r.lowercase() == "n":
+            os.system("touch {0}".format(usr_name))
+        else:
+            overwrite()
+
+    if not os.path.isfile(usr_name):
+        os.system("cp {0} {1}".format(default_name, usr_name))
+    else:
+        default_time = os.path.getmtime(default_name)
+        usr_time = os.path.getmtime(usr_name)
+
+        if default_time > usr_time:
+            overwrite()
+
     Config = ConfigParser.ConfigParser()
     Config.read(os.path.dirname(__file__) + "/config.cfg")
 
 except:
     raise
+    print "No config file or is corupted. Git reset may cure the diseases"
+    sys.exit(1)
 
+# ___  ___      _
+# |  \/  |     (_)
+# | .  . | __ _ _ _ __
+# | |\/| |/ _` | | '_ \
+# | |  | | (_| | | | | |
+# \_|  |_/\__,_|_|_| |_|
+#
 if __name__ == '__main__':
 
     arguments = docopt(__doc__, version='G2 Api ' + version)
@@ -465,7 +524,6 @@ if __name__ == '__main__':
         # -#-#- #
 
         # Get Davidson est. atomics energies
-
         try:
             run_id_mol = e_nr_name_id_dict[Config.get("estimated_exact",
                                                       "method")]
@@ -500,7 +558,7 @@ if __name__ == '__main__':
         for name, exact_energy in c.fetchall():
             e_nr[name] = float(exact_energy)
 
-        # Now treat the rest
+        # Now we treat the rest
         # We have the energy but not the estimated_exact nr
         need_to_do = set(f_info).difference(e_nr)
         # We can calculette rudly this one

@@ -42,10 +42,14 @@ def isSQLite3(filename):
 
 
 def dump_to_sqlite(dump_name, db_name):
-    dump_time = os.path.getmtime(dump_name)
-
-    if not os.path.isfile(db_name) or dump_time > os.path.getmtime(db_name):
+    if not os.path.isfile(db_name):
         os.system("sqlite3 {0} < {1}".format(db_name, dump_name))
+    else:
+        dump_time = os.path.getmtime(dump_name)
+        db_time = os.path.getmtime(db_name)
+        if dump_time > db_time:
+            os.system("rm {0}".format(db_name))
+            os.system("sqlite3 {0} < {1}".format(db_name, dump_name))
 
     if not isSQLite3(db_name):
         raise sqlite3.Error
