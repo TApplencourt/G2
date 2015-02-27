@@ -17,7 +17,7 @@ value: literature
 [Format_mesure]
 pouce = {:>7.3f}
 arpent = {:>10.3f}
-f_mad = {:>11.2f}
+f_mad = {:>5.2f}
 
 [Format_dict]
 mad: f_mad 

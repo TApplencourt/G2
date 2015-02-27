@@ -142,11 +142,11 @@ try:
     usr_name = head + "/config.cfg"
 
     def overwrite():
-        r = raw_input("New default config file. Overwrite youre ? [Y/N]")
+        r = raw_input("New default config file. If will overwrite youre. Continue? [Y/N]")
 
-        if r.lowercase() == "y":
+        if r.lower() == "y":
             os.system("cp {0} {1}".format(default_name, usr_name))
-        elif r.lowercase() == "n":
+        elif r.lower() == "n":
             os.system("touch {0}".format(usr_name))
         else:
             overwrite()
