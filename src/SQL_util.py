@@ -10,23 +10,19 @@ except:
     sys.exit(1)
 
 
-# ___  ____
-# |  \/  (_)
-# | .  . |_ ___  ___
-# | |\/| | / __|/ __|
-# | |  | | \__ \ (__
-# \_|  |_/_|___/\___|
-#
+# ______ _                    _
+# |  _  \ |       ___        | |
+# | | | | |__    ( _ )     __| |_   _ _ __ ___  _ __
+# | | | | '_ \   / _ \/\  / _` | | | | '_ ` _ \| '_ \
+# | |/ /| |_) | | (_>  < | (_| | |_| | | | | | | |_) |
+# |___/ |_.__/   \___/\/  \__,_|\__,_|_| |_| |_| .__/
+#                                              | |
+#                                              |_|
 
-def checkSQlite(dump_name, db_name):
-    dump_time = os.path.getmtime(dump_name)
-
-    if not os.path.isfile(db_name) or dump_time > os.path.getmtime(db_name):
-        os.system("sqlite3 {0} < {1}".format(db_name, dump_name))
-
-    if not isSQLite3(db_name):
-        raise sqlite3.Error
-
+#  _
+# /  |_   _   _ |  o ._   _
+# \_ | | (/_ (_ |< | | | (_|
+#                         _|
 
 def isSQLite3(filename):
     from os.path import isfile, getsize
@@ -44,16 +40,63 @@ def isSQLite3(filename):
     else:
         return False
 
-dump_name = os.path.dirname(__file__) + "/../db/g2.dump"
-db_name = os.path.dirname(__file__) + "/../db/g2.db"
+
+def dump_to_SQlite(dump_name, db_name):
+    dump_time = os.path.getmtime(dump_name)
+
+    if not os.path.isfile(db_name) or dump_time > os.path.getmtime(db_name):
+        os.system("sqlite3 {0} < {1}".format(db_name, dump_name))
+
+    if not isSQLite3(db_name):
+        raise sqlite3.Error
+
+
+def SQlite_to_dump(dump_name, db_name):
+    os.system("sqlite3 {0} .dump > {1}".formula(db_name, dump_name))
+
+
+#
+# |\ |  _          _ |  _.  _  _
+# | \| (/_ \/\/   (_ | (_| _> _>
+#
+# This ensure the coherencie of the db and the db_dump
+def update_and_connect(self):
+    try:
+        dump_to_SQlite(DUMP_NAME, DB_NAME)
+    except:
+        raise
+    else:
+        return self.connect(DB_NAME)
+
+
+def commit_and_dump(self):
+    try:
+        self.commit()
+    except sqlite3.Error:
+        raise
+    else:
+        SQlite_to_dump(DUMP_NAME, DB_NAME)
+        os.system("touch {0}".format(DB_NAME))
+
+import types
+sqlite3.update_and_connect = types.MethodType(update_and_connect, sqlite3)
+sqlite3.commit_and_dump = types.MethodType(commit_and_dump, sqlite3)
+
+DUMP_NAME = os.path.dirname(__file__) + "/../db/g2.dump"
+DB_NAME = os.path.dirname(__file__) + "/../db/g2.db"
+
+
+#  _
+# /  ._ _   _. _|_  _     _     ._ _  _  ._
+# \_ | (/_ (_|  |_ (/_   (_ |_| | _> (_) |
+#
 
 try:
-    checkSQlite(dump_name, db_name)
+    conn = sqlite3.update_and_connect()
 except sqlite3.Error as e:
-    print "'%s' is not a SQLite3 database file" % db_name
+    print "'%s' is not a SQLite3 database file" % DB_NAME
     sys.exit(1)
 
-conn = sqlite3.connect(db_name)
 c = conn.cursor()
 
 conn.row_factory = sqlite3.Row
@@ -215,7 +258,7 @@ def add_new_run(method, basis, geo, comments):
     c.execute("""INSERT INTO run_tab(method_id,basis_id,geo_id,comments)
         VALUES (?,?,?,?)""", [method_id, basis_id, geo_id, comments])
 
-    conn.commit()
+    conn.commit_and_dump()
 
 
 def add_or_get_run(method, basis, geo, comments):
@@ -240,7 +283,7 @@ def add_simple_energy(run_id, id_, e, overwrite=False, commit=False):
     c.execute(cmd, [run_id, id_, e])
 
     if commit:
-        conn.commit()
+        conn.commit_and_dump()
 
 
 def add_cipsi_energy(run_id, id_, e, pt2, overwrite=False, commit=False):
@@ -255,7 +298,7 @@ def add_cipsi_energy(run_id, id_, e, pt2, overwrite=False, commit=False):
     c.execute(cmd, [run_id, id_, e, pt2])
 
     if commit:
-        conn.commit()
+        conn.commit_and_dump()
 
 
 def add_qmc_energy(run_id, id_, e, err, overwrite=False, commit=False):
@@ -270,7 +313,7 @@ def add_qmc_energy(run_id, id_, e, err, overwrite=False, commit=False):
     c.execute(cmd, [run_id, id_, e, err])
 
     if commit:
-        conn.commit()
+        conn.commit_and_dump()
 
 
 def add_energy_cispi_output(url, run_id, name,
@@ -322,7 +365,7 @@ def add_energy_cispi_output(url, run_id, name,
                         cipsi_energy_tab(run_id,id,ndet,energy,pt2,time)
                         VALUES (?,?,?,?,?,?)''', [run_id, id_, ndet, e, pt2, time])
 
-            conn.commit()
+            conn.commit_and_dump()
         except:
             print "Cannot add to the db"
             raise Exception

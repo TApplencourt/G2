@@ -103,6 +103,7 @@ try:
     from src.SQL_util import cond_sql_or
     from src.SQL_util import c, c_row
 except:
+    raise
     print "File in misc is corupted. Git reset may cure the diseases"
     sys.exit(1)
 
