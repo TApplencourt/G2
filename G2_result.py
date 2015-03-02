@@ -48,7 +48,9 @@ Usage:
                                  (--like_toulouse |
                                   --like_applencourt |
                                   --ele=<element_name>...)
-                                 [--quality_factor=<qf>]
+                                 [--quality_factor=<qf> |
+                                  --born_min=<bmin> |
+                                  --born_max=<bmax>]
   G2_result.py --version
 
 Options:
@@ -152,7 +154,8 @@ try:
     usr_name = head + "/config.cfg"
 
     def overwrite():
-        r = raw_input("New default config file. If will overwrite youre. Continue? [Y/N]")
+        r = raw_input(
+            "New default config file. If will overwrite youre. Continue? [Y/N]")
 
         if r.lower() == "y":
             os.system("cp {0} {1}".format(default_name, usr_name))
@@ -205,16 +208,6 @@ if __name__ == '__main__':
     # For calculating the MAD we need the AE
     if arguments["list_run"]:
         arguments["--ae"] = True
-
-    if arguments["get_target_pt2_max"]:
-        if arguments["--quality_factor"]:
-            if not 0. < float(arguments["--quality_factor"]) < 1.:
-                print "0. < quality factor < 1. "
-                sys.exit(1)
-            else:
-                quality_factor = float(arguments["--quality_factor"])
-        else:
-            quality_factor = 0.
 
     DEFAULT_CHARACTER = ""
 
@@ -888,18 +881,45 @@ if __name__ == '__main__':
         hf_id = int(arguments["--hf_id"])
         fci_id = int(arguments["--fci_id"])
 
-        target_pt2_atome = dict()
+        d_target_pt2 = dict()
 
         for ele in l_ele_to_get:
-            target_pt2_atome[ele] = 0.
+            d_target_pt2[ele] = 0.
             for name_atome, number in f_info[ele].formula:
                 if number == 1:
-                    target_pt2_atome[ele] += e_cal[fci_id][ele] - e_cal[hf_id][ele]
+                    d_target_pt2[ele] += e_cal[fci_id][ele] - e_cal[hf_id][ele]
 
             for name_atome, number in f_info[ele].formula:
                 if number > 1:
-                    target_pt2_atome[ele] += target_pt2_atome[name_atome] * number
-            print ele, target_pt2_atome[ele] * (1. - quality_factor)
+                    d_target_pt2[ele] += d_target_pt2[name_atome] * number
+
+        if arguments["--quality_factor"]:
+            if not 0. < float(arguments["--quality_factor"]) < 1.:
+                print "0. < quality factor < 1. "
+                sys.exit(1)
+            else:
+                quality_factor = 1 - float(arguments["--quality_factor"])
+        elif arguments["--born_min"]:
+            if not float(arguments["--born_min"]) < 0.:
+                print "You need a negative pt2"
+                sys.exit()
+            else:
+                quality_factor = float(
+                    arguments["--born_min"]) / max(d_target_pt2.values())
+        elif arguments["--born_max"]:
+            if not float(arguments["--born_max"]) < 0.:
+                print "You need a negative pt2"
+                sys.exit()
+            else:
+                quality_factor = float(
+                    arguments["--born_max"]) / min(d_target_pt2.values())
+        else:
+            quality_factor = 0.
+
+        print quality_factor
+        for ele, target_pt2 in d_target_pt2.iteritems():
+            print ele, target_pt2 * (quality_factor)
+
     #               ___
     #  /\   _  _ o o |  _. |_  |  _
     # /--\ _> (_ | | | (_| |_) | (/_
