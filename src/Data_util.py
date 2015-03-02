@@ -11,6 +11,7 @@ from collections import namedtuple
 
 from src.object import v_un
 
+from src.Requirement_util import config
 
 #
 # |  o  _ _|_    _  |  _  ._ _   _  ._ _|_
@@ -228,7 +229,7 @@ def get_ecal_runinfo_finfo(cmd_where, cipsi_type):
     f_info = defaultdict()
 
     # FILL_IN
-    Num_formula = namedtuple('num_formula', ['num_atoms', 'formula'])
+    num_formula = namedtuple('num_formula', ['num_atoms', 'formula'])
     for r in cursor:
         # Energy
         if r['s_energy']:
@@ -252,7 +253,7 @@ def get_ecal_runinfo_finfo(cmd_where, cipsi_type):
                                  r['geo'], r['comments']]
 
         if not r['ele'] in f_info:
-            f_info[r['ele']] = Num_formula(r['num_atoms'], eval(r['formula']))
+            f_info[r['ele']] = num_formula(r['num_atoms'], eval(r['formula']))
 
     return [e_cal, run_info, f_info]
 
@@ -276,7 +277,7 @@ ae_zpe_exp_dict = {"NIST": 1,
 # -#-#-#-#-#-#-#-#- #
 #  F u n c t i o n  #
 # -#-#-#-#-#-#-#-#- #
-def get_zpe_aeexp(cond_filter_ele, config):
+def get_zpe_aeexp(cond_filter_ele):
 
     # SQL
     try:
@@ -340,7 +341,7 @@ e_nr_name_id_dict = {"Rude": "Any",
 # -#-#-#-#-#-#-#-#- #
 #  F u n c t i o n  #
 # -#-#-#-#-#-#-#-#- #
-def get_enr(cond_filter_ele, config):
+def get_enr(cond_filter_ele):
 
     # SQL
     # Get Davidson est. atomics energies

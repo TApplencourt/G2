@@ -57,47 +57,6 @@ except:
     print "File in misc is corupted. Git reset may cure the diseases"
     sys.exit(1)
 
-#  _          _
-# /   _  ._ _|_ o  _
-# \_ (_) | | |  | (_|
-#                  _|
-import os
-try:
-    import ConfigParser
-    head = os.path.dirname(__file__)
-
-    default_name = head + "/src/config.cfg.default"
-    usr_name = head + "/config.cfg"
-
-    def overwrite():
-        r = raw_input(
-            "New default config file. If will overwrite youre. Continue? [Y/N]")
-
-        if r.lower() == "y":
-            os.system("cp {0} {1}".format(default_name, usr_name))
-        elif r.lower() == "n":
-            os.system("touch {0}".format(usr_name))
-        else:
-            overwrite()
-
-    if not os.path.isfile(usr_name):
-        os.system("cp {0} {1}".format(default_name, usr_name))
-    else:
-        default_time = os.path.getmtime(default_name)
-        usr_time = os.path.getmtime(usr_name)
-
-        if default_time > usr_time:
-            overwrite()
-
-    Config = ConfigParser.ConfigParser()
-    Config.read(os.path.dirname(__file__) + "/config.cfg")
-
-except:
-    raise
-    print "No config file or is corupted. Git reset may cure the diseases"
-    sys.exit(1)
-
-
 #  _
 # /   _  | |  _   _ _|_ o  _  ._
 # \_ (_) | | (/_ (_  |_ | (_) | |
@@ -138,8 +97,8 @@ if __name__ == '__main__':
     if not a.l_ele:
         a.l_ele = [name for name in f_info]
 
-    zpe_exp, ae_exp = get_zpe_aeexp(cond_filter_ele, Config)
-    e_nr = get_enr(cond_filter_ele, Config)
+    zpe_exp, ae_exp = get_zpe_aeexp(cond_filter_ele)
+    e_nr = get_enr(cond_filter_ele)
     complete_e_nr(e_nr, f_info, ae_exp, zpe_exp)
 
     ae_cal = get_ae_cal(f_info, e_cal)
@@ -188,13 +147,8 @@ if __name__ == '__main__':
         line = [run_id] + l + [mad]
         table_body.append(line)
 
-    # Format dict
-    format_dict = defaultdict()
-    for name, value in Config.items("Format_dict"):
-        format_dict[name] = Config.get("Format_mesure", value)
-
     from src.Print_util import format_table
-    table_body = format_table(format_dict, header_name, table_body)
+    table_body = format_table(header_name, table_body)
 
     # -#-#-#-#-#-#-#- #
     # B i g  Ta b l e #
