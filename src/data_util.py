@@ -175,7 +175,7 @@ def get_cmd(arguments, l_ele_obj, need_all):
     l_ele_to_get = l_ele_obj.l_ele_to_get
 
     # We need to find the run_id who containt ALL the ele is needed
-    if l_ele_to_get:
+    if l_ele_to_get and need_all:
         cond_filter_ele = cond_sql_or("name", l_ele_to_get)
     else:
         cond_filter_ele = []
@@ -193,6 +193,8 @@ def get_cmd(arguments, l_ele_obj, need_all):
             cmd_having = "count(name) = {0}".format(len(l_ele_to_get))
         else:
             cmd_having = "(1)"
+
+        print cmd_where_tmp, cmd_having
 
         c.execute("""SELECT run_id
                     FROM (SELECT run_id,
@@ -576,3 +578,45 @@ def get_ae_diff(ae_cal, ae_nr):
                 pass
 
     return ae_diff
+
+
+def get_mad(f_info, e_cal, cond_filter_ele):
+    """
+    Return one dict
+        * d_mad  Dict of the mad      (d_mad[run_id])
+    """
+    # -#-#- #
+    # E n r #
+    # -#-#- #
+
+    zpe_exp, ae_exp = get_zpe_aeexp(cond_filter_ele)
+    e_nr = get_enr(cond_filter_ele)
+    complete_e_nr(e_nr, f_info, ae_exp, zpe_exp)
+
+    # -#- #
+    # A E #
+    # -#- #
+
+    ae_cal = get_ae_cal(f_info, e_cal)
+    ae_nr = get_ae_nr(f_info, e_nr)
+    ae_diff = get_ae_diff(ae_cal, ae_nr)
+
+    # -#-#- #
+    # M A D #
+    # -#-#- #
+    # mad = mean( abs( x_i - mean(x) ) )
+
+    d_mad = defaultdict()
+    for run_id, ae_diff_rd in ae_diff.iteritems():
+
+        l_energy = [val for name, val in ae_diff_rd.iteritems()
+                    if f_info[name].num_atoms > 1]
+
+        try:
+            mad = 627.510 * sum(map(abs, l_energy)) / len(l_energy)
+        except ZeroDivisionError:
+            pass
+        else:
+            d_mad[run_id] = mad
+
+    return d_mad
