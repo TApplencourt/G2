@@ -80,7 +80,7 @@ if __name__ == '__main__':
     #
     # Set somme option, get l_ele and the commande used by sql
 
-    from src.Data_util import get_l_ele, ListEle, get_cmd
+    from src.data_util import get_l_ele, ListEle, get_cmd
 
     # -#-#-#-#-#- #
     # O p t i o n #
@@ -112,9 +112,9 @@ if __name__ == '__main__':
     # We get and calcul all the info
     # aka : e_cal, run_info, f_info, mad, ...
 
-    from src.Data_util import get_ecal_runinfo_finfo, get_zpe_aeexp
-    from src.Data_util import get_enr, complete_e_nr
-    from src.Data_util import get_ae_cal, get_ae_nr, get_ae_diff
+    from src.data_util import get_ecal_runinfo_finfo, get_zpe_aeexp
+    from src.data_util import get_enr, complete_e_nr
+    from src.data_util import get_ae_cal, get_ae_nr, get_ae_diff
 
     # -#-#-#- #
     # E c a l #
