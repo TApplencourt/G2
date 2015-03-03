@@ -80,7 +80,6 @@ def print_mad(run_info, d_mad, list_order):
     # -#-#-#-#-#- #
     # H e a d e r #
     # -#-#-#-#-#- #
-    DEFAULT_CHARACTER = ""
 
     header_name = "Run_id Method Basis Geo Comments mad".split()
     header_unit = [DEFAULT_CHARACTER] * 5 + ["kcal/mol"]
@@ -112,3 +111,4 @@ def print_mad(run_info, d_mad, list_order):
 
     table_big = AsciiTable(table_data)
     print table_big.table(row_separator=2)
+

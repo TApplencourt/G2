@@ -52,12 +52,12 @@ class ListEle(object):
         # Add all the children of a element to l_ele_to_get if need.
         # For example for the calculate the AE of AlCl we need Al and Cl
 
-        if not self.l_ele:
-            self.need_to_define = True
-        else:
-            self.need_to_define = False
-            if get_children:
-                self.get_children()
+#        if not self.l_ele:
+#            self.need_to_define = True
+#        else:
+#            self.need_to_define = False
+        if self.l_ele and get_children:
+            self.get_children()
 
         self.l_ele_order = list()
         self.print_children = print_children
@@ -81,7 +81,7 @@ class ListEle(object):
                 if atom not in self.l_ele_to_get:
                     self.l_ele_to_get.insert(0, atom)
 
-    def to_print(self):
+    def to_print(self, e_cal_rd):
         """
         Tell what element you need to print.
         For example if you have set l_ele_order it will return this.
@@ -89,10 +89,8 @@ class ListEle(object):
             If you ask for all ele aka l_ele=list(). You need to set l_ele
             EXPLICITY after getting it.
         """
-        if self.need_to_define:
-            print "You need to set l_ele."
-            print "Maybe you want all the element, so tell what element are available"
-            sys.exit(1)
+        if not self.l_ele:
+            return e_cal_rd.keys()
         elif self.l_ele_order:
             return self.l_ele_order
         elif self.print_children:
@@ -175,8 +173,8 @@ def get_cmd(arguments, l_ele_obj, need_all):
     l_ele_to_get = l_ele_obj.l_ele_to_get
 
     # We need to find the run_id who containt ALL the ele is needed
-    if l_ele_to_get and need_all:
-        cond_filter_ele = cond_sql_or("name", l_ele_to_get)
+    if l_ele_to_get:
+        cond_filter_ele = cond_sql_or("name", l_ele_to_get) if need_all else ["(1)"]
     else:
         cond_filter_ele = []
 
@@ -193,8 +191,6 @@ def get_cmd(arguments, l_ele_obj, need_all):
             cmd_having = "count(name) = {0}".format(len(l_ele_to_get))
         else:
             cmd_having = "(1)"
-
-        print cmd_where_tmp, cmd_having
 
         c.execute("""SELECT run_id
                     FROM (SELECT run_id,
@@ -620,3 +616,44 @@ def get_mad(f_info, e_cal, cond_filter_ele):
             d_mad[run_id] = mad
 
     return d_mad
+
+#  _
+# /   _  ._      _  ._ _|_
+# \_ (_) | | \/ (/_ |   |_
+#
+
+# Unit_dict
+unit_dict = defaultdict()
+for name, value in config.items("Unit_dict"):
+    unit_dict[name] = value
+
+DEFAULT_CHARACTER = ""
+
+
+def convert(str_, dict_, opt=0):
+    """
+    Convert a string using unit_dict
+    """
+    if opt == 0:
+        for ele in dict_:
+            if unit_dict[str_] == "Hartree":
+                pass
+            elif unit_dict[str_] == "kcal/mol":
+                dict_[ele] *= 627.510
+    if opt == 1:
+        for _, dict_1 in dict_.iteritems():
+            for ele in dict_1:
+                if unit_dict[str_] == "Hartree":
+                    pass
+                elif unit_dict[str_] == "kcal/mol":
+                    dict_1[ele] *= 627.510
+
+
+def get_values(ele, l_d):
+    """Return all the value of ele for all dict in l_d"""
+    return [d[ele] if ele in d else DEFAULT_CHARACTER for d in l_d]
+
+
+def get_header_unit(header_name):
+    """Return the unit corespondtion to header_name"""
+    return [unit_dict[n] if n in unit_dict else DEFAULT_CHARACTER for n in header_name]

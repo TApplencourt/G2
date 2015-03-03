@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-"""Welcome to the G2 Api! Grab all the G2 data you're dreaming of.
+"""Get all the List you whant.
 
 Usage:
   schindler.py (-h | --help)
@@ -100,8 +99,6 @@ if __name__ == '__main__':
     # -#-#-#-#-#- #
 
     print_children = False
-    need_all = True
-
     need_all = False if arguments["list_element"] else True
 
     # -#-#-#-#- #
@@ -142,11 +139,11 @@ if __name__ == '__main__':
     if arguments["list_run"]:
         d_mad = get_mad(f_info, e_cal, cond_filter_ele)
 
-        #  _
-        # |_) ._ o ._ _|_ o ._   _
-        # |   |  | | | |_ | | | (_|
-        #                        _|
-
+    #  _
+    # |_) ._ o ._ _|_ o ._   _
+    # |   |  | | | |_ | | | (_|
+    #                        _|
+    if arguments["list_run"]:
         from src.print_util import print_mad
         print_mad(run_info, d_mad, arguments["--order_by"])
 
