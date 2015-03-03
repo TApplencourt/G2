@@ -63,7 +63,6 @@ except:
 #
 from collections import defaultdict
 
-
 # ___  ___      _
 # |  \/  |     (_)
 # | .  . | __ _ _ _ __
@@ -74,32 +73,69 @@ from collections import defaultdict
 if __name__ == '__main__':
 
     arguments = docopt(__doc__, version='G2 Api ' + version)
-    from src.Data_util import get_l_ele, l_ele_ob, get_cmd
+
+    # ___
+    #  |  ._  o _|_
+    # _|_ | | |  |_
+    #
+    # Set somme option, get l_ele and the commande used by sql
+
+    from src.Data_util import get_l_ele, ListEle, get_cmd
+
+    # -#-#-#-#-#- #
+    # O p t i o n #
+    # -#-#-#-#-#- #
+
+    print_children = False
+    need_all = True
+    get_children = True
+
+    # -#-#-#-#- #
+    # l _ e l e #
+    # -#-#-#-#- #
+
+    l_ele, _ = get_l_ele(arguments)
+
+    # Usefull object contain all related stuff to l_ele
+    a = ListEle(l_ele, get_children, print_children)
+
+    # -#-#-#-#-#- #
+    # F i l t e r #
+    # -#-#-#-#-#- #
+
+    cond_filter_ele, cmd_where = get_cmd(arguments, a, need_all)
+
+    #  _
+    # |_) ._ _   _  _   _  _ o ._   _
+    # |   | (_) (_ (/_ _> _> | | | (_|
+    #                               _|
+    # We get and calcul all the info
+    # aka : e_cal, run_info, f_info, mad, ...
+
     from src.Data_util import get_ecal_runinfo_finfo, get_zpe_aeexp
     from src.Data_util import get_enr, complete_e_nr
     from src.Data_util import get_ae_cal, get_ae_nr, get_ae_diff
 
-    l_ele, get_children = get_l_ele(arguments)
-
-    if arguments["--all_children"]:
-        get_children = True
-        print_children = True
-    else:
-        get_children = False
-        print_children = False
-
-    a = l_ele_ob(l_ele, get_children, print_children)
-
-    cond_filter_ele, cmd_where = get_cmd(arguments, a, True)
+    # -#-#-#- #
+    # E c a l #
+    # -#-#-#- #
 
     e_cal, run_info, f_info = get_ecal_runinfo_finfo(cmd_where, "var+pt2")
 
     if not a.l_ele:
         a.l_ele = [name for name in f_info]
 
+    # -#-#- #
+    # E n r #
+    # -#-#- #
+
     zpe_exp, ae_exp = get_zpe_aeexp(cond_filter_ele)
     e_nr = get_enr(cond_filter_ele)
     complete_e_nr(e_nr, f_info, ae_exp, zpe_exp)
+
+    # -#- #
+    # A E #
+    # -#- #
 
     ae_cal = get_ae_cal(f_info, e_cal)
     ae_nr = get_ae_nr(f_info, e_nr)
@@ -122,6 +158,11 @@ if __name__ == '__main__':
             pass
         else:
             d_mad[run_id] = mad
+
+    #  _
+    # |_) ._ o ._ _|_ o ._   _
+    # |   |  | | | |_ | | | (_|
+    #                        _|
 
     # -#-#-#- #
     # I n i t #

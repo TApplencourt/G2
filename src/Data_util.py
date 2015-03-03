@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+"""
+This module is usefull for getting energy values related (e_cal, ae, etc.) from the db.
+You can:
+    - Create sql commands ;
+    - Parse the data.
+"""
 #  _
 # /   _  | |  _   _ _|_ o  _  ._
 # \_ (_) | | (/_ (_  |_ | (_) | |
@@ -13,6 +18,12 @@ from src.object import v_un
 
 from src.Requirement_util import config
 
+from src.SQL_util import c, c_row
+from src.SQL_util import cond_sql_or
+
+import sys
+
+
 #
 # |  o  _ _|_    _  |  _  ._ _   _  ._ _|_
 # |_ | _>  |_   (/_ | (/_ | | | (/_ | | |_
@@ -21,17 +32,88 @@ from src.Requirement_util import config
 # Set the list of element to get and to print
 # By defalt, if l_ele is empty get all
 
+class ListEle(object):
+    """
+    ListEle encapsulates all the info related to a list_ele.
+        - l_ele giving in imput
+        - l_ele_to_get all the element need to get
+        - l_ele_order maybe
+        - And have a to print method
+    """
+    def __init__(self, l_ele, get_children, print_children):
+        """
+        Construct a new ListEle.
+        get_children: If you need all children of l_ele
+        print_children: If you need to print all the children
+        """
+        self.l_ele = list(l_ele)
+        self.l_ele_to_get = list(l_ele)
+
+        # Add all the children of a element to l_ele_to_get if need.
+        # For example for the calculate the AE of AlCl we need Al and Cl
+
+        if not self.l_ele:
+            self.need_to_define = True
+        else:
+            self.need_to_define = False
+            if get_children:
+                self.get_children()
+
+        self.l_ele_order = list()
+        self.print_children = print_children
+
+    # -#-#-#-#-#-#-#-#-#-#-# #
+    # G e t  c h i l d r e n #
+    # -#-#-#-#-#-#-#-#-#-#-# #
+    def get_children(self):
+        """
+        Find all this children of all the elements and
+        and add them to l_ele_to_get
+        """
+        cond = " ".join(cond_sql_or("name", self.l_ele_to_get))
+
+        c.execute("""SELECT name, formula
+                                   FROM id_tab
+                                  WHERE {where_cond}""".format(where_cond=cond))
+
+        for name, formula_raw in c.fetchall():
+            for atom, number in eval(formula_raw):
+                if atom not in self.l_ele_to_get:
+                    self.l_ele_to_get.insert(0, atom)
+
+    def to_print(self):
+        """
+        Tell what element you need to print.
+        For example if you have set l_ele_order it will return this.
+        WARNING /!\:
+            If you ask for all ele aka l_ele=list(). You need to set l_ele
+            EXPLICITY after getting it.
+        """
+        if self.need_to_define:
+            print "You need to set l_ele."
+            print "Maybe you want all the element, so tell what element are available"
+            sys.exit(1)
+        elif self.l_ele_order:
+            return self.l_ele_order
+        elif self.print_children:
+            return self.l_ele_to_get
+        else:
+            return self.l_ele
+
+    def __str__(self):
+        """Return a string of the elements"""
+        return str([self.l_ele, self.l_ele_to_get])
+
+
 # -#-#-#-#-#-#-# #
 # L i s t  e l e #
 # -#-#-#-#-#-#-# #
-
-from src.SQL_util import c, c_row
-from src.SQL_util import cond_sql_or
-
-import sys
-
-
 def get_l_ele(arguments):
+    """
+    Return the good list of element needed using arguments dict.
+    arguments need to have all this key:
+        --ele ; --like_toulouse ; --like_applencourt ; --like_run_id 
+    """
     if arguments["--ele"]:
         l_ele = arguments["--ele"]
         get_children = False
@@ -60,6 +142,7 @@ def get_l_ele(arguments):
 
     return [l_ele, get_children]
 
+
 # ______ _ _ _
 # |  ___(_) | |
 # | |_   _| | |_ ___ _ __
@@ -67,73 +150,16 @@ def get_l_ele(arguments):
 # | |   | | | ||  __/ |
 # \_|   |_|_|\__\___|_|
 
-
-class l_ele_ob(object):
-
-    def __init__(self, l_ele, get_children, print_children):
-        self.l_ele = l_ele
-
-        # -#-#-#-#-#-#-#-#-#-#-# #
-        # G e t  c h i l d r e n #
-        # -#-#-#-#-#-#-#-#-#-#-# #
-
-        self.l_ele_to_get = list(l_ele)
-
-        # Add all the children of a element to l_ele_to_get if need.
-        # For example for the calculate the AE of AlCl we need Al and Cl
-
-        if not self.l_ele:
-            self.need_to_define = True
-        else:
-            self.need_to_define = False
-            if get_children:
-                self.get_children()
-
-        self.l_ele_order = list()
-        self.print_children = print_children
-
-    def __str__(self):
-        return str([self.l_ele, self.l_ele_to_get])
-
-    def get_children(self):
-
-        # Find all this children of the element; this is the new conditions
-        cond = " ".join(cond_sql_or("name", self.l_ele_to_get))
-
-        c.execute("""SELECT name, formula
-                                   FROM id_tab
-                                  WHERE {where_cond}""".format(where_cond=cond))
-
-        for name, formula_raw in c.fetchall():
-            for atom, number in eval(formula_raw):
-                if atom not in self.l_ele_to_get:
-                    self.l_ele_to_get.insert(0, atom)
-
-    # -#-#-#-#-#-#-#-#-#-#-#- #
-    # e l e   t o   p r i n t #
-    # -#-#-#-#-#-#-#-#-#-#-#- #
-
-    def to_print(self):
-        if self.need_to_define:
-            print "You need to set l_ele."
-            print "Maybe you want all the element, so tell what element are available"
-            sys.exit(1)
-        elif self.l_ele_order:
-            return self.l_ele_order
-        elif self.print_children:
-            return self.l_ele_to_get
-        else:
-            return self.l_ele
-
-
 #  _
 # |_ o | _|_  _  ._    _ _|_ ._ o ._   _
 # |  | |  |_ (/_ |    _>  |_ |  | | | (_|
 #                                      _|
-#
-# Create the cmd string who will be executed by the db
-
 def get_cmd(arguments, l_ele_obj, need_all):
+    """
+    Create the cmd string who will be executed by the db
+    arguments need all this key:
+        --run_id; --geo; --basis; --method
+    """
     d = {"run_id": "--run_id",
          "geo": "--geo",
          "basis": "--basis",
@@ -189,8 +215,9 @@ def get_cmd(arguments, l_ele_obj, need_all):
             cond_filter = ["run_id in (" + ",".join(map(str, l_run_id)) + ")"]
 
             cmd_where = " AND ".join(cond_filter + cond_filter_ele)
-    
+
     return [cond_filter_ele, cmd_where]
+
 
 #  _
 # |_ ._   _  ._ _        _  _. |  _
@@ -198,13 +225,19 @@ def get_cmd(arguments, l_ele_obj, need_all):
 #               _| /
 #
 
-
 # -#-#-#-#-#-#-#-#- #
 #  F u n c t i o n  #
 # -#-#-#-#-#-#-#-#- #
 def get_ecal_runinfo_finfo(cmd_where, cipsi_type):
-
-    # SQL
+    """
+    Return 3 dict:
+        * e_cal    Dict of energies theorical / calculated    (e_cal[run_id][name])
+        * run_info Dict of the geo,basis,method,comments      (run_info[run_id])
+        * f_info   Dict of formula (run_id[name])
+    """
+    # -#-#- #
+    # S Q L #
+    # -#-#- #
     cursor = c_row.execute("""SELECT formula,
                       num_atoms,
                          run_id,
@@ -223,12 +256,16 @@ def get_ecal_runinfo_finfo(cmd_where, cipsi_type):
                              ON output_tab.name = id_tab.name
                           WHERE {0}""".format(cmd_where.replace("name", "ele")))
 
-    # INIT
+    # -#-#-#- #
+    # I n i t #
+    # -#-#-#- #
     e_cal = defaultdict(dict)
     run_info = defaultdict()
     f_info = defaultdict()
 
-    # FILL_IN
+    # -#-#-#-#-#-#- #
+    # F i l l _ i n #
+    # -#-#-#-#-#-#- #
     num_formula = namedtuple('num_formula', ['num_atoms', 'formula'])
     for r in cursor:
         # Energy
@@ -278,8 +315,15 @@ ae_zpe_exp_dict = {"NIST": 1,
 #  F u n c t i o n  #
 # -#-#-#-#-#-#-#-#- #
 def get_zpe_aeexp(cond_filter_ele):
+    """
+    Return 2 dict:
+        * zpe_exp  Dict of zpe experimental                   (zpe_exp[name])
+        * ae_exp   Dict of atomization experimental energis   (ae_ext[name])
+    """
 
-    # SQL
+    # -#-#- #
+    # S Q L #
+    # -#-#- #
     try:
         zpe_ae_user = config.get("ZPE_AE", "value")
     except KeyError:
@@ -306,11 +350,15 @@ def get_zpe_aeexp(cond_filter_ele):
                            WHERE {cmd_where}
                            GROUP BY name""".format(cmd_where=cmd_where))
 
-    # INIT
+    # -#-#-#- #
+    # I n i t #
+    # -#-#-#- #
     ae_exp = defaultdict()
     zpe_exp = defaultdict()
 
-    # FILL_IN
+    # -#-#-#-#-#-#- #
+    # F i l l _ i n #
+    # -#-#-#-#-#-#- #
     for r in cursor:
         zpe = r['zpe'] * 4.55633e-06
         energy = r['kcal'] * 0.00159362
@@ -342,8 +390,13 @@ e_nr_name_id_dict = {"Rude": "Any",
 #  F u n c t i o n  #
 # -#-#-#-#-#-#-#-#- #
 def get_enr(cond_filter_ele):
-
-    # SQL
+    """
+    Return 1 dict:
+        * e_nr   Dict of estimated exact no relativist energy  (e_nr[name])
+    """
+    # -#-#- #
+    # S Q L #
+    # -#-#- #
     # Get Davidson est. atomics energies
     try:
         run_id_mol = e_nr_name_id_dict[config.get("estimated_exact",
@@ -365,10 +418,14 @@ def get_enr(cond_filter_ele):
                     NATURAL JOIN id_tab
                            WHERE {cmd_where}""".format(cmd_where=cmd_where))
 
-    # INIT
+    # -#-#-#- #
+    # I n i t #
+    # -#-#-#- #
     e_nr = defaultdict()
 
-    # FILL_IN
+    # -#-#-#-#-#-#- #
+    # F i l l _ i n #
+    # -#-#-#-#-#-#- #
     # Put exact energy non relativist for atom and molecule
     for name, exact_energy in c.fetchall():
         e_nr[name] = float(exact_energy)
@@ -377,6 +434,13 @@ def get_enr(cond_filter_ele):
 
 
 def complete_e_nr(e_nr, f_info, ae_exp, zpe_exp):
+    """
+    Take and append 1 dict:
+        * e_nr   Dict of estimated exact no relativist energy  (e_nr[name])
+    If all the e_nr is not avalaible try to calcul it roughly:
+        * e_nr = ae + zpe + sum e_atom
+    """
+
     # Now we treat the rest
     # We have the energy but not the estimated_exact nr
     need_to_do = set(f_info).difference(e_nr)
@@ -396,13 +460,21 @@ def complete_e_nr(e_nr, f_info, ae_exp, zpe_exp):
 
 
 def get_ediff(e_cal, e_nr):
-
-    # INIT
+    """
+    Return 2 dict:
+        * e_diff     Dict of e_cal exact - estimated exact one  (e_diff[run_id][name])
+        * e_diff_rel Dict of e_diff/e_nr[name]                  (e_diff_ref[run_id][name])
+    """
+    # -#-#-#- #
+    # I n i t #
+    # -#-#-#- #
     # Now ce can calcule the e_diff (e_cal - e_nr)
     e_diff = defaultdict(dict)
     e_diff_rel = defaultdict(dict)
 
-    # FILL_IN
+    # -#-#-#-#-#-#- #
+    # F i l l _ i n #
+    # -#-#-#-#-#-#- #
     for run_id, e_cal_rd in e_cal.iteritems():
         for name, energies in e_cal_rd.iteritems():
             try:
@@ -427,11 +499,20 @@ def get_ediff(e_cal, e_nr):
 #  F u n c t i o n  #
 # -#-#-#-#-#-#-#-#- #
 def get_ae_cal(f_info, e_cal):
+    """
+    return one dict
+        * ae_cal   Dict of atomization energies calculated    (ae_cal[run_id][name])
+                   ae_cal = e_cal_mol - sum e_cal_atom 
+    """
 
-        # INIT
+    # -#-#-#- #
+    # I n i t #
+    # -#-#-#- #
     ae_cal = defaultdict(dict)
 
-    # FILL_INIT
+    # -#-#-#-#-#-#- #
+    # F i l l _ i n #
+    # -#-#-#-#-#-#- #
     for run_id, e_cal_rd in e_cal.iteritems():
         for name, energy in e_cal_rd.iteritems():
             try:
@@ -447,10 +528,19 @@ def get_ae_cal(f_info, e_cal):
 
 
 def get_ae_nr(f_info, e_nr):
-    # INIT
+    """
+    Return one dict
+        * ae_nr    Dict of no relativist atomization energies (ae_nr[name])
+        ae_nr = e_nr_mol - sum e_nr_atom
+    """
+    # -#-#-#- #
+    # I n i t #
+    # -#-#-#- #
     ae_nr = defaultdict()
 
-    # FILL_IN
+    # -#-#-#-#-#-#- #
+    # F i l l _ i n #
+    # -#-#-#-#-#-#- #
     for name in f_info:
         try:
             ae_nr_tmp = -e_nr[name]
@@ -465,11 +555,19 @@ def get_ae_nr(f_info, e_nr):
 
 
 def get_ae_diff(ae_cal, ae_nr):
-
-    # INIT
+    """
+    Return one dict
+        * ae_diff  Dict of ae_cal energy - no relativist      (ae_diff[run_id][name])
+         ae_diff = ae_cal - ae_nr
+    """
+    # -#-#-#- #
+    # I n i t #
+    # -#-#-#- #
     ae_diff = defaultdict(dict)
 
-    # FILL_INIT
+    # -#-#-#-#-#-#- #
+    # F i l l _ i n #
+    # -#-#-#-#-#-#- #
     for run_id, ae_cal_rd in ae_cal.iteritems():
         for name, ae in ae_cal_rd.iteritems():
             try:
