@@ -144,8 +144,8 @@ if __name__ == '__main__':
     # |   |  | | | |_ | | | (_|
     #                        _|
     if arguments["list_run"]:
-        from src.print_util import print_mad
-        print_mad(run_info, d_mad, arguments["--order_by"])
+        from src.print_util import create_print_mad
+        create_print_mad(run_info, d_mad, arguments["--order_by"])
 
     elif arguments["list_element"]:
         for run_id in run_info:

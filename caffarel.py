@@ -212,6 +212,8 @@ if __name__ == '__main__':
     # -#-#-#-#-#- #
 
     from src.print_util import order_by, format_table
+    from src.print_util import print_table_energy
+    from src.print_util import print_table_gnuplot
 
     table_body = order_by(arguments["--order_by"], header_name, table_body)
     table_body = format_table(header_name, table_body)
@@ -221,88 +223,85 @@ if __name__ == '__main__':
     # /--\ _> (_ | | | (_| |_) | (/_
     #
 
-    if not arguments["--gnuplot"]:
-        # -#-#-#-#-#-#-#- #
-        # B i g  Ta b l e #
-        # -#-#-#-#-#-#-#- #
-        from src.terminaltables import AsciiTable
-
-        table_body = [map(str, i) for i in table_body]
-        table_data = [header_name] + [header_unit] + table_body
-
-        table_big = AsciiTable(table_data)
-
-        # -#-#-#-#-#- #
-        # F i l t e r #
-        # -#-#-#-#-#- #
-
-        # Table_big.ok Check if the table will fit in the terminal
-
-        from src.Requirement_util import config
-
-        mode = config.get("Size", "mode")
-        if all([mode == "Auto",
-                not table_big.ok]) or mode == "Small":
-
-            # Split into two table
-            # table_run_id  (run _id -> method,basis, comment)
-            # table_data_small (run_id -> energy, etc)
-            table_run_id = ["Run_id Method Basis Geo Comments".split()]
-
-            for run_id, l in run_info.iteritems():
-                line = [run_id] + l
-                table_run_id.append(line)
-
-            t = AsciiTable([map(str, i) for i in table_run_id])
-            print t.table()
-
-            table_data_small = [[l[0]] + l[5:] for l in table_data]
-            t = AsciiTable(table_data_small)
-            print t.table(row_separator=2)
-
-        else:
-            print table_big.table(row_separator=2)
+    if not (arguments["--gnuplot"] or arguments["--plotly"]):
+        print_table_energy(run_info, table_body, header_name, header_unit)
 
     #  __
     # /__ ._      ._  |  _ _|_
     # \_| | | |_| |_) | (_) |_
     #             |
     elif arguments["--gnuplot"]:
+        print_table_gnuplot(table_body, header_name)
 
-        def _value(var):
+    #  _
+    # |_) |  _ _|_   |
+    # |   | (_) |_ o | \/
+    #                  /
+    elif arguments["--plotly"]:
 
-            default_character = "-"
-            if not var:
-                return default_character, default_character
-            try:
-                return str(var.e), str(var.err)
-            except AttributeError:
-                return str(var), "0."
-            except:
-                raise
+        try:
+            import plotly.plotly as py
+            from plotly.graph_objs import Layout, ErrorY, XAxis, YAxis, Legend
+            from plotly.graph_objs import Figure, Scatter, Data
+        except:
+            print "you need plotly to be installed and configure"
+            print "https://plot.ly/python/getting-started/"
+            sys.exit(1)
 
-        print "#" + header_name[0] + " " + " ".join(header_name[5:])
-        table_data_small = [[line[0]] + line[5:] for line in table_body]
+        def get_scatter(name, x, y, ye=None):
 
-        for line in table_data_small:
-            l = tuple(map(str, line[:2]))
-            for i in line[2:]:
-                l += _value(i)
+            if ye:
+                return Scatter(x=x,
+                               y=y,
+                               #mode='markers',
+                               name=name,
+                               error_y=ErrorY(type='data',
+                                              array=ye,
+                                              visible=True)
+                               )
+            else:
+                return Scatter(x=x,
+                               y=y,
+                               #mode='markers',
+                               name=name)
 
-            print " ".join(l)
+        data = []
+        for dict_name in arguments["--plotly"]:
+            dict_ = eval(dict_name)
 
-        print "#GnuPlot cmd"
-        print ""
-        print "for energy: "
-        print "#$gnuplot -e",
-        print "\"set datafile missing '-';",
-        print "set xtics rotate;",
-        print "plot 'dat' u 3:xtic(2) w lp title 'energy';",
-        print "pause -1\""
-        print ""
-        print "for ae_diff: "
-        print "#$gnuplot -e",
-        print "\"set datafile missing '-';",
-        print "set xtics rotate;",
-        print "plot 'dat' u 9:xtic(2) w lp title 'ae_diff';",
-        print "pause -1\""
+            for run_id, dict_rd in dict_.iteritems():
+
+                x = [n for n in a.to_print(e_cal[run_id]) if n in dict_rd]
+
+                l_val = [get_values(name, [dict_rd])[0] for name in x]
+                try:
+                    y = [val.e for val in l_val]
+                    ye = [val.err for val in l_val]
+                except AttributeError:
+                    y = l_val
+                    ye = None
+
+                str_ = "run_id : %s (%s) <br> %s"
+                legend = str_ % (run_id,
+                                 dict_name,
+                                 ", ".join(run_info[run_id]))
+
+                data.append(get_scatter(legend, x, y, ye))
+
+        data = Data(data)
+
+#        yaxis_title = "%s (%s)" % (dict_name, unit_dict[dict_name])
+        yaxis_title = "coucou"
+
+        layout = Layout(title='Fig 1: G2 %s' % dict_name,
+                        xaxis=XAxis(autotick=False,
+                                    ticks='outside'),
+                        yaxis=YAxis(title=yaxis_title),
+                        legend=Legend(x=0,
+                                      y=-1.)
+                        )
+
+        fig = Figure(data=data, layout=layout)
+
+        plot_url = py.plot(fig, filename='G2')
+        py.image.save_as(fig, filename='G2.svg')
