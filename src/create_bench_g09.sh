@@ -8,7 +8,7 @@ BASIS="cc-pVDZ"
 METHOD="CCSD(T)"
 
 
-G2_input=G2_input.py
+G2_input=scemama.py
 
 MOLECULES="$( $G2_input list_elements --geo=$GEOMETRY | tr ',' ' ')"
 

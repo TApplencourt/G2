@@ -52,10 +52,6 @@ class ListEle(object):
         # Add all the children of a element to l_ele_to_get if need.
         # For example for the calculate the AE of AlCl we need Al and Cl
 
-#        if not self.l_ele:
-#            self.need_to_define = True
-#        else:
-#            self.need_to_define = False
         if self.l_ele and get_children:
             self.get_children()
 
@@ -155,8 +151,6 @@ def get_l_ele(arguments):
 def get_cmd(arguments, l_ele_obj, need_all):
     """
     Create the cmd string who will be executed by the db
-    arguments need all this key:
-        --run_id; --geo; --basis; --method
     """
     d = {"run_id": "--run_id",
          "geo": "--geo",
@@ -168,7 +162,7 @@ def get_cmd(arguments, l_ele_obj, need_all):
         try:
             cond_filter += cond_sql_or(k, arguments[v])
         except KeyError:
-            raise
+            pass
 
     l_ele_to_get = l_ele_obj.l_ele_to_get
 
