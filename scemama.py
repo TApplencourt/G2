@@ -161,8 +161,6 @@ if __name__ == '__main__':
 
         e_cal, run_info, f_info = get_ecal_runinfo_finfo(cmd_where, energy_opt)
 
-        print e_cal
-
         if not a.l_ele:
             a.l_ele = [name for name in f_info]
 
@@ -181,5 +179,29 @@ if __name__ == '__main__':
                 if number > 1:
                     d_target_pt2[ele] += d_target_pt2[name_atome] * number
 
+        if arguments["--quality_factor"]:
+            if not 0. < float(arguments["--quality_factor"]) < 1.:
+                print "0. < quality factor < 1. "
+                sys.exit(1)
+            else:
+                quality_factor = 1 - float(arguments["--quality_factor"])
+        elif arguments["--born_min"]:
+            if not float(arguments["--born_min"]) < 0.:
+                print "You need a negative pt2"
+                sys.exit()
+            else:
+                quality_factor = float(
+                    arguments["--born_min"]) / max(d_target_pt2.values())
+        elif arguments["--born_max"]:
+            if not float(arguments["--born_max"]) < 0.:
+                print "You need a negative pt2"
+                sys.exit()
+            else:
+                quality_factor = float(
+                    arguments["--born_max"]) / min(d_target_pt2.values())
+        else:
+            quality_factor = 0.
 
-        print d_target_pt2
+        print quality_factor
+        for ele, target_pt2 in d_target_pt2.iteritems():
+            print ele, target_pt2 * (quality_factor)
