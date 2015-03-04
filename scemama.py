@@ -180,7 +180,7 @@ if __name__ == '__main__':
                     d_target_pt2[ele] += d_target_pt2[name_atome] * number
 
         if arguments["--quality_factor"]:
-            if not 0. < float(arguments["--quality_factor"]) < 1.:
+            if not 0. <= float(arguments["--quality_factor"]) <= 1.:
                 print "0. < quality factor < 1. "
                 sys.exit(1)
             else:
