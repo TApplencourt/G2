@@ -83,7 +83,6 @@ def commit_and_dump(conn):
         os.system("touch {0}".format(DB_NAME))
 
 import types
-
 sqlite3.update_and_connect = types.MethodType(update_and_connect, sqlite3)
 # Cause of C implementation of the class Connection MonkeyPatching is not alloing...
 # sqlite3.Connection.commit_and_dump = types.MethodType(commit_and_dump, sqlite3.Connection)
