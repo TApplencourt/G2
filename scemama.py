@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-t
 
 """Welcome to the G2 Api! Grab all the G2 data you're dreaming of.
 
@@ -157,9 +157,6 @@ if __name__ == '__main__':
         energy_opt = "var+pt2"
 
         e_cal, run_info, f_info = get_ecal_runinfo_finfo(cmd_where, energy_opt)
-
-        if not a.l_ele:
-            a.l_ele = [name for name in f_info]
 
         hf_id = int(arguments["--hf_id"])
         fci_id = int(arguments["--fci_id"])

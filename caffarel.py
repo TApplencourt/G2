@@ -123,9 +123,6 @@ if __name__ == '__main__':
 
     e_cal, run_info, f_info = get_ecal_runinfo_finfo(cmd_where, energy_opt)
 
-    if not a.l_ele:
-        a.l_ele = [name for name in f_info]
-
     # -#-#- #
     # Z P E #
     # -#-#- #
