@@ -106,11 +106,11 @@ def get_l_ele(arguments):
     """
     Return the good list of element needed using arguments dict.
     arguments need to have all this key:
-        --ele ; --like_toulouse ; --like_applencourt ; --like_run_id 
+        --ele ; --like_toulouse ; --like_applencourt ; --like_run_id
     """
     if "--ele" in arguments and arguments["--ele"]:
         l_ele = "--ele" in arguments and arguments["--ele"]
-        get_children = False
+        get_children = True if arguments["--all_children"] else False
 
     elif "--like_toulouse" in arguments and arguments["--like_toulouse"]:
         from src.misc_info import list_toulouse
