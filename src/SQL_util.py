@@ -117,7 +117,6 @@ def cond_sql_or(table_name, l_value):
     if dmy:
         l.append("(%s)" % dmy)
 
-    print l
     return l
 
 
