@@ -126,7 +126,7 @@ if __name__ == '__main__':
     # -#-#- #
     # Z P E #
     # -#-#- #
-    if arguments["--zpe"] or arguments["--ae"]:
+    if arguments["--zpe"] or arguments["--ae"] or arguments["--no_relativist"]:
         zpe_exp, ae_exp = get_zpe_aeexp(cond_filter_ele)
         convert("zpe_exp", zpe_exp)
 
