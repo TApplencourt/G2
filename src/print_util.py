@@ -60,7 +60,7 @@ def order_by(list_order, header_name, table_body):
             sys.exit(1)
         else:
             table_body = sorted(table_body,
-                                key=lambda x: abs(x[index]),
+                                key=lambda x: x[index],
                                 reverse=True)
     return table_body
 
