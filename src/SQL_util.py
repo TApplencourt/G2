@@ -295,7 +295,7 @@ def add_simple_energy(run_id, id_, e, overwrite=False, commit=False):
 def add_cipsi_energy(run_id, id_, e, pt2, overwrite=False, commit=False):
 
     if overwrite:
-        cmd = """INSERT OR overwrite INTO cipsi_energy_tab(run_id,id,energy,pt2)
+        cmd = """INSERT OR REPLACE INTO cipsi_energy_tab(run_id,id,energy,pt2)
                   VALUES (?,?,?,?)"""
     else:
         cmd = """INSERT INTO cipsi_energy_tab(run_id,id,energy,pt2)
