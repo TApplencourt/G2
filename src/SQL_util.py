@@ -113,10 +113,11 @@ def cond_sql_or(table_name, l_value):
     # Create the OR condition for a WHERE filter
 
     l = []
-    dmy = " OR ".join(['%s = "%s"' % (table_name, i) for i in l_value])
+    dmy = " OR ".join(['%s GLOB "%s"' % (table_name, i) for i in l_value])
     if dmy:
         l.append("(%s)" % dmy)
 
+    print l
     return l
 
 

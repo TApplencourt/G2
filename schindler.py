@@ -4,24 +4,24 @@
 
 Usage:
   schindler.py (-h | --help)
-  schindler.py list_run [--run_id=<id>...]
-                        [(--ele=<element_name>... |
-                          --like_toulouse |
-                          --like_applencourt |
-                          --like_run_id=<run_id>) [--all_children]]
-                        [--method=<method_name>...]
-                        [--basis=<basis_name>...]
-                        [--geo=<geometry_name>...]
+  schindler.py list_run [--run_id=<id>... | ([--method=<method_name>...]
+                                             [--basis=<basis_name>...]
+                                             [--geo=<geometry_name>...]
+                                             [--comments=<comments>...])]
+                        [(--ele=<element_name>...
+                          | --like_toulouse
+                          | --like_applencourt
+                          | --like_run_id=<run_id>) [--all_children]]
                         [--without_pt2]
                         [--order_by=<column>...]
-  schindler.py list_element [--run_id=<id>...]
-                            [--geo=<geometry_name>...]
-                            [--basis=<basis_name>...]
-                            [--method=<method_name>...]
-                            [--missing (--ele=<element_name>... |
-                                        --like_toulouse |
-                                        --like_applencourt |
-                                        --like_run_id=<run_id>) [--all_children]]
+  schindler.py list_element [--run_id=<id>... | ([--method=<method_name>...]
+                                                 [--basis=<basis_name>...]
+                                                 [--geo=<geometry_name>...]
+                                                 [--comments=<comments>...])]
+                            [--missing (--ele=<element_name>...
+                                        | --like_toulouse
+                                        | --like_applencourt
+                                        | --like_run_id=<run_id>) [--all_children]]
 """
 
 version = "0.0.1"

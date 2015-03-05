@@ -155,7 +155,8 @@ def get_cmd(arguments, l_ele_obj, need_all):
     d = {"run_id": "--run_id",
          "geo": "--geo",
          "basis": "--basis",
-         "method": "--method"}
+         "method": "--method",
+         "comments": "--comments"}
 
     cond_filter = []
     for k, v in d.items():

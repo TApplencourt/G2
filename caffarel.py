@@ -4,21 +4,20 @@
 << Je veux des nombres !!! >>
 
 Usage:
-  caffarel.py get_energy [--run_id=<id>...]
-                         [(--ele=<element_name>... |
-                           --like_toulouse |
-                           --like_applencourt |
-                           --like_run_id=<run_id>) [--all_children]]
-                         [--method=<method_name>...]
-                         [--basis=<basis_name>...]
-                         [--geo=<geometry_name>...]
+  caffarel.py get_energy [--run_id=<id>... | ([--method=<method_name>...]
+                                              [--basis=<basis_name>...]
+                                              [--geo=<geometry_name>...]
+                                              [--comments=<comments>...])]
+                         [(--ele=<element_name>...
+                           | --like_toulouse
+                           | --like_applencourt
+                           | --like_run_id=<run_id>) [--all_children]]
                          [--zpe]
                          [--no_relativist]
                          [--ae]
                          [--without_pt2]
                          [--order_by=<column>...]
-                         [--gnuplot]
-                         [--plotly=<column>...]
+                         [--gnuplot | --plotly=<column>...]
 """
 
 version = "0.0.1"
@@ -250,7 +249,7 @@ if __name__ == '__main__':
             if ye:
                 return Scatter(x=x,
                                y=y,
-                               #mode='markers',
+                               # mode='markers',
                                name=name,
                                error_y=ErrorY(type='data',
                                               array=ye,
@@ -259,7 +258,7 @@ if __name__ == '__main__':
             else:
                 return Scatter(x=x,
                                y=y,
-                               #mode='markers',
+                               # mode='markers',
                                name=name)
 
         data = []
