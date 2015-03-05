@@ -164,13 +164,21 @@ if __name__ == '__main__':
         hf_id = int(arguments["--hf_id"])
         fci_id = int(arguments["--fci_id"])
 
-        d_target_pt2 = dict()
+        # -#-#-#-#-#-#-#-#-#-#-#- #
+        # D _ t a r g e t _ p t 2 #
+        # -#-#-#-#-#-#-#-#-#-#-#- #
+
+        from collections import defaultdict
+        d_target_pt2 = defaultdict(lambda: 0.)
 
         for ele in e_cal[hf_id].viewkeys() & e_cal[fci_id].viewkeys():
-             d_target_pt2[ele] = 0.
+            for name_atome, number in f_info[ele].formula:
+                dump = (e_cal[fci_id][name_atome] - e_cal[hf_id][name_atome])
+                d_target_pt2[ele] += dump * number
 
-             for name_atome, number in f_info[ele].formula:
-                    d_target_pt2[ele] += (e_cal[fci_id][name_atome] - e_cal[hf_id][name_atome])*number
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#- #
+        # Q u a l i t y _ f a c t o r #
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#- #
 
         if arguments["--quality_factor"]:
             if not 0. <= float(arguments["--quality_factor"]) <= 1.:
@@ -181,6 +189,10 @@ if __name__ == '__main__':
         else:
             quality_factor = 0.
 
+        #  _
+        # |_) ._ o ._ _|_
+        # |   |  | | | |_
+        #
         print "quality_factor :", quality_factor
         for ele, target_pt2 in d_target_pt2.iteritems():
             print ele, target_pt2 * (1 - quality_factor)
