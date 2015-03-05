@@ -52,6 +52,13 @@ def order_by(list_order, header_name, table_body):
     Order table body by the list_order
     Example: list_order = ["mad"]
     """
+
+    def tryabs(value):
+        try:
+            return abs(value)
+        except TypeError:
+            return value
+
     for arg in list_order:
         try:
             index = header_name.index(arg)
@@ -60,7 +67,7 @@ def order_by(list_order, header_name, table_body):
             sys.exit(1)
         else:
             table_body = sorted(table_body,
-                                key=lambda x: x[index],
+                                key=lambda x: tryabs(x[index]),
                                 reverse=True)
     return table_body
 
