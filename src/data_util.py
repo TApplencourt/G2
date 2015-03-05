@@ -108,21 +108,21 @@ def get_l_ele(arguments):
     arguments need to have all this key:
         --ele ; --like_toulouse ; --like_applencourt ; --like_run_id 
     """
-    if arguments["--ele"]:
-        l_ele = arguments["--ele"]
+    if "--ele" in arguments and arguments["--ele"]:
+        l_ele = "--ele" in arguments and arguments["--ele"]
         get_children = False
 
-    elif arguments["--like_toulouse"]:
+    elif "--like_toulouse" in arguments and arguments["--like_toulouse"]:
         from src.misc_info import list_toulouse
         l_ele = list_toulouse
         # So we need all_children
         get_children = True
-    elif arguments["--like_applencourt"]:
+    elif "--like_applencourt" in arguments and arguments["--like_applencourt"]:
         from src.misc_info import list_applencourt
         l_ele = list_applencourt
         # So we need all_children
         get_children = True
-    elif arguments["--like_run_id"]:
+    elif "--like_run_id" in arguments and arguments["--like_run_id"]:
         c.execute("""SELECT name FROM output_tab
                           WHERE run_id = {0}""".format(arguments["--like_run_id"]))
 

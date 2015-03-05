@@ -16,12 +16,10 @@ Usage:
                               [(--save [--path=<path>])]
   scemama.py get_target_pt2_max --hf_id=<id>
                                 --fci_id=<id>
-                                (--like_toulouse |
+                                [--like_toulouse |
                                  --like_applencourt |
-                                 --ele=<element_name>...)
-                                [--quality_factor=<qf> |
-                                 --born_min=<bmin> |
-                                 --born_max=<bmax>]
+                                 --ele=<element_name>...]
+                                [--quality_factor=<qf>]
 Example of use:
   ./scemama.py list_geometries
   ./scemama.py list_elements --geo Experiment
@@ -143,7 +141,6 @@ if __name__ == '__main__':
         # -#-#-#-#-#- #
 
         cond_filter_ele, cmd_where = get_cmd(arguments, a, need_all)
-
         #  _
         # |_) ._ _   _  _   _  _ o ._   _
         # |   | (_) (_ (/_ _> _> | | | (_|
@@ -169,39 +166,21 @@ if __name__ == '__main__':
 
         d_target_pt2 = dict()
 
-        for ele in a.l_ele_to_get:
-            d_target_pt2[ele] = 0.
-            for name_atome, number in f_info[ele].formula:
-                if number == 1:
-                    d_target_pt2[ele] += e_cal[fci_id][ele] - e_cal[hf_id][ele]
+        for ele in e_cal[hf_id].viewkeys() & e_cal[fci_id].viewkeys():
+             d_target_pt2[ele] = 0.
 
-            for name_atome, number in f_info[ele].formula:
-                if number > 1:
-                    d_target_pt2[ele] += d_target_pt2[name_atome] * number
+             for name_atome, number in f_info[ele].formula:
+                    d_target_pt2[ele] += (e_cal[fci_id][name_atome] - e_cal[hf_id][name_atome])*number
 
         if arguments["--quality_factor"]:
             if not 0. <= float(arguments["--quality_factor"]) <= 1.:
                 print "0. < quality factor < 1. "
                 sys.exit(1)
             else:
-                quality_factor = 1 - float(arguments["--quality_factor"])
-        elif arguments["--born_min"]:
-            if not float(arguments["--born_min"]) < 0.:
-                print "You need a negative pt2"
-                sys.exit()
-            else:
-                quality_factor = float(
-                    arguments["--born_min"]) / max(d_target_pt2.values())
-        elif arguments["--born_max"]:
-            if not float(arguments["--born_max"]) < 0.:
-                print "You need a negative pt2"
-                sys.exit()
-            else:
-                quality_factor = float(
-                    arguments["--born_max"]) / min(d_target_pt2.values())
+                quality_factor = float(arguments["--quality_factor"])
         else:
             quality_factor = 0.
 
-        print quality_factor
+        print "quality_factor :", quality_factor
         for ele, target_pt2 in d_target_pt2.iteritems():
-            print ele, target_pt2 * (quality_factor)
+            print ele, target_pt2 * (1 - quality_factor)
