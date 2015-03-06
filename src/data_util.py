@@ -33,6 +33,7 @@ import sys
 # By defalt, if l_ele is empty get all
 
 class ListEle(object):
+
     """
     ListEle encapsulates all the info related to a list_ele.
         - l_ele giving in imput
@@ -40,6 +41,7 @@ class ListEle(object):
         - l_ele_order maybe
         - And have a to print method
     """
+
     def __init__(self, l_ele, get_children, print_children):
         """
         Construct a new ListEle.
@@ -110,32 +112,38 @@ def get_l_ele(arguments):
     """
     if "--ele" in arguments and arguments["--ele"]:
         l_ele = "--ele" in arguments and arguments["--ele"]
-        get_children = True if arguments["--all_children"] else False
 
     elif "--like_toulouse" in arguments and arguments["--like_toulouse"]:
         from src.misc_info import list_toulouse
         l_ele = list_toulouse
-        # So we need all_children
-        get_children = True
+
     elif "--like_applencourt" in arguments and arguments["--like_applencourt"]:
         from src.misc_info import list_applencourt
         l_ele = list_applencourt
-        # So we need all_children
-        get_children = True
+
     elif "--like_run_id" in arguments and arguments["--like_run_id"]:
         c.execute("""SELECT name FROM output_tab
                           WHERE run_id = {0}""".format(arguments["--like_run_id"]))
 
         l_ele = [i[0] for i in c.fetchall()]
 
-        # So we dont need all_children
-        get_children = False
     else:
         l_ele = list()
+
+    return l_ele
+
+
+def get_children(arguments):
+    if "--all_children" in arguments and arguments["--all_children"]:
+        get_children = True
+    elif "--no_relativist" in arguments and arguments["--no_relativist"]:
+        get_children = True
+    elif "--ae" in arguments and arguments["--ae"]:
+        get_children = True
+    else:
         get_children = False
 
-    return [l_ele, get_children]
-
+    return get_children
 
 # ______ _ _ _
 # |  ___(_) | |
@@ -148,6 +156,8 @@ def get_l_ele(arguments):
 # |_ o | _|_  _  ._    _ _|_ ._ o ._   _
 # |  | |  |_ (/_ |    _>  |_ |  | | | (_|
 #                                      _|
+
+
 def get_cmd(arguments, l_ele_obj, need_all):
     """
     Create the cmd string who will be executed by the db
@@ -169,7 +179,9 @@ def get_cmd(arguments, l_ele_obj, need_all):
 
     # We need to find the run_id who containt ALL the ele is needed
     if l_ele_to_get:
-        cond_filter_ele = cond_sql_or("name", l_ele_to_get) if need_all else ["(1)"]
+        cond_filter_ele = cond_sql_or(
+            "name",
+            l_ele_to_get) if need_all else ["(1)"]
     else:
         cond_filter_ele = []
 
@@ -495,7 +507,7 @@ def get_ae_cal(f_info, e_cal):
     """
     return one dict
         * ae_cal   Dict of atomization energies calculated    (ae_cal[run_id][name])
-                   ae_cal = e_cal_mol - sum e_cal_atom 
+                   ae_cal = e_cal_mol - sum e_cal_atom
     """
 
     # -#-#-#- #
@@ -582,7 +594,7 @@ def get_mad(f_info, e_cal, cond_filter_ele):
 
     zpe_exp, ae_exp = get_zpe_aeexp(cond_filter_ele)
     e_nr = get_enr(cond_filter_ele)
-    complete_e_nr(e_nr, f_info, ae_exp, zpe_exp)
+    e_nr = complete_e_nr(e_nr, f_info, ae_exp, zpe_exp)
 
     # -#- #
     # A E #
@@ -651,4 +663,5 @@ def get_values(ele, l_d):
 
 def get_header_unit(header_name):
     """Return the unit corespondtion to header_name"""
-    return [unit_dict[n] if n in unit_dict else DEFAULT_CHARACTER for n in header_name]
+    return [
+        unit_dict[n] if n in unit_dict else DEFAULT_CHARACTER for n in header_name]

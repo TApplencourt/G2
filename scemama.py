@@ -131,7 +131,7 @@ if __name__ == '__main__':
 
         arguments["--run_id"] = [arguments["--hf_id"], arguments["--fci_id"]]
 
-        l_ele, _ = get_l_ele(arguments)
+        l_ele = get_l_ele(arguments)
 
         # Usefull object contain all related stuff to l_ele
         a = ListEle(l_ele, get_children, print_children)

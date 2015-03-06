@@ -8,6 +8,7 @@ from math import sqrt, pow
 # Need to add variance to the tuple
 # Check with R
 
+
 class v_un(namedtuple('v_un', 'e err')):
 
     p = re.compile(ur'^(0*)\.(0*(\d{1,2}))')
@@ -50,13 +51,13 @@ class v_un(namedtuple('v_un', 'e err')):
     # Minis Left right
     def __sub__(self, x):
         try:
-            return v_un(self.e - x.e, sqrt(pow(self.err,2) + pow(x.err,2)))
+            return v_un(self.e - x.e, sqrt(pow(self.err, 2) + pow(x.err, 2)))
         except AttributeError:
             return v_un(self.e - x, self.err)
 
     def __rsub__(self, x):
         try:
-            return v_un(-self.e + x.e, sqrt(pow(self.err,2) + pow(x.err,2)))
+            return v_un(-self.e + x.e, sqrt(pow(self.err, 2) + pow(x.err, 2)))
         except AttributeError:
             return v_un(-self.e + x, self.err)
 
@@ -135,7 +136,7 @@ if __name__ == '__main__':
     list_ = [v_un(1.5, 1.300), v_un(1, 10),
              v_un(0.1, 0.1), v_un(0.1, 10), v_un(1, 0.00100),
              v_un(8.8819036, 3.0581249),
-             v_un(-100.42304, 00036)]
+             v_un(-100.42304, 0o0036)]
 
     print "Value", "err", "display"
     for i in list_:
