@@ -169,26 +169,26 @@ def print_table_energy(run_info, table_body, header_name, header_unit):
 def print_table_gnuplot(table_body, header_name):
     def _value(var):
 
-            default_character = "-"
-            if not var:
-                return default_character, default_character
-            try:
-                return str(var.e), str(var.err)
-            except AttributeError:
-                return str(var), "0."
-            except:
-                raise
+        default_character = "-"
+        if not var:
+            return default_character, default_character
+        try:
+            return str(var.e), str(var.err)
+        except AttributeError:
+            return str(var), "0."
+        except:
+            raise
 
     print "#" + header_name[0] + " " + header_name[5],
     print " err ".join(header_name[6:])
     table_data_small = [[line[0]] + line[5:] for line in table_body]
 
     for line in table_data_small:
-            l = tuple(map(str, line[:2]))
-            for i in line[2:]:
-                l += _value(i)
+        l = tuple(map(str, line[:2]))
+        for i in line[2:]:
+            l += _value(i)
 
-            print " ".join(l)
+        print " ".join(l)
 
     print "#GnuPlot cmd"
     print ""

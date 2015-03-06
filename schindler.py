@@ -4,24 +4,24 @@
 
 Usage:
   schindler.py (-h | --help)
-  schindler.py list_run [--run_id=<id>...]
-                        [(--ele=<element_name>... |
-                          --like_toulouse |
-                          --like_applencourt |
-                          --like_run_id=<run_id>) [--all_children]]
-                        [--method=<method_name>...]
-                        [--basis=<basis_name>...]
-                        [--geo=<geometry_name>...]
+  schindler.py list_run [--run_id=<id>... | ([--method=<method_name>...]
+                                             [--basis=<basis_name>...]
+                                             [--geo=<geometry_name>...]
+                                             [--comments=<comments>...])]
+                        [(--ele=<element_name>...
+                          | --like_toulouse
+                          | --like_applencourt
+                          | --like_run_id=<run_id>) [--all_children]]
                         [--without_pt2]
                         [--order_by=<column>...]
-  schindler.py list_element [--run_id=<id>...]
-                            [--geo=<geometry_name>...]
-                            [--basis=<basis_name>...]
-                            [--method=<method_name>...]
-                            [--missing (--ele=<element_name>... |
-                                        --like_toulouse |
-                                        --like_applencourt |
-                                        --like_run_id=<run_id>) [--all_children]]
+  schindler.py list_element [--run_id=<id>... | ([--method=<method_name>...]
+                                                 [--basis=<basis_name>...]
+                                                 [--geo=<geometry_name>...]
+                                                 [--comments=<comments>...])]
+                            [--missing (--ele=<element_name>...
+                                        | --like_toulouse
+                                        | --like_applencourt
+                                        | --like_run_id=<run_id>) [--all_children]]
 """
 
 version = "0.0.1"
@@ -92,7 +92,8 @@ if __name__ == '__main__':
     #
     # Set somme option, get l_ele and the commande used by sql
 
-    from src.data_util import get_l_ele, ListEle, get_cmd
+    from src.data_util import get_l_ele, get_children
+    from src.data_util import ListEle, get_cmd
 
     # -#-#-#-#-#- #
     # O p t i o n #
@@ -105,7 +106,8 @@ if __name__ == '__main__':
     # l _ e l e #
     # -#-#-#-#- #
 
-    l_ele, get_children = get_l_ele(arguments)
+    l_ele = get_l_ele(arguments)
+    get_children = get_children(arguments)
 
     # Usefull object contain all related stuff to l_ele
     a = ListEle(l_ele, get_children, print_children)
@@ -132,9 +134,6 @@ if __name__ == '__main__':
     energy_opt = "var" if arguments["--without_pt2"] else "var+pt2"
 
     e_cal, run_info, f_info = get_ecal_runinfo_finfo(cmd_where, energy_opt)
-
-    if not a.l_ele:
-        a.l_ele = [name for name in f_info]
 
     if arguments["list_run"]:
         d_mad = get_mad(f_info, e_cal, cond_filter_ele)

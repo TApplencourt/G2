@@ -4,21 +4,19 @@
 << Je veux des nombres !!! >>
 
 Usage:
-  caffarel.py get_energy [--run_id=<id>...]
-                         [(--ele=<element_name>... |
-                           --like_toulouse |
-                           --like_applencourt |
-                           --like_run_id=<run_id>) [--all_children]]
-                         [--method=<method_name>...]
-                         [--basis=<basis_name>...]
-                         [--geo=<geometry_name>...]
-                         [--zpe]
+  caffarel.py get_energy [--run_id=<id>... | ([--method=<method_name>...]
+                                              [--basis=<basis_name>...]
+                                              [--geo=<geometry_name>...]
+                                              [--comments=<comments>...])]
+                         [(--ele=<element_name>... [--all_children]
+                           | --like_toulouse
+                           | --like_applencourt
+                           | --like_run=<run_id>) ]
                          [--no_relativist]
                          [--ae]
                          [--without_pt2]
                          [--order_by=<column>...]
-                         [--gnuplot]
-                         [--plotly=<column>...]
+                         [--gnuplot | --plotly=<column>...]
 """
 
 version = "0.0.1"
@@ -56,7 +54,7 @@ if sys.version_info[:2] != (2, 7):
 # |_ | |_) | (_| | \/
 #                  /
 try:
-    from src.docopt import docopt, DocoptExit
+    from src.docopt import docopt
 except:
     print "File in misc is corupted. Git reset may cure the diseases"
     sys.exit(1)
@@ -79,7 +77,8 @@ if __name__ == '__main__':
     #
     # Set somme option, get l_ele and the commande used by sql
 
-    from src.data_util import get_l_ele, ListEle, get_cmd
+    from src.data_util import get_l_ele, get_children
+    from src.data_util import ListEle, get_cmd
 
     # -#-#-#-#-#- #
     # O p t i o n #
@@ -91,7 +90,8 @@ if __name__ == '__main__':
     # l _ e l e #
     # -#-#-#-#- #
 
-    l_ele, get_children = get_l_ele(arguments)
+    l_ele = get_l_ele(arguments)
+    get_children = get_children(arguments)
 
     # Usefull object contain all related stuff to l_ele
     a = ListEle(l_ele, get_children, print_children)
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     # -#-#- #
     # Z P E #
     # -#-#- #
-    if arguments["--zpe"] or arguments["--ae"]:
+    if arguments["--ae"] or arguments["--no_relativist"]:
         zpe_exp, ae_exp = get_zpe_aeexp(cond_filter_ele)
         convert("zpe_exp", zpe_exp)
 
@@ -166,9 +166,6 @@ if __name__ == '__main__':
 
     header_name = "run_id method basis geo comments ele e_cal".split()
 
-    if arguments["--zpe"]:
-        header_name += "zpe_exp".split()
-
     if arguments["--no_relativist"]:
         header_name += "e_nr e_diff e_diff_rel".split()
 
@@ -189,9 +186,6 @@ if __name__ == '__main__':
 
             line = list(line_basis) + [ele]
             line += get_values(ele, [e_cal[run_id]])
-
-            if arguments["--zpe"]:
-                line += get_values(ele, [zpe_exp])
 
             if arguments["--no_relativist"]:
                 line += get_values(ele, [e_nr,
@@ -250,7 +244,7 @@ if __name__ == '__main__':
             if ye:
                 return Scatter(x=x,
                                y=y,
-                               #mode='markers',
+                               # mode='markers',
                                name=name,
                                error_y=ErrorY(type='data',
                                               array=ye,
@@ -259,7 +253,7 @@ if __name__ == '__main__':
             else:
                 return Scatter(x=x,
                                y=y,
-                               #mode='markers',
+                               # mode='markers',
                                name=name)
 
         data = []
