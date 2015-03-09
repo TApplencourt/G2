@@ -16,7 +16,7 @@ Like:
 
 ##Demonstration
 
-![](http://gfycat.com/CooperativeMistyFalcon)
+![](http://giant.gfycat.com/CooperativeMistyFalcon.gif)
 
 (For a beter quality see the [Source](https://asciinema.org/api/asciicasts/17458))
 
