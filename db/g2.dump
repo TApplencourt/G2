@@ -2724,10 +2724,10 @@ INSERT INTO "run_tab" VALUES(83,6,8,1,'1M_Dets_NO_1_Det');
 INSERT INTO "run_tab" VALUES(84,6,8,1,'1M_Dets_NO_0.5Ecorr');
 INSERT INTO "run_tab" VALUES(85,6,3,1,'0.5_2_15');
 INSERT INTO "run_tab" VALUES(86,8,3,1,'0.5_2_15');
-INSERT INTO "run_tab" VALUES(87,6,3,1,'0.75_2_15_NO');
-INSERT INTO "run_tab" VALUES(88,8,3,1,'0.75_2_15_NO');
-INSERT INTO "run_tab" VALUES(89,6,8,1,'0.75_79_81_NO');
-INSERT INTO "run_tab" VALUES(90,8,8,1,'0.75_79_81_NO');
+INSERT INTO "run_tab" VALUES(87,6,3,1,'1M_Dets_NO_0.75_2_15');
+INSERT INTO "run_tab" VALUES(88,8,3,1,'1M_Dets_NO_0.75_2_15');
+INSERT INTO "run_tab" VALUES(89,6,8,1,'1M_Dets_NO_0.75_79_81');
+INSERT INTO "run_tab" VALUES(90,8,8,1,'1M_Dets_NO_0.75_79_81');
 INSERT INTO "run_tab" VALUES(91,6,8,1,'1M_Dets_NO_DZ_window');
 INSERT INTO "run_tab" VALUES(92,6,8,1,'1M_Dets_NO_DZ_window_10k');
 CREATE TABLE method_tab(
