@@ -179,9 +179,8 @@ def get_cmd(arguments, l_ele_obj, need_all):
 
     # We need to find the run_id who containt ALL the ele is needed
     if l_ele_to_get:
-        cond_filter_ele = cond_sql_or(
-            "name",
-            l_ele_to_get) if need_all else ["(1)"]
+        cond_filter_ele = cond_sql_or("name",
+                                      l_ele_to_get) if need_all else ["(1)"]
     else:
         cond_filter_ele = []
 
