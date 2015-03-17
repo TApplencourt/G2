@@ -8,10 +8,10 @@ Usage:
                                               [--basis=<basis_name>...]
                                               [--geo=<geometry_name>...]
                                               [--comments=<comments>...])]
-                         [(--ele=<element_name>... [--all_children]
-                           | --like_toulouse
-                           | --like_applencourt
-                           | --like_run=<run_id>) ]
+                        [(--ele=<element_name>...
+                          | --like_toulouse
+                          | --like_applencourt
+                          | --like_run_id=<run_id>) [--all_children]]
                          [--no_relativist]
                          [--ae]
                          [--without_pt2]

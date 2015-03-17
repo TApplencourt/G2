@@ -92,7 +92,7 @@ if __name__ == '__main__':
     #
     # Set somme option, get l_ele and the commande used by sql
 
-    from src.data_util import get_l_ele, get_children
+    from src.data_util import get_l_ele
     from src.data_util import ListEle, get_cmd
 
     # -#-#-#-#-#- #
@@ -100,14 +100,14 @@ if __name__ == '__main__':
     # -#-#-#-#-#- #
 
     print_children = False
-    need_all = False if arguments["list_element"] else True
+    need_all = True #False if arguments["list_element"] else True
 
     # -#-#-#-#- #
     # l _ e l e #
     # -#-#-#-#- #
 
     l_ele = get_l_ele(arguments)
-    get_children = get_children(arguments)
+    get_children = True
 
     # Usefull object contain all related stuff to l_ele
     a = ListEle(l_ele, get_children, print_children)
