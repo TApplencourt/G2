@@ -179,9 +179,8 @@ def get_cmd(arguments, l_ele_obj, need_all):
 
     # We need to find the run_id who containt ALL the ele is needed
     if l_ele_to_get:
-        cond_filter_ele = cond_sql_or(
-            "name",
-            l_ele_to_get) if need_all else ["(1)"]
+        cond_filter_ele = cond_sql_or("name",
+                                      l_ele_to_get) if need_all else ["(1)"]
     else:
         cond_filter_ele = []
 
@@ -200,15 +199,15 @@ def get_cmd(arguments, l_ele_obj, need_all):
             cmd_having = "(1)"
 
         c.execute("""SELECT run_id
-                    FROM (SELECT run_id,
-                                   name,
-                            method_name method,
-                             basis_name basis,
-                            geo_name geo
-                          FROM output_tab
-                          WHERE {0})
-                    GROUP BY run_id
-                    HAVING {1}""".format(cmd_where_tmp, cmd_having))
+                     FROM (SELECT run_id,
+                                    name,
+                             method_name method,
+                              basis_name basis,
+                             geo_name geo
+                           FROM output_tab
+                           WHERE {0})
+                     GROUP BY run_id
+                     HAVING {1}""".format(cmd_where_tmp, cmd_having))
 
         l_run_id = [i[0] for i in c.fetchall()]
 
