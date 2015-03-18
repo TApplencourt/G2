@@ -21,8 +21,10 @@ Usage:
                                  --ele=<element_name>...]
                                 [--quality_factor=<qf>]
   scemama.py get_this_ae  --run_atom=<run_id>
-                          --ae_ref=<ae_value>...
-                          --ele=<element_name>...
+                          (--ae_ref=<ae_value>... | --ae_nr)
+                          [--like_toulouse |
+                           --like_applencourt |
+                           --ele=<element_name>...]
 Example of use:
   ./scemama.py list_geometries
   ./scemama.py list_elements --geo Experiment
@@ -205,64 +207,108 @@ if __name__ == '__main__':
         #
         # Set somme option, get l_ele and the commande used by sql
 
-        from src.data_util import ListEle, get_cmd
+        from src.data_util import ListEle, get_cmd, get_l_ele
+        from src.data_util import get_ecal_runinfo_finfo
 
-        # -#-#-#-#-#- #
-        # O p t i o n #
-        # -#-#-#-#-#- #
+        # -#-#-#-#-#-#-#- #
+        # F u n c t i o n #
+        # -#-#-#-#-#-#-#- #
 
-        need_all = True
-        print_children = True
-        get_children = True
-        # -#-#-#-#- #
-        # l _ e l e #
-        # -#-#-#-#- #
+        l_ele = get_l_ele(arguments)
 
-        arguments["--run_id"] = [arguments["--run_atom"]]
+        def get_atome_energy():
 
-        # Usefull object contain all related stuff to l_ele
-        a = ListEle(arguments["--ele"], get_children, print_children)
+            need_all = True
+            print_children = False
+            get_children = True
 
-        # Only get the children
-        a.l_ele = a.l_ele_children
-        a.l_ele_to_get = a.l_ele_children
+            # -#-#-#-#- #
+            # l _ e l e #
+            # -#-#-#-#- #
 
-        # -#-#-#-#-#- #
-        # F i l t e r #
-        # -#-#-#-#-#- #
+            arguments["--run_id"] = [arguments["--run_atom"]]
 
-        cond_filter_ele, cmd_where = get_cmd(arguments, a, need_all)
+            # Usefull object contain all related stuff to l_ele
+            a = ListEle(l_ele, get_children, print_children)
+
+            # Only get the children
+            a.l_ele = a.l_ele_children
+            a.l_ele_to_get = a.l_ele_children
+
+            # -#-#-#-#-#- #
+            # F i l t e r #
+            # -#-#-#-#-#- #
+
+            _, cmd_where = get_cmd(arguments, a, need_all)
+
+            # -#-#-#-#-#-#-#-#-#- #
+            # P r o c e s s i n g #
+            # -#-#-#-#-#-#-#-#-#- #
+            e_cal_atom, _, _ = get_ecal_runinfo_finfo(cmd_where, "var")
+
+            # -#-#-#-#-#- #
+            # R e t u r n #
+            # -#-#-#-#-#- #
+            return e_cal_atom[int(arguments["--run_atom"])]
+
+        def get_ae():
+            """Returnb dict [mol] = ae"""
+
+            # User give the ae
+            if arguments["--ae_ref"]:
+
+                # -#-#-#-#-#-#-#-#-#- #
+                # P r o c e s s i n g #
+                # -#-#-#-#-#-#-#-#-#- #
+
+                ae_nr = dict()
+                for mol, ae in zip(l_ele, arguments["--ae_ref"]):
+                    ae_nr[mol] = float(ae)
+
+            # User wana use the nr ae
+            elif arguments["--ae_nr"]:
+                need_all = True
+                print_children = True
+                get_children = True
+
+                # -#-#-#-#- #
+                # l _ e l e #
+                # -#-#-#-#- #
+
+                a = ListEle(l_ele, get_children, print_children)
+                cond_filter_ele, cmd_where = get_cmd(arguments, a, need_all)
+
+                # -#-#-#-#-#-#-#-#-#- #
+                # P r o c e s s i n g #
+                # -#-#-#-#-#-#-#-#-#- #
+
+                from src.data_util import get_enr, get_ae_nr
+
+                _, _, f_info = get_ecal_runinfo_finfo(cmd_where, "var")
+                e_nr = get_enr(cond_filter_ele)
+                ae_nr = get_ae_nr(f_info, e_nr)
+
+            # -#-#-#-#-#- #
+            # R e t u r n #
+            # -#-#-#-#-#- #
+
+            return ae_nr
 
         #  _
         # |_) ._ _   _  _   _  _ o ._   _
         # |   | (_) (_ (/_ _> _> | | | (_|
         #                               _|
-        # We get and calcul all the info
-        # aka : e_cal, run_info, f_info, mad, ...
-
-        from src.data_util import get_ecal_runinfo_finfo
-
-        # -#-#-#- #
-        # E c a l #
-        # -#-#-#- #
-
-        energy_opt = "var"
-
-        e_cal, run_info, f_info = get_ecal_runinfo_finfo(cmd_where, energy_opt)
-
-        print e_cal
-
-        run_id = int(arguments["--run_atom"])
+        e_cal_atom = get_atome_energy()
+        ae = get_ae()
 
         from src.SQL_util import dict_raw
         dict_ = dict_raw()
 
-        for ele, ae in zip(arguments["--ele"], arguments["--ae_ref"]):
+        for mol in l_ele:
 
-            print ele, ae
-            e_ref = float(ae)
+            e_ref = ae[mol]
 
-            for atome, number in dict_[ele]["formula"]:
-                e_ref += e_cal[run_id][atome] * number
+            for atome, number in dict_[mol]["formula"]:
+                e_ref += e_cal_atom[atome] * number
 
-            print ele, e_ref
+            print mol, e_ref

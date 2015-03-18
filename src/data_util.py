@@ -304,7 +304,6 @@ def get_ecal_runinfo_finfo(cmd_where, cipsi_type):
 
     return [e_cal, run_info, f_info]
 
-
 #  __
 #   / ._   _    ()     /\   _     _     ._
 #  /_ |_) (/_   (_X   /--\ (/_   (/_ >< |_)
