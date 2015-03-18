@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-t
+# -*- coding: utf-8 -*-
 
 """Welcome to the G2 Api! Grab all the G2 data you're dreaming of.
 
@@ -14,12 +14,15 @@ Usage:
   scemama.py get_g09    --geo=<geometry_name>...
                         --ele=<element_name>...
                               [(--save [--path=<path>])]
-  scemama.py get_target_pt2_max --hf_id=<id>
-                                --fci_id=<id>
+  scemama.py get_target_pt2_max --hf_id=<run_id>
+                                --fci_id=<run_id>
                                 [--like_toulouse |
                                  --like_applencourt |
                                  --ele=<element_name>...]
                                 [--quality_factor=<qf>]
+  scemama.py get_this_ae  --run_atom=<run_id>
+                          --ae_ref=<ae_value>...
+                          --ele=<element_name>...
 Example of use:
   ./scemama.py list_geometries
   ./scemama.py list_elements --geo Experiment
@@ -193,3 +196,73 @@ if __name__ == '__main__':
         print "quality_factor :", quality_factor
         for ele, target_pt2 in d_target_pt2.iteritems():
             print ele, target_pt2 * (1 - quality_factor)
+
+    elif arguments["get_this_ae"]:
+
+        # ___
+        #  |  ._  o _|_
+        # _|_ | | |  |_
+        #
+        # Set somme option, get l_ele and the commande used by sql
+
+        from src.data_util import ListEle, get_cmd
+
+        # -#-#-#-#-#- #
+        # O p t i o n #
+        # -#-#-#-#-#- #
+
+        need_all = True
+        print_children = True
+        get_children = True
+        # -#-#-#-#- #
+        # l _ e l e #
+        # -#-#-#-#- #
+
+        arguments["--run_id"] = [arguments["--run_atom"]]
+
+        # Usefull object contain all related stuff to l_ele
+        a = ListEle(arguments["--ele"], get_children, print_children)
+
+        # Only get the children
+        a.l_ele = a.l_ele_children
+        a.l_ele_to_get = a.l_ele_children
+
+        # -#-#-#-#-#- #
+        # F i l t e r #
+        # -#-#-#-#-#- #
+
+        cond_filter_ele, cmd_where = get_cmd(arguments, a, need_all)
+
+        #  _
+        # |_) ._ _   _  _   _  _ o ._   _
+        # |   | (_) (_ (/_ _> _> | | | (_|
+        #                               _|
+        # We get and calcul all the info
+        # aka : e_cal, run_info, f_info, mad, ...
+
+        from src.data_util import get_ecal_runinfo_finfo
+
+        # -#-#-#- #
+        # E c a l #
+        # -#-#-#- #
+
+        energy_opt = "var"
+
+        e_cal, run_info, f_info = get_ecal_runinfo_finfo(cmd_where, energy_opt)
+
+        print e_cal
+
+        run_id = int(arguments["--run_atom"])
+
+        from src.SQL_util import dict_raw
+        dict_ = dict_raw()
+
+        for ele, ae in zip(arguments["--ele"], arguments["--ae_ref"]):
+
+            print ele, ae
+            e_ref = float(ae)
+
+            for atome, number in dict_[ele]["formula"]:
+                e_ref += e_cal[run_id][atome] * number
+
+            print ele, e_ref

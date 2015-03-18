@@ -203,7 +203,7 @@ def list_ele(where_cond='(1)'):
 # | |/ /| | (__| |_
 # |___/ |_|\___|\__|
 #
-def full_dict(geo_name, only_neutral=True):
+def full_dict(geo_name=None, only_neutral=True):
     d = dict_raw()
 
     for i, dic_ele in d.items():
@@ -213,21 +213,26 @@ def full_dict(geo_name, only_neutral=True):
                 del d[i]
                 continue
 
-        formula_clean = []
+        # Formula = [('H', 2), ('O', 1)]
+        # formula_flat = ['H', 'H', 'O']
+        formula_flat = []
         a = []
         for [atom, nb] in dic_ele["formula"]:
             for l in range(0, nb):
-                formula_clean.append(atom)
+                formula_flat.append(atom)
 
-            list_ = get_coord(dic_ele["id"], atom, geo_name)
-            if not list_:
-                del d[i]
-                break
-            else:
-                a += list_
+            if geo_name:
+                list_ = get_coord(dic_ele["id"], atom, geo_name)
+                if not list_:
+                    del d[i]
+                    break
+                else:
+                    a += list_
 
-        dic_ele["formula_clean"] = formula_clean
-        dic_ele["list_xyz"] = a
+        dic_ele["formula_flat"] = formula_flat
+
+        if geo_name:
+            dic_ele["list_xyz"] = a
 
     return dict(d)
 
@@ -427,7 +432,7 @@ def get_xyz(geo, ele, only_neutral=True):
                               "symmetry:", dic_["symmetry"]]))
     xyz_file_format.append(line)
 
-    for atom, xyz in zip(dic_["formula_clean"], dic_["list_xyz"]):
+    for atom, xyz in zip(dic_["formula_flat"], dic_["list_xyz"]):
         line_xyz = "    ".join(map(str, xyz))
         line = "    ".join([atom, line_xyz])
 
@@ -451,7 +456,7 @@ def get_g09(geo, ele, only_neutral=True):
     g09_file_format = ["# cc-pvdz %s" % (method), "", line, "",
                        "%d %d" % (dic_["charge"], dic_["multiplicity"])]
 
-    for atom, xyz in zip(dic_["formula_clean"], dic_["list_xyz"]):
+    for atom, xyz in zip(dic_["formula_flat"], dic_["list_xyz"]):
         line_xyz = "    ".join(map(str, xyz)).replace("e", ".e")
         line = "    ".join([atom, line_xyz])
 

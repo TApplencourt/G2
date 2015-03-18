@@ -36,7 +36,7 @@ class ListEle(object):
 
     """
     ListEle encapsulates all the info related to a list_ele.
-        - l_ele giving in imput
+        - l_ele giving in input
         - l_ele_to_get all the element need to get
         - l_ele_order maybe
         - And have a to print method
@@ -50,12 +50,16 @@ class ListEle(object):
         """
         self.l_ele = list(l_ele)
         self.l_ele_to_get = list(l_ele)
-
+        self.l_ele_children = list()
         # Add all the children of a element to l_ele_to_get if need.
         # For example for the calculate the AE of AlCl we need Al and Cl
 
         if self.l_ele and get_children:
-            self.get_children()
+            self.l_ele_children = self.get_children()
+
+            for atom in self.l_ele_children:
+                if atom not in self.l_ele_to_get:
+                    self.l_ele_to_get.insert(0, atom)
 
         self.l_ele_order = list()
         self.print_children = print_children
@@ -74,10 +78,8 @@ class ListEle(object):
                                    FROM id_tab
                                   WHERE {where_cond}""".format(where_cond=cond))
 
-        for name, formula_raw in c.fetchall():
-            for atom, number in eval(formula_raw):
-                if atom not in self.l_ele_to_get:
-                    self.l_ele_to_get.insert(0, atom)
+        # Uniquify the list
+        return list(set([a for _, f in c.fetchall() for a, _ in eval(f)]))
 
     def to_print(self, e_cal_rd):
         """
@@ -98,12 +100,16 @@ class ListEle(object):
 
     def __str__(self):
         """Return a string of the elements"""
-        return str([self.l_ele, self.l_ele_to_get])
-
+        str_ = ["l_ele: {0}".format(self.l_ele),
+                "l_ele_to_get: {0}".format(self.l_ele_to_get),
+                "l_ele_children: {0}".format(self.l_ele_children)]
+        return "\n".join(str_)
 
 # -#-#-#-#-#-#-# #
 # L i s t  e l e #
 # -#-#-#-#-#-#-# #
+
+
 def get_l_ele(arguments):
     """
     Return the good list of element needed using arguments dict.
