@@ -2730,7 +2730,7 @@ INSERT INTO "run_tab" VALUES(89,6,8,1,'1M_Dets_NO_0.75_79_81');
 INSERT INTO "run_tab" VALUES(90,8,8,1,'1M_Dets_NO_0.75_79_81');
 INSERT INTO "run_tab" VALUES(91,6,8,1,'1M_Dets_NO_DZ_window');
 INSERT INTO "run_tab" VALUES(92,6,8,1,'1M_Dets_NO_DZ_window_10k');
-INSERT INTO "run_tab" VALUES(93,6,7,1,'1M_Dets_NO_CISD_SC2_10k');
+INSERT INTO "run_tab" VALUES(93,12,7,1,'1M_Dets_NO_10k_Dets');
 CREATE TABLE method_tab(
                      method_id INTEGER PRIMARY KEY AUTOINCREMENT,
                           name CHARACTER(32),
@@ -2746,7 +2746,8 @@ INSERT INTO "method_tab" VALUES(7,'CCSD(T)','Coupled-cluster, singles and double
 INSERT INTO "method_tab" VALUES(8,'DMC','Diffusion Monte Carlo',2);
 INSERT INTO "method_tab" VALUES(9,'Estimated','Maybe give exact value',1);
 INSERT INTO "method_tab" VALUES(10,'Literature_za','Value used by the communitity for ZPE and AE',1);
-INSERT INTO "method_tab" VALUES(11,'VMC','Variational Monte Carle',2);
+INSERT INTO "method_tab" VALUES(11,'VMC','Variational Monte Carlo',2);
+INSERT INTO "method_tab" VALUES(12,'CISD_SC2','CI of Single and Double with Size/Self consistance',1);
 CREATE TABLE atomization_tab (
      method_id INTEGER,
       basis_id INTEGER,
