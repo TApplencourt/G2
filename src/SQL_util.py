@@ -285,7 +285,7 @@ def add_or_get_run(method, basis, geo, comments):
 def add_simple_energy(run_id, id_, e, overwrite=False, commit=False):
 
     if overwrite:
-        cmd = """INSERT OR overwrite INTO simple_energy_tab(run_id,id,energy)
+        cmd = """INSERT OR REPLACE INTO simple_energy_tab(run_id,id,energy)
                   VALUES (?,?,?)"""
     else:
         cmd = """INSERT INTO simple_energy_tab(run_id,id,energy)
