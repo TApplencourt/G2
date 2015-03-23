@@ -100,7 +100,7 @@ if __name__ == '__main__':
     # -#-#-#-#-#- #
 
     print_children = False
-    need_all = True #False if arguments["list_element"] else True
+    need_all = True  # False if arguments["list_element"] else True
 
     # -#-#-#-#- #
     # l _ e l e #

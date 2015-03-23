@@ -333,16 +333,14 @@ def add_energy_cispi_output(url, run_id, name,
 
     # Try if the file is existing
     if not os.path.isfile(url):
-        print "%s not existing" % url
-        raise Exception
+        raise Exception("%s not existing" % url)
     else:
         with open(url, "r") as f:
             s = f.read()
 
     # If true_pt2 check if Final step is in the data
     if true_pt2 and s.find("Final step") == -1:
-        print "%s have not a true PT2" % url
-        raise Exception
+        raise Exception("%s have not a true PT2" % url)
     else:
         s = s[s.rfind(' N_det'):]
 
@@ -363,8 +361,7 @@ def add_energy_cispi_output(url, run_id, name,
 
     # If a data is missing continue
     if not all([ndet, e, time]):
-        print "%s file is buggy" % url
-        raise Exception
+        raise Exception("%s file is buggy" % url)
 
     id_ = get_mol_id(name)
 
@@ -378,8 +375,7 @@ def add_energy_cispi_output(url, run_id, name,
 
             commit_and_dump(conn)
         except:
-            print "Cannot add to the db"
-            raise Exception
+            raise Exception('Cannot add to the db')
 
 
 def add_energies_cispi(run_list, geo_list, basis_list, path, tail,
