@@ -25,6 +25,9 @@ except:
 #                         _|
 
 def isSQLite3(filename):
+    """
+    Verify is filename is a SQLite3 format
+    """
     from os.path import isfile, getsize
 
     if not isfile(filename):
@@ -41,66 +44,92 @@ def isSQLite3(filename):
         return False
 
 
-def dump_to_sqlite(dump_name, db_name):
-    if not os.path.isfile(db_name):
-        os.system("sqlite3 {0} < {1}".format(db_name, dump_name))
+def dump_to_sqlite(dump_path, db_path):
+    """
+    Take a dump and populate the db if the dump is the most recent
+    """
+    if not os.path.isfile(db_path):
+        os.system("sqlite3 {0} < {1}".format(db_path, dump_path))
     else:
-        dump_time = os.path.getmtime(dump_name)
-        db_time = os.path.getmtime(db_name)
+        dump_time = os.path.getmtime(dump_path)
+        db_time = os.path.getmtime(db_path)
         if dump_time > db_time:
-            os.system("rm {0}".format(db_name))
-            os.system("sqlite3 {0} < {1}".format(db_name, dump_name))
+            os.system("rm {0}".format(db_path))
+            os.system("sqlite3 {0} < {1}".format(db_path, dump_path))
 
-    if not isSQLite3(db_name):
+    if not isSQLite3(db_path):
         raise sqlite3.Error
 
 
-def sqlite_to_dump(dump_name, db_name):
-    os.system("sqlite3 {0} .dump > {1}".format(db_name, dump_name))
+def sqlite_to_dump(db_path, dump_path):
+    """
+    Take a db and dump it if the db is the most recent
+    """
 
+    dump_time = os.path.getmtime(dump_path)
+    db_time = os.path.getmtime(db_path)
+    if db_time > dump_time:
+        os.system("sqlite3 {0} .dump > {1}".format(db_path, dump_path))
+        os.system("touch {0}".format(db_path))
 
 #
 # |\ |  _          _ |  _.  _  _
 # | \| (/_ \/\/   (_ | (_| _> _>
 #
 # This ensure the coherencie of the db and the db_dump
-def update_and_connect(self):
+
+
+class ConnectionForGit(sqlite3.Connection):
+    """
+    A sqlite3 connection for Git.
+    It will always dumps the db when needed.
+    You can add dump_path to you'r git and git diff him!
+    """
+    def __init__(self, db_path, dump_path, *args, **kwargs):
+        super(ConnectionForGit, self).__init__(db_path, *args, **kwargs)
+        self.db_path = db_path
+        self.dump_path = dump_path
+
+    def commit(self):
+        '''
+        1/ Update the DB if needed
+        2/ Commit in the DB
+        3/ Dump the DB
+        '''
+        try:
+            dump_to_sqlite(self.dump_path, self.db_path)
+            sqlite3.Connection.commit(self)
+        except sqlite3.Error:
+            raise
+        else:
+            sqlite_to_dump(self.db_path, self.dump_path)
+
+
+def connect4git(db_path, dump_path, *args, **kwargs):
+    '''
+    1/ Update the DB if needed
+    2/ Return a Connection for it
+    Return a ConnectionForGit instance
+    '''
     try:
-        dump_to_sqlite(DUMP_NAME, DB_NAME)
+        dump_to_sqlite(dump_path, db_path)
     except:
         raise
     else:
-        return self.connect(DB_NAME)
-
-
-def commit_and_dump(conn):
-    try:
-        conn.commit()
-    except sqlite3.Error:
-        raise
-    else:
-        sqlite_to_dump(DUMP_NAME, DB_NAME)
-        os.system("touch {0}".format(DB_NAME))
-
-import types
-sqlite3.update_and_connect = types.MethodType(update_and_connect, sqlite3)
-# Cause of C implementation of the class Connection MonkeyPatching is not alloing...
-# sqlite3.Connection.commit_and_dump = types.MethodType(commit_and_dump, sqlite3.Connection)
-
-
-DUMP_NAME = os.path.dirname(__file__) + "/../db/g2.dump"
-DB_NAME = os.path.dirname(__file__) + "/../db/g2.db"
-
+        return ConnectionForGit(db_path, dump_path, *args, **kwargs)
 
 #  _
 # /  ._ _   _. _|_  _     _     ._ _  _  ._
 # \_ | (/_ (_|  |_ (/_   (_ |_| | _> (_) |
 #
 
+dump_path = os.path.abspath(os.path.dirname(__file__) + "/../db/g2.dump")
+db_path = os.path.abspath(os.path.dirname(__file__) + "/../db/g2.db")
+
 try:
-    conn = sqlite3.update_and_connect()
+    conn = connect4git(dump_path, db_path)
 except sqlite3.Error as e:
-    print "'%s' is not a SQLite3 database file" % DB_NAME
+    print "'%s' is not a SQLite3 database file" % dump_path
     sys.exit(1)
 
 c = conn.cursor()
@@ -268,8 +297,7 @@ def add_new_run(method, basis, geo, comments):
 
     c.execute("""INSERT INTO run_tab(method_id,basis_id,geo_id,comments)
         VALUES (?,?,?,?)""", [method_id, basis_id, geo_id, comments])
-
-    commit_and_dump(conn)
+    conn.commit()
 
 
 def add_or_get_run(method, basis, geo, comments):
@@ -294,7 +322,7 @@ def add_simple_energy(run_id, id_, e, overwrite=False, commit=False):
     c.execute(cmd, [run_id, id_, e])
 
     if commit:
-        commit_and_dump(conn)
+        conn.commit()
 
 
 def add_cipsi_energy(run_id, id_, e, pt2, overwrite=False, commit=False):
@@ -309,7 +337,7 @@ def add_cipsi_energy(run_id, id_, e, pt2, overwrite=False, commit=False):
     c.execute(cmd, [run_id, id_, e, pt2])
 
     if commit:
-        commit_and_dump(conn)
+        conn.commit()
 
 
 def add_qmc_energy(run_id, id_, e, err, overwrite=False, commit=False):
@@ -324,7 +352,7 @@ def add_qmc_energy(run_id, id_, e, err, overwrite=False, commit=False):
     c.execute(cmd, [run_id, id_, e, err])
 
     if commit:
-        commit_and_dump(conn)
+        conn.commit()
 
 
 def add_energy_cispi_output(url, run_id, name,
@@ -373,7 +401,8 @@ def add_energy_cispi_output(url, run_id, name,
                         cipsi_energy_tab(run_id,id,ndet,energy,pt2,time)
                         VALUES (?,?,?,?,?,?)''', [run_id, id_, ndet, e, pt2, time])
 
-            commit_and_dump(conn)
+
+            conn.commit()
         except:
             raise Exception('Cannot add to the db')
 

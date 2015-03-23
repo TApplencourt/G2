@@ -20,9 +20,9 @@ import sys
 
 try:
     from src.docopt import docopt
-    from src.SQL_util import conn, add_or_get_run, get_mol_id
+    from src.SQL_util import add_or_get_run, get_mol_id
     from src.SQL_util import add_simple_energy, add_cipsi_energy, add_qmc_energy
-    from src.SQL_util import commit_and_dump
+    from src.SQL_util import conn
     from src.misc_info import old_name_to_new
 except:
     raise
@@ -79,4 +79,5 @@ if __name__ == '__main__':
             add_qmc_energy(run_id, id_, e, err,
                            overwrite=arguments["--overwrite"])
 
-    commit_and_dump(conn)
+    conn.commit()
+
