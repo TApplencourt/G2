@@ -83,7 +83,7 @@ class ConnectionForGit(sqlite3.Connection):
     """
     A sqlite3 connection for Git.
     It will always dumps the db when needed.
-    You can add dump_path to you'r git and git diff him!
+    You can add dump_path to your git and git diff him!
     """
     def __init__(self, db_path, dump_path, *args, **kwargs):
         super(ConnectionForGit, self).__init__(db_path, *args, **kwargs)
