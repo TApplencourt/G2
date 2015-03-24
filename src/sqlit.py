@@ -19,9 +19,16 @@ except:
 # \____/  \__, ||_||_| \__|
 #            | |
 #            |_|
-# This ensure the coherencies between the db_file and the dump_file
-#   (`sqlite3 db_file .dump > dump_file`)
-# Git add dump_file, continue to work with the db_file. And enjoy.
+# You cannot Diff / Merge sqlite binary file. But you can dump it into
+# a plain text file with contain the list of command needed to recreate
+# the db_file.
+#   (`sqlite3 db_file .dump > dump_file` For a example of dump file, see below
+#    in the main section)
+#
+# This dump_file can be added to your git.
+#
+# This module ensure the coherencies between the db_file and the dump_file
+
 class ConnectionForGit(sqlite3.Connection):
 
     """
