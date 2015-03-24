@@ -92,9 +92,9 @@ class ConnectionForGit(sqlite3.Connection):
 
     def commit(self):
         '''
-        1/ Update the DB if needed
-        2/ Commit in the DB
-        3/ Dump the DB
+        0/ Update the DB if needed
+        1/ Commit in the DB
+        2/ Dump the DB
         '''
         try:
             dump_to_sqlite(self.dump_path, self.db_path)
@@ -105,12 +105,18 @@ class ConnectionForGit(sqlite3.Connection):
             sqlite_to_dump(self.db_path, self.dump_path)
 
 
-def connect4git(db_path, dump_path, *args, **kwargs):
+def connect4git(dump_path, db_path=None, *args, **kwargs):
     '''
-    1/ Update the DB if needed
-    2/ Return a Connection for it
+    dump_path :  Is the sqlite dump file you will monitor with git.
+    db_path   :  Is the <<dummy>> sqlite3 file.
+
+    0/ Update and create the db if needed
+    1/ Return a Connection for it
     Return a ConnectionForGit instance
     '''
+
+    if not db_path:
+        db_path = "{0}.db".format(os.path.basename(db_path))
     try:
         dump_to_sqlite(dump_path, db_path)
     except:
