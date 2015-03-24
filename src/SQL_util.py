@@ -24,53 +24,6 @@ except:
 # \_ | | (/_ (_ |< | | | (_|
 #                         _|
 
-def isSQLite3(filename):
-    """
-    Verify is filename is a SQLite3 format
-    """
-    from os.path import isfile, getsize
-
-    if not isfile(filename):
-        return False
-    if getsize(filename) < 100:  # SQLite database file header is 100 bytes
-        return False
-
-    with open(filename, 'rb') as fd:
-        header = fd.read(100)
-
-    if header[:16] == 'SQLite format 3\x00':
-        return True
-    else:
-        return False
-
-
-def dump_to_sqlite(dump_path, db_path):
-    """
-    Take a dump and populate the db if the dump is the most recent
-    """
-    if not os.path.isfile(db_path):
-        os.system("sqlite3 {0} < {1}".format(db_path, dump_path))
-    else:
-        dump_time = os.path.getmtime(dump_path)
-        db_time = os.path.getmtime(db_path)
-        if dump_time > db_time:
-            os.system("rm {0}".format(db_path))
-            os.system("sqlite3 {0} < {1}".format(db_path, dump_path))
-
-    if not isSQLite3(db_path):
-        raise sqlite3.Error
-
-
-def sqlite_to_dump(db_path, dump_path):
-    """
-    Take a db and dump it if the db is the most recent
-    """
-
-    dump_time = os.path.getmtime(dump_path)
-    db_time = os.path.getmtime(db_path)
-    if db_time > dump_time:
-        os.system("sqlite3 {0} .dump > {1}".format(db_path, dump_path))
-        os.system("touch {0}".format(db_path))
 
 #
 # |\ |  _          _ |  _.  _  _
@@ -80,11 +33,13 @@ def sqlite_to_dump(db_path, dump_path):
 
 
 class ConnectionForGit(sqlite3.Connection):
+
     """
     A sqlite3 connection for Git.
     It will always dumps the db when needed.
     You can add dump_path to your git and git diff him!
     """
+
     def __init__(self, db_path, dump_path, *args, **kwargs):
         super(ConnectionForGit, self).__init__(db_path, *args, **kwargs)
         self.db_path = db_path
@@ -97,12 +52,62 @@ class ConnectionForGit(sqlite3.Connection):
         2/ Dump the DB
         '''
         try:
-            dump_to_sqlite(self.dump_path, self.db_path)
+            ConnectionForGit.dump_to_sqlite(self.dump_path, self.db_path)
             sqlite3.Connection.commit(self)
         except sqlite3.Error:
             raise
         else:
-            sqlite_to_dump(self.db_path, self.dump_path)
+            ConnectionForGit.sqlite_to_dump(self.db_path, self.dump_path)
+
+    @staticmethod
+    def isSQLite3(filename):
+        """
+        Verify is filename is a SQLite3 format
+        """
+        from os.path import isfile, getsize
+
+        if not isfile(filename):
+            return False
+        # SQLite database file header is 100 bytes
+        if getsize(filename) < 100:
+            return False
+
+        with open(filename, 'rb') as fd:
+            header = fd.read(100)
+
+        if header[:16] == 'SQLite format 3\x00':
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def dump_to_sqlite(dump_path, db_path):
+        """
+        Take a dump and populate the db if the dump is the most recent
+        """
+        if not os.path.isfile(db_path):
+            os.system("sqlite3 {0} < {1}".format(db_path, dump_path))
+        else:
+            dump_time = os.path.getmtime(dump_path)
+            db_time = os.path.getmtime(db_path)
+            if dump_time > db_time:
+                os.system("rm {0}".format(db_path))
+                os.system("sqlite3 {0} < {1}".format(db_path, dump_path))
+
+        if not ConnectionForGit.isSQLite3(db_path):
+            raise sqlite3.Error
+
+    @staticmethod
+    def sqlite_to_dump(db_path, dump_path):
+        """
+        Take a db and dump it if the db is the most recent
+        """
+
+        dump_time = os.path.getmtime(dump_path)
+        db_time = os.path.getmtime(db_path)
+        if db_time > dump_time:
+            os.system("sqlite3 {0} .dump > {1}".format(db_path, dump_path))
+            os.system("touch {0}".format(db_path))
 
 
 def connect4git(dump_path, db_path=None, *args, **kwargs):
@@ -118,7 +123,7 @@ def connect4git(dump_path, db_path=None, *args, **kwargs):
     if not db_path:
         db_path = "{0}.db".format(os.path.basename(db_path))
     try:
-        dump_to_sqlite(dump_path, db_path)
+        ConnectionForGit.dump_to_sqlite(dump_path, db_path)
     except:
         raise
     else:
@@ -406,7 +411,6 @@ def add_energy_cispi_output(url, run_id, name,
             c.execute('''INSERT OR REPLACE INTO
                         cipsi_energy_tab(run_id,id,ndet,energy,pt2,time)
                         VALUES (?,?,?,?,?,?)''', [run_id, id_, ndet, e, pt2, time])
-
 
             conn.commit()
         except:
