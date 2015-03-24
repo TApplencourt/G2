@@ -19,10 +19,9 @@ except:
 # \____/  \__, ||_||_| \__|
 #            | |
 #            |_|
-# This ensure the coherencie of the db and the db_dump
-# (`sqlite3 db_file .dump > dump_file`)
-# Git add dump_file. And enjoy
-
+# This ensure the coherencies between the db_file and the dump_file
+#   (`sqlite3 db_file .dump > dump_file`)
+# Git add dump_file, continue to work with the db_file. And enjoy.
 class ConnectionForGit(sqlite3.Connection):
 
     """
