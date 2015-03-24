@@ -84,7 +84,7 @@ class ConnectionForGit(sqlite3.Connection):
         Take a dump and populate the db if the dump is the most recent
         0/ If no .dump file touch it
         1/ If no .db  file populate it
-        2/ Check the date a modify acordingly
+        2/ Check the date a modify accordingly
         """
         if not os.path.isfile(dump_path):
             os.system('touch {0}'.format(dump_path))
