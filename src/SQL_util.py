@@ -35,9 +35,14 @@ except:
 class ConnectionForGit(sqlite3.Connection):
 
     """
-    A sqlite3 connection for Git.
-    It will always dumps the db when needed.
-    You can add dump_path to your git and git diff him!
+    A sqlite3 connection for Git. It will always dumps the db when needed.
+        (`sqlite3 db_file .dump > dump_file`)
+    so now you can add dump_path to your git and git diff him!
+    The main idea is:
+        - When you create a connection: create or update the .db file
+        - When you commit: update the .dump file
+    /!\ If you create a table, you need to make a dummy commit
+            for update the dump
     """
 
     def __init__(self, db_path, dump_path, *args, **kwargs):
@@ -48,8 +53,10 @@ class ConnectionForGit(sqlite3.Connection):
     def commit(self):
         '''
         0/ Update the DB if needed
+             (aka if the dump is more recent than the db)
         1/ Commit in the DB
         2/ Dump the DB
+             (`sqlite3 db_file .dump > dump_file`)
         '''
         try:
             ConnectionForGit.dump_to_sqlite(self.dump_path, self.db_path)
@@ -62,7 +69,7 @@ class ConnectionForGit(sqlite3.Connection):
     @staticmethod
     def isSQLite3(filename):
         """
-        Verify is filename is a SQLite3 format
+        Verify is filename is a SQLite3 format db
         """
         from os.path import isfile, getsize
 
@@ -94,14 +101,14 @@ class ConnectionForGit(sqlite3.Connection):
                 os.system("rm {0}".format(db_path))
                 os.system("sqlite3 {0} < {1}".format(db_path, dump_path))
 
-        if not ConnectionForGit.isSQLite3(db_path):
-            raise sqlite3.Error
-
     @staticmethod
     def sqlite_to_dump(db_path, dump_path):
         """
         Take a db and dump it if the db is the most recent
         """
+
+        if not ConnectionForGit.isSQLite3(db_path):
+            raise sqlite3.Error
 
         dump_time = os.path.getmtime(dump_path)
         db_time = os.path.getmtime(db_path)
@@ -116,12 +123,13 @@ def connect4git(dump_path, db_path=None, *args, **kwargs):
     db_path   :  Is the <<dummy>> sqlite3 file.
 
     0/ Update and create the db if needed
-    1/ Return a Connection for it
-    Return a ConnectionForGit instance
+            (aka if the dump is more recent than the db)
+    1/ Return a connection the db (a ConnectionForGit instance)
     '''
 
     if not db_path:
         db_path = "{0}.db".format(os.path.basename(db_path))
+
     try:
         ConnectionForGit.dump_to_sqlite(dump_path, db_path)
     except:
@@ -140,7 +148,7 @@ db_path = os.path.abspath(os.path.dirname(__file__) + "/../db/g2.db")
 try:
     conn = connect4git(dump_path, db_path)
 except sqlite3.Error as e:
-    print "'%s' is not a SQLite3 database file" % dump_path
+    print "{0} is not a SQLite3 database file".fomat(db_path)
     sys.exit(1)
 
 c = conn.cursor()
