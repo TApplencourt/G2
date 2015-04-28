@@ -12,6 +12,10 @@ Usage:
                       --run_id=<id>)
                      (--simple | --cipsi [--epp] | --qmc)
                      [--overwrite]
+
+Info:
+  The put_in file need to be formated like this:
+    ```name value \n```
 """
 
 version = "0.0.2"
