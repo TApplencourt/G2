@@ -55,6 +55,11 @@ if __name__ == '__main__':
 
         list_ = line.split("#")[0].split()
 
+        try:
+            list_[0]
+        except IndexError:
+            continue
+
         name = list_[0]
         name = old_name_to_new[name] if name in old_name_to_new else name
         id_ = get_mol_id(name)
