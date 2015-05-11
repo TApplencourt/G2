@@ -46,7 +46,7 @@ if __name__ == '__main__':
                                     "--comment"]]
         run_id = add_or_get_run(*l)
 
-    print run_id
+    print run_id,
 
     with open(arguments["--path"], "r") as f:
         data = [line for line in f.read().split("\n") if line]
@@ -89,4 +89,3 @@ if __name__ == '__main__':
                            overwrite=arguments["--overwrite"])
 
     conn.commit()
-
