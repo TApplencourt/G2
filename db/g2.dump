@@ -2748,6 +2748,8 @@ INSERT INTO "run_tab" VALUES(102,7,17,1,'BFD-Pseudo (G2 Atoms Only)');
 INSERT INTO "run_tab" VALUES(103,5,13,1,'QP BFD-Pseudo');
 INSERT INTO "run_tab" VALUES(104,6,13,1,'QP BFD-Pseudo');
 INSERT INTO "run_tab" VALUES(105,5,13,1,'Gamess BFD-Pseudo');
+INSERT INTO "run_tab" VALUES(106,5,15,1,'QP BFD-Pseudo');
+INSERT INTO "run_tab" VALUES(107,6,15,1,'QP BFD-Pseudo');
 CREATE TABLE method_tab(
                      method_id INTEGER PRIMARY KEY AUTOINCREMENT,
                           name CHARACTER(32),
@@ -15313,6 +15315,13 @@ INSERT INTO "simple_energy_tab" VALUES(105,12,-6.3590750639);
 INSERT INTO "simple_energy_tab" VALUES(105,14,-3.678617591);
 INSERT INTO "simple_energy_tab" VALUES(105,8,-15.7059418245);
 INSERT INTO "simple_energy_tab" VALUES(105,2,-9.6683762951);
+INSERT INTO "simple_energy_tab" VALUES(106,3,-0.934782366623435);
+INSERT INTO "simple_energy_tab" VALUES(106,11,-0.499206585090037);
+INSERT INTO "simple_energy_tab" VALUES(106,52,-1.52156100289724);
+INSERT INTO "simple_energy_tab" VALUES(106,6,-5.32901102332401);
+INSERT INTO "simple_energy_tab" VALUES(106,77,-5.91957672263389);
+INSERT INTO "simple_energy_tab" VALUES(106,8,-15.7080013175333);
+INSERT INTO "simple_energy_tab" VALUES(106,129,-32.6290070324298);
 CREATE TABLE cipsi_energy_tab(
                run_id INTEGER,
                    id INTEGER,
@@ -18293,6 +18302,12 @@ INSERT INTO "cipsi_energy_tab" VALUES(104,12,-6.44478393936486,-2.18444724602306
 INSERT INTO "cipsi_energy_tab" VALUES(104,14,-3.74982889420891,-1.40751511001901974395e-05);
 INSERT INTO "cipsi_energy_tab" VALUES(104,8,-15.8348707480106,-1.35334071901027641615e-04);
 INSERT INTO "cipsi_energy_tab" VALUES(104,2,-9.76479072370684,-5.75447853403687759055e-05);
+INSERT INTO "cipsi_energy_tab" VALUES(107,3,-0.982533037622081,-5.20792984959328464356e-07);
+INSERT INTO "cipsi_energy_tab" VALUES(107,11,-0.499206585161485,-1.10023101740353013155e-13);
+INSERT INTO "cipsi_energy_tab" VALUES(107,52,-1.56486483158474,-1.89900229379924567751e-04);
+INSERT INTO "cipsi_energy_tab" VALUES(107,6,-5.42827154983531,-8.87276485501686806856e-05);
+INSERT INTO "cipsi_energy_tab" VALUES(107,77,-6.0551445832509,-2.51031551454961032732e-03);
+INSERT INTO "cipsi_energy_tab" VALUES(107,8,-15.8833753918125,-1.12269020459976331949e-03);
 CREATE TABLE qmc_energy_tab(
                run_id INTEGER,
                    id INTEGER,
@@ -19396,7 +19411,7 @@ INSERT INTO "sqlite_sequence" VALUES('id_tab',215);
 INSERT INTO "sqlite_sequence" VALUES('basis_tab',12);
 INSERT INTO "sqlite_sequence" VALUES('geo_tab',5);
 INSERT INTO "sqlite_sequence" VALUES('coord_tab',2117);
-INSERT INTO "sqlite_sequence" VALUES('run_tab',105);
+INSERT INTO "sqlite_sequence" VALUES('run_tab',107);
 INSERT INTO "sqlite_sequence" VALUES('method_tab',11);
 CREATE VIEW output_tab as
             SELECT  run_tab.run_id run_id,
