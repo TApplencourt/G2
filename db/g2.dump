@@ -2644,10 +2644,10 @@ CREATE TABLE run_tab(
          geo_id INTEGER,
        comments STRING,
          UNIQUE(method_id,basis_id,geo_id,comments));
-INSERT INTO "run_tab" VALUES(2,5,3,1,'Quantum_Package');
-INSERT INTO "run_tab" VALUES(3,5,3,2,'Quantum_Package');
-INSERT INTO "run_tab" VALUES(4,5,4,1,'Quantum_Package');
-INSERT INTO "run_tab" VALUES(5,5,4,2,'Quantum_Package');
+INSERT INTO "run_tab" VALUES(2,5,3,1,'Quantum Package');
+INSERT INTO "run_tab" VALUES(3,5,3,2,'Quantum Package');
+INSERT INTO "run_tab" VALUES(4,5,4,1,'Quantum Package');
+INSERT INTO "run_tab" VALUES(5,5,4,2,'Quantum Package');
 INSERT INTO "run_tab" VALUES(6,5,3,1,'Gamess');
 INSERT INTO "run_tab" VALUES(7,5,3,2,'Gamess');
 INSERT INTO "run_tab" VALUES(8,5,4,1,'Gamess');
