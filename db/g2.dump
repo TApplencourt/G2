@@ -2737,20 +2737,20 @@ INSERT INTO "run_tab" VALUES(91,6,8,1,'1M_Dets_NO_DZ_window');
 INSERT INTO "run_tab" VALUES(92,6,8,1,'1M_Dets_NO_DZ_window_10k');
 INSERT INTO "run_tab" VALUES(93,12,7,1,'1M_Dets_NO_10k_Dets');
 INSERT INTO "run_tab" VALUES(94,12,7,1,'1M_Dets_NO_200k_Dets');
-INSERT INTO "run_tab" VALUES(95,5,13,1,'BFD-Pseudo (G2 Atoms Only)');
-INSERT INTO "run_tab" VALUES(96,5,15,1,'BFD-Pseudo (G2 Atoms Only)');
-INSERT INTO "run_tab" VALUES(97,5,16,1,'BFD-Pseudo (G2 Atoms Only)');
-INSERT INTO "run_tab" VALUES(98,5,17,1,'BFD-Pseudo (G2 Atoms Only)');
-INSERT INTO "run_tab" VALUES(99,7,13,1,'BFD-Pseudo (G2 Atoms Only)');
-INSERT INTO "run_tab" VALUES(100,7,15,1,'BFD-Pseudo (G2 Atoms Only)');
-INSERT INTO "run_tab" VALUES(101,7,16,1,'BFD-Pseudo (G2 Atoms Only)');
-INSERT INTO "run_tab" VALUES(102,7,17,1,'BFD-Pseudo (G2 Atoms Only)');
-INSERT INTO "run_tab" VALUES(103,5,13,1,'QP BFD-Pseudo');
-INSERT INTO "run_tab" VALUES(104,6,13,1,'QP BFD-Pseudo');
-INSERT INTO "run_tab" VALUES(105,5,13,1,'Gamess BFD-Pseudo');
-INSERT INTO "run_tab" VALUES(106,5,15,1,'QP BFD-Pseudo');
-INSERT INTO "run_tab" VALUES(107,6,15,1,'QP BFD-Pseudo');
-INSERT INTO "run_tab" VALUES(108,8,13,1,'QP BFD-Pseudo');
+INSERT INTO "run_tab" VALUES(95,5,13,1,'BFD website (G2 Atoms Only)');
+INSERT INTO "run_tab" VALUES(96,5,15,1,'BFD website (G2 Atoms Only)');
+INSERT INTO "run_tab" VALUES(97,5,16,1,'BFD website (G2 Atoms Only)');
+INSERT INTO "run_tab" VALUES(98,5,17,1,'BFD website (G2 Atoms Only)');
+INSERT INTO "run_tab" VALUES(99,7,13,1,'BFD website (G2 Atoms Only)');
+INSERT INTO "run_tab" VALUES(100,7,15,1,'BFD website (G2 Atoms Only)');
+INSERT INTO "run_tab" VALUES(101,7,16,1,'BFD website (G2 Atoms Only)');
+INSERT INTO "run_tab" VALUES(102,7,17,1,'BFD website (G2 Atoms Only)');
+INSERT INTO "run_tab" VALUES(103,5,13,1,'Quantum Package');
+INSERT INTO "run_tab" VALUES(104,6,13,1,'Quantum Package');
+INSERT INTO "run_tab" VALUES(105,5,13,1,'Gamess');
+INSERT INTO "run_tab" VALUES(106,5,15,1,'Quantum Package');
+INSERT INTO "run_tab" VALUES(107,6,15,1,'Quantum Package');
+INSERT INTO "run_tab" VALUES(108,8,13,1,'Quantum Package');
 CREATE TABLE method_tab(
                      method_id INTEGER PRIMARY KEY AUTOINCREMENT,
                           name CHARACTER(32),
