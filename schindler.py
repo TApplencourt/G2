@@ -107,7 +107,11 @@ if __name__ == '__main__':
     # -#-#-#-#- #
 
     l_ele = get_l_ele(arguments)
-    get_children = True
+
+    if arguments["--like_run_id"]:
+        get_children = False
+    else:
+        get_children = arguments["--all_children"]
 
     # Usefull object contain all related stuff to l_ele
     a = ListEle(l_ele, get_children, print_children)
