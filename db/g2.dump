@@ -2759,6 +2759,7 @@ INSERT INTO "run_tab" VALUES(114,8,15,1,'1M_Det');
 INSERT INTO "run_tab" VALUES(115,6,15,1,'10k_Dets');
 INSERT INTO "run_tab" VALUES(116,8,15,1,'0.75_106_115');
 INSERT INTO "run_tab" VALUES(117,8,16,1,'Hartree-Fock');
+INSERT INTO "run_tab" VALUES(118,8,15,1,'Hartree-Fock');
 CREATE TABLE method_tab(
                      method_id INTEGER PRIMARY KEY AUTOINCREMENT,
                           name CHARACTER(32),
@@ -20023,12 +20024,15 @@ INSERT INTO "qmc_energy_tab" VALUES(116,94,-31.60185876,0.0061471777);
 INSERT INTO "qmc_energy_tab" VALUES(117,8,-15.8885870479,0.0017344809);
 INSERT INTO "qmc_energy_tab" VALUES(117,4,-10.1082217034,0.0014562006);
 INSERT INTO "qmc_energy_tab" VALUES(117,98,-42.2812977839,0.0018342437);
+INSERT INTO "qmc_energy_tab" VALUES(118,8,-15.8918490414,0.0023591674);
+INSERT INTO "qmc_energy_tab" VALUES(118,4,-10.1087662392,0.0027192669);
+INSERT INTO "qmc_energy_tab" VALUES(118,98,-42.2760825061,0.0029982441);
 DELETE FROM sqlite_sequence;
 INSERT INTO "sqlite_sequence" VALUES('id_tab',215);
 INSERT INTO "sqlite_sequence" VALUES('basis_tab',12);
 INSERT INTO "sqlite_sequence" VALUES('geo_tab',5);
 INSERT INTO "sqlite_sequence" VALUES('coord_tab',2117);
-INSERT INTO "sqlite_sequence" VALUES('run_tab',117);
+INSERT INTO "sqlite_sequence" VALUES('run_tab',118);
 INSERT INTO "sqlite_sequence" VALUES('method_tab',11);
 CREATE VIEW output_tab as
             SELECT  run_tab.run_id run_id,
