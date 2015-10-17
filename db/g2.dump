@@ -2760,8 +2760,8 @@ INSERT INTO "run_tab" VALUES(115,6,15,1,'10k_Dets');
 INSERT INTO "run_tab" VALUES(116,8,15,1,'0.75_106_115');
 INSERT INTO "run_tab" VALUES(117,8,16,1,'Hartree-Fock');
 INSERT INTO "run_tab" VALUES(118,8,15,1,'Hartree-Fock');
-INSERT INTO "run_tab" VALUES(119,8,16,1,'Natorb + DZ Window');
-INSERT INTO "run_tab" VALUES(120,6,16,1,'Natorb + DZ Window');
+INSERT INTO "run_tab" VALUES(119,8,16,1,'CISD Natorb + DZ Window 1M dets');
+INSERT INTO "run_tab" VALUES(120,6,16,1,'CISD Natorb + DZ Window 1M dets');
 CREATE TABLE method_tab(
                      method_id INTEGER PRIMARY KEY AUTOINCREMENT,
                           name CHARACTER(32),
