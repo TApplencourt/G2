@@ -22,7 +22,7 @@ Usage:
                                         | --like_toulouse
                                         | --like_applencourt
                                         | --like_run_id=<run_id>) [--all_children]]
-  schindler.py histogram --run_id=<id>...
+  schindler.py histogram --run_id=<id>... [--like_run_id=<run_id>]
 
 """
 
