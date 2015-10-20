@@ -197,7 +197,9 @@ if __name__ == '__main__':
         #
         print "quality_factor :", quality_factor
         for ele, target_pt2 in d_target_pt2.iteritems():
-            print ele, target_pt2 * (1 - quality_factor)
+            EPT2 = target_pt2 * (1 - quality_factor)
+            EFCI = e_cal[fci_id][ele]
+            print ele, EPT2, EFCI-EPT2
 
     elif arguments["get_this_ae"]:
 

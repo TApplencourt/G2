@@ -22,6 +22,8 @@ Usage:
                                         | --like_toulouse
                                         | --like_applencourt
                                         | --like_run_id=<run_id>) [--all_children]]
+  schindler.py histogram --run_id=<id>...
+
 """
 
 version = "0.0.1"
@@ -165,3 +167,58 @@ if __name__ == '__main__':
                 print " ".join(run_info[run_id])
                 print " ".join(line)
                 print "====="
+    #                                  
+    # |_| o  _ _|_  _   _  ._ _. ._ _  
+    # | | | _>  |_ (_) (_| | (_| | | | 
+    #                   _|             
+    elif arguments["histogram"]:
+
+        from src.data_util import get_enr, complete_e_nr, get_ediff, get_zpe_aeexp
+        from src.data_util import get_ae_cal, get_ae_nr, get_ae_diff
+        from math import *
+
+        ae_cal = get_ae_cal(f_info, e_cal)
+
+
+        e_nr = get_enr(cond_filter_ele)
+        zpe_exp, ae_exp = get_zpe_aeexp(cond_filter_ele)
+        complete_e_nr(e_nr, f_info, ae_exp, zpe_exp)
+
+        ae_nr = get_ae_nr(f_info, e_nr)
+        ae_diff = get_ae_diff(ae_cal, ae_nr)
+
+        sq_2pi_inv = .5/sqrt(2.*pi)
+        def g(x,x0,sigma):
+          return exp(-(x-x0)**2/(sigma*sigma))*sq_2pi_inv
+
+        
+        for run_id, ae_diff in ae_diff.items():
+          print "# run_id : %d"%run_id
+          rmin =  1000.
+          rmax = -1000.
+          for ele, e in ae_diff.iteritems():
+            try:
+              x0 = e.e
+            except:
+              x0 = e
+            rmin = min(x0, rmin)
+            rmax = max(x0, rmax)
+
+          print rmin, rmax
+          dx = (rmax-rmin)/100.
+          x = (rmax-rmin)*0.5 - 2.5*(rmax-rmin)
+          for i in xrange(300):
+            s = 0.
+            for ele, e in ae_diff.iteritems():
+              try:
+                x0 = e.e
+                sigma = max(0.001,e.err)
+              except:
+                x0 = e
+                sigma = 0.001
+              s += g(x,x0,sigma)
+            print x*627.51, s
+            x += dx
+          print '\n'
+
+
