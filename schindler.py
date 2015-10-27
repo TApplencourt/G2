@@ -22,7 +22,7 @@ Usage:
                                         | --like_toulouse
                                         | --like_applencourt
                                         | --like_run_id=<run_id>) [--all_children]]
-  schindler.py histogram --run_id=<id>...
+  schindler.py histogram --run_id=<id>... [--like_run_id=<run_id>]
 
 """
 
@@ -193,7 +193,7 @@ if __name__ == '__main__':
 
         
         for run_id, ae_diff in ae_diff.items():
-          print "# run_id : %d"%run_id
+          print "run:%d"%run_id
           rmin =  1000.
           rmax = -1000.
           for ele, e in ae_diff.iteritems():
@@ -220,5 +220,5 @@ if __name__ == '__main__':
             print x*627.51, s
             x += dx
           print '\n'
-
+          print "#Gnuplot cmd: plot for [IDX=0:1] 'visu' i IDX u 1:2 w lines title columnhead(1)"
 
