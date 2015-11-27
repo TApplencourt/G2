@@ -13,9 +13,31 @@ Usage:
                      (--simple | --cipsi [--epp] | --qmc)
                      [--overwrite]
 
-Info:
-  The put_in file need to be formated like this:
-    ```name value \n```
+Example of input file for a simple run (molecule,energy):
+
+F                             -24.1891722605
+CH2_1A1                        -6.7152075579
+NH                            -10.4245101299
+SiH2_3B1                       -4.9754588687
+CH3                            -7.4164102812
+
+Example of input file for a CIPSI run (molecule,energy,pt2):
+
+F                             -24.1891722605      0.0003183747
+CH2_1A1                        -6.7152075579      0.0003207809
+NH                            -10.4245101299      0.0003317405
+SiH2_3B1                       -4.9754588687      0.0003413844
+CH3                            -7.4164102812      0.0003798976
+
+Example of input file for a QMC run (molecule,energy, error):
+
+F                             -24.1891722605      0.0003183747
+CH2_1A1                        -6.7152075579      0.0003207809
+NH                            -10.4245101299      0.0003317405
+SiH2_3B1                       -4.9754588687      0.0003413844
+CH3                            -7.4164102812      0.0003798976
+
+
 """
 
 version = "0.0.2"
