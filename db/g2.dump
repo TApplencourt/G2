@@ -247,7 +247,7 @@ INSERT INTO "basis_tab" VALUES(15,'vtz-BFD','http://ftp.aip.org/epaps/journ_chem
 INSERT INTO "basis_tab" VALUES(16,'vqz-BFD','http://ftp.aip.org/epaps/journ_chem_phys/E-JCPSA6-126-315722/epaps_material.html');
 INSERT INTO "basis_tab" VALUES(17,'v5z-BFD','http://ftp.aip.org/epaps/journ_chem_phys/E-JCPSA6-126-315722/epaps_material.html');
 INSERT INTO "basis_tab" VALUES(18,'aug-cc-pVDZ',NULL);
-INSERT INTO "basis_tab" VALUES(18,'cc-pVDZ-BFD',NULL);
+INSERT INTO "basis_tab" VALUES(19,'cc-pVDZ-BFD',NULL);
 CREATE TABLE units_tab(
     property  CHARACTER(32),
        units  CHARACTER(32),
