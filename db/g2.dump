@@ -15765,10 +15765,7 @@ INSERT INTO "simple_energy_tab" VALUES(140,85,-237.615994);
 INSERT INTO "simple_energy_tab" VALUES(140,111,-150.715669);
 INSERT INTO "simple_energy_tab" VALUES(140,129,-151.359872);
 INSERT INTO "simple_energy_tab" VALUES(140,125,-796.674163);
-INSERT INTO "simple_energy_tab" VALUES(140,63,-14.903462);
 INSERT INTO "simple_energy_tab" VALUES(140,42,-467.27927);
-INSERT INTO "simple_energy_tab" VALUES(140,23,-107.266669);
-INSERT INTO "simple_energy_tab" VALUES(140,35,-8.022703);
 INSERT INTO "simple_energy_tab" VALUES(140,26,-82.534215);
 INSERT INTO "simple_energy_tab" VALUES(140,102,-83.232367);
 INSERT INTO "simple_energy_tab" VALUES(140,9,-199.647251);
@@ -15785,8 +15782,6 @@ INSERT INTO "simple_energy_tab" VALUES(140,58,-129.719535);
 INSERT INTO "simple_energy_tab" VALUES(140,49,-395.54809);
 INSERT INTO "simple_energy_tab" VALUES(140,31,-452.33118);
 INSERT INTO "simple_energy_tab" VALUES(140,60,-343.60439);
-INSERT INTO "simple_energy_tab" VALUES(140,69,-323.742281);
-INSERT INTO "simple_energy_tab" VALUES(140,34,-621.680474);
 INSERT INTO "simple_energy_tab" VALUES(140,19,-162.427578);
 INSERT INTO "simple_energy_tab" VALUES(140,8,-74.974761);
 INSERT INTO "simple_energy_tab" VALUES(140,22,-150.131963);
@@ -15963,6 +15958,11 @@ INSERT INTO "simple_energy_tab" VALUES(140,10,-161.8942784);
 INSERT INTO "simple_energy_tab" VALUES(139,11,-0.4992784);
 INSERT INTO "simple_energy_tab" VALUES(139,13,-7.4334649);
 INSERT INTO "simple_energy_tab" VALUES(139,10,-161.8556736);
+INSERT INTO "simple_energy_tab" VALUES(140,63,-14.937048);
+INSERT INTO "simple_energy_tab" VALUES(140,23,-107.230809);
+INSERT INTO "simple_energy_tab" VALUES(140,35,-8.0400117);
+INSERT INTO "simple_energy_tab" VALUES(140,69,-323.817078);
+INSERT INTO "simple_energy_tab" VALUES(140,34,-621.7162616);
 CREATE TABLE cipsi_energy_tab(
                run_id INTEGER,
                    id INTEGER,
