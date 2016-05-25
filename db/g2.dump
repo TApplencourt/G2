@@ -15959,7 +15959,7 @@ INSERT INTO "simple_energy_tab" VALUES(139,11,-0.4992784);
 INSERT INTO "simple_energy_tab" VALUES(139,13,-7.4334649);
 INSERT INTO "simple_energy_tab" VALUES(139,10,-161.8556736);
 INSERT INTO "simple_energy_tab" VALUES(140,63,-14.937048);
-INSERT INTO "simple_energy_tab" VALUES(140,23,-107.230809);
+INSERT INTO "simple_energy_tab" VALUES(140,23,-107.2849988);
 INSERT INTO "simple_energy_tab" VALUES(140,35,-8.0400117);
 INSERT INTO "simple_energy_tab" VALUES(140,69,-323.817078);
 INSERT INTO "simple_energy_tab" VALUES(140,34,-621.7162616);
