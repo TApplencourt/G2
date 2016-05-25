@@ -15957,6 +15957,12 @@ INSERT INTO "simple_energy_tab" VALUES(139,90,-290.138192);
 INSERT INTO "simple_energy_tab" VALUES(139,124,-290.748441);
 INSERT INTO "simple_energy_tab" VALUES(139,132,-291.393419);
 INSERT INTO "simple_energy_tab" VALUES(139,76,-686.719638);
+INSERT INTO "simple_energy_tab" VALUES(140,11,-0.49980990765);
+INSERT INTO "simple_energy_tab" VALUES(140,13,-7.4492641);
+INSERT INTO "simple_energy_tab" VALUES(140,10,-161.8942784);
+INSERT INTO "simple_energy_tab" VALUES(139,11,-0.4992784);
+INSERT INTO "simple_energy_tab" VALUES(139,13,-7.4334649);
+INSERT INTO "simple_energy_tab" VALUES(139,10,-161.8556736);
 CREATE TABLE cipsi_energy_tab(
                run_id INTEGER,
                    id INTEGER,
